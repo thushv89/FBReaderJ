@@ -300,7 +300,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	}
 
 	
-	@Override
+//	@Override
 	public void onInit(int status) { 
 			
 		mTts.setOnUtteranceCompletedListener(this);
