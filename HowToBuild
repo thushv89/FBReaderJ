@@ -29,3 +29,13 @@ If you are Windows user
   2c. Run 'ant release'.
 
 3. Sign your package manually.
+
+For Eclipse users:
+
+You will need Android sdk and ndk installed.
+
+1. Download the project code from git onto your local drive.
+2. Create a new Android project in Eclipse
+3. Choose create project from existing source. Point to the location of the downloaded code.
+4. Build from within Eclipse
+5. The signed apk will be present in the /bin folder which can be installed on the Android device/emulator.
