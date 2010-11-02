@@ -19,6 +19,7 @@
 
 package org.geometerplus.android.fbreader;
 
+
 import android.app.*;
 import android.os.Bundle;
 import android.view.*;
@@ -43,9 +44,23 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 	private final ZLResource myResource = ZLResource.resource("libraryView");
 	private Book myCurrentBook;
 
+	/**
+	 * This method will return the ListView created for each tab present at the top of the screen
+	 * viz. "By author", "By tab" and "Recent"  
+	 * @param tag - A String literal that will be seen as a label in the tab
+	 * @param viewId - The view that will serve as a layout for the given tab
+	 * @param iconId - The resourceID of the drawable resource that will act as a tab image
+	 * @return ListView - This value will be passed to LibraryAdapter for attaching the adapter to this view
+	 */
 	private ListView createTab(String tag, int viewId, int iconId) {
+		
+		//Get the TabHost which will host the tabs in the Library Activity
 		final TabHost host = getTabHost();
+		
+		// Call the ZLResource's methods to get the String value corresponding to the tag
 		final String label = myResource.getResource(tag).getValue();
+		
+		// Add the tab to the TabHost after setting its content
 		host.addTab(host.newTabSpec(tag).setIndicator(label, getResources().getDrawable(iconId)).setContent(viewId));
 		return (ListView)findViewById(viewId);
 	}
@@ -147,6 +162,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		return true;
 	}
 
+	//By default these int values are public, static and final, since inside an interface
 	interface Type {
 		int TREE = 0;
 		int FLAT = 1;
@@ -166,6 +182,10 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		}
 
 		@Override
+		/**
+		 * This method will be called every time the context menu is about to be 
+		 * displayed (Unlike onCreateOptionsMenu, which is called only once).
+		 */
 		public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo) {
 			final int position = ((AdapterView.AdapterContextMenuInfo)menuInfo).position;
 			final LibraryTree tree = (LibraryTree)getItem(position);
@@ -184,6 +204,9 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			if (myCurrentBook == null) {
 				return null;
 			}
+			
+			// Peculiar use of for each loop here. The myLibraryTree is not a collection.
+			// Here tree is just assigned the value of myLibraryTree
 			for (FBTree tree : myLibraryTree) {
 				if ((tree instanceof BookTree) && ((BookTree)tree).Book.equals(myCurrentBook)) {
 					return tree;
