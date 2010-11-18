@@ -24,6 +24,7 @@ import java.util.*;
 import org.geometerplus.zlibrary.core.options.*;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 
+import org.geometerplus.fbreader.formats.daisy3.Daisy3Plugin;
 import org.geometerplus.fbreader.formats.fb2.FB2Plugin;
 import org.geometerplus.fbreader.formats.oeb.OEBPlugin;
 import org.geometerplus.fbreader.formats.pdb.MobipocketPlugin;
@@ -50,6 +51,7 @@ public class PluginCollection {
 			//ourInstance.myPlugins.add(new TcrPlugin());
 			//ourInstance.myPlugins.add(new CHMPlugin());
 			ourInstance.myPlugins.add(new OEBPlugin());
+			ourInstance.myPlugins.add(new Daisy3Plugin());
 			//ourInstance.myPlugins.add(new RtfPlugin());
 			//ourInstance.myPlugins.add(new OpenReaderPlugin());
 		}
