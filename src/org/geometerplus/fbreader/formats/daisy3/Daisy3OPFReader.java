@@ -113,7 +113,7 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
 							myModelReader.addContentsData(Dots);
 						}
 						
-						// The paragraph number gets associated with this TOC entry in this method
+						// The paragraph number gets associated with the TOC entry in this method
 						myModelReader.beginContentsParagraph(para);
 						myModelReader.addContentsData(point.Text.toCharArray());
 					}
