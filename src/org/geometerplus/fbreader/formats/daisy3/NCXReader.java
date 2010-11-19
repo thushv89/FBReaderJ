@@ -139,7 +139,6 @@ class NCXReader extends ZLXMLReaderAdapter {
 					if (last.Text.length() == 0) {
 						last.Text = "...";
 					}
-					System.out.println("*** last.id = "+last.id);
 					myNavigationMap.put(last.Order, last);
 					myPointStack.remove(myPointStack.size() - 1);
 					myReadState = (myPointStack.isEmpty()) ? READ_MAP : READ_POINT;
