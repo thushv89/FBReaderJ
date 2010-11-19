@@ -32,7 +32,6 @@ class Daisy3XMLTagLevelControlAction extends Daisy3XMLTagAction {
 	 */
 	void storeParagraphNumforLevel(String id, int para){
 		toc_paragraph_map.put(id, new Integer(para));
-		System.out.println(toc_paragraph_map.size());
 	}
 
 	/**
