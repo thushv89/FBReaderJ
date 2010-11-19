@@ -13,93 +13,13 @@ import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
 
+/**
+ * Reader class for a Daisy3 XML file
+ *
+ */
 public class Daisy3XMLReader extends ZLXMLReaderAdapter {
+
 	private static final HashMap<String,Daisy3XMLTagAction> ourTagActions = new HashMap<String,Daisy3XMLTagAction>();
-
-	public static Daisy3XMLTagAction addAction(String tag, Daisy3XMLTagAction action) {
-		Daisy3XMLTagAction old = (Daisy3XMLTagAction)ourTagActions.get(tag);
-		ourTagActions.put(tag, action);
-		return old;
-	}
-
-	public static void fillTagTable() {
-		if (!ourTagActions.isEmpty()) {
-			return;
-		}
-
-		//addAction("html", new XHTMLTagAction());
-		//addAction("body", new XHTMLTagBodyAction());
-		//addAction("title", new XHTMLTagAction());
-		//addAction("meta", new XHTMLTagAction());
-		//addAction("script", new XHTMLTagAction());
-
-		//addAction("font", new XHTMLTagAction());
-		//addAction("style", new XHTMLTagAction());
-
-		addAction("p", new Daisy3XMLTagParagraphAction());
-		addAction("h1", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H1));
-		addAction("h2", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H2));
-		addAction("h3", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H3));
-		addAction("h4", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H4));
-		addAction("h5", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H5));
-		addAction("h6", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H6));
-
-		//addAction("ol", new XHTMLTagAction());
-		//addAction("ul", new XHTMLTagAction());
-		//addAction("dl", new XHTMLTagAction());
-//		addAction("li", new XHTMLTagItemAction());
-//
-//		addAction("strong", new XHTMLTagControlAction(FBTextKind.STRONG));
-//		addAction("b", new XHTMLTagControlAction(FBTextKind.BOLD));
-//		addAction("em", new XHTMLTagControlAction(FBTextKind.EMPHASIS));
-//		addAction("i", new XHTMLTagControlAction(FBTextKind.ITALIC));
-//		final XHTMLTagAction codeControlAction = new XHTMLTagControlAction(FBTextKind.CODE);
-//		addAction("code", codeControlAction);
-//		addAction("tt", codeControlAction);
-//		addAction("kbd", codeControlAction);
-//		addAction("var", codeControlAction);
-//		addAction("samp", codeControlAction);
-//		addAction("cite", new XHTMLTagControlAction(FBTextKind.CITE));
-//		addAction("sub", new XHTMLTagControlAction(FBTextKind.SUB));
-//		addAction("sup", new XHTMLTagControlAction(FBTextKind.SUP));
-//		addAction("dd", new XHTMLTagControlAction(FBTextKind.DEFINITION_DESCRIPTION));
-//		addAction("dfn", new XHTMLTagControlAction(FBTextKind.DEFINITION));
-//		addAction("strike", new XHTMLTagControlAction(FBTextKind.STRIKETHROUGH));
-//
-//		addAction("a", new XHTMLTagHyperlinkAction());
-//
-//		addAction("img", new XHTMLTagImageAction("src"));
-//		addAction("object", new XHTMLTagImageAction("data"));
-
-		//addAction("area", new XHTMLTagAction());
-		//addAction("map", new XHTMLTagAction());
-
-		//addAction("base", new XHTMLTagAction());
-		//addAction("blockquote", new XHTMLTagAction());
-		//addAction("br", new XHTMLTagRestartParagraphAction());
-		//addAction("center", new XHTMLTagAction());
-		//addAction("div", new XHTMLTagParagraphAction());
-		//addAction("dt", new XHTMLTagParagraphAction());
-		//addAction("head", new XHTMLTagAction());
-		//addAction("hr", new XHTMLTagAction());
-		//addAction("link", new XHTMLTagAction());
-		//addAction("param", new XHTMLTagAction());
-		//addAction("q", new XHTMLTagAction());
-		//addAction("s", new XHTMLTagAction());
-
-		//addAction("pre", new XHTMLTagPreAction());
-		//addAction("big", new XHTMLTagAction());
-		//addAction("small", new XHTMLTagAction());
-		//addAction("u", new XHTMLTagAction());
-
-		//addAction("table", new XHTMLTagAction());
-		//addAction("td", new XHTMLTagParagraphAction());
-		//addAction("th", new XHTMLTagParagraphAction());
-		//addAction("tr", new XHTMLTagAction());
-		//addAction("caption", new XHTMLTagAction());
-		//addAction("span", new Daisy3XMLTagAction());
-	}
-
 	private final BookReader myModelReader;
 	String myPathPrefix;
 	String myLocalPathPrefix;
@@ -108,25 +28,62 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	boolean myInsideBody;
 	private final Map<String,Integer> myFileNumbers;
 
+	/**
+	 * Add action class corresponding to the tag into the HashMap.
+	 * @param tag Tag in the XML file.
+	 * @param action Daisy3XMLTagAction class to be activated when the tag is encountered.
+	 * @return Daisy3XMLTagAction Earlier Value which was replaced.
+	 */
+	public static Daisy3XMLTagAction addAction(String tag, Daisy3XMLTagAction action) {
+		Daisy3XMLTagAction old = (Daisy3XMLTagAction)ourTagActions.get(tag);
+		ourTagActions.put(tag, action);
+		return old;
+	}
+
+	/**
+	 * Fill the HashMap with tag<=>Daisy3XMLTagAction mappings.
+	 */
+	public static void fillTagTable() {
+		if (!ourTagActions.isEmpty()) {
+			return;
+		}
+
+		addAction("p", new Daisy3XMLTagParagraphAction());
+		addAction("h1", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H1));
+		addAction("h2", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H2));
+		addAction("h3", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H3));
+		addAction("h4", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H4));
+		addAction("h5", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H5));
+		addAction("h6", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H6));
+		addAction("level1", Daisy3XMLTagLevelControlAction.getInstance());
+		addAction("level2", Daisy3XMLTagLevelControlAction.getInstance());
+		addAction("level3", Daisy3XMLTagLevelControlAction.getInstance());		
+	}
+
+	/**
+	 * Constructor
+	 * @param modelReader BookReader.
+	 * @param fileNumbers Map<String, Integer>.
+	 */
 	public Daisy3XMLReader(BookReader modelReader, Map<String,Integer> fileNumbers) {
 		myModelReader = modelReader;
 		myFileNumbers = fileNumbers;
 	}
 
+	/**
+	 * Get the BookReader instance.
+	 * @return Bookreader 
+	 */
 	final BookReader getModelReader() {
 		return myModelReader;
 	}
 
-	public final String getFileAlias(String fileName) {
-		fileName = MiscUtil.decodeHtmlReference(fileName);
-		Integer num = myFileNumbers.get(fileName);
-		if (num == null) {
-			num = myFileNumbers.size();
-			myFileNumbers.put(fileName, num);
-		}
-		return num.toString();
-	}
-
+	
+	/**
+	 * Read this Daisy3 XML file.
+	 * @param file ZLFile Represents the XML file.
+	 * @param referencePrefix String used in accordance with other ZLXMLReader(s).
+	 */
 	public boolean readFile(ZLFile file, String referencePrefix) {
 		fillTagTable();
 
@@ -141,19 +98,35 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		return read(file);
 	}
 
+	/**
+	 * Tag handler method when a tag parsing starts.
+	 * @param tag String representing the XML tag.
+	 * @param attributes ZLStringMap.
+	 * @return boolean Indicates status of operation.
+	 */
 	public boolean startElementHandler(String tag, ZLStringMap attributes) {
 		String id = attributes.getValue("id");
 		if (id != null) {
 			myModelReader.addHyperlinkLabel(myReferencePrefix + id);
 		}
 
-		Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag.toLowerCase());
+		tag = tag.toLowerCase();
+		Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag);
 		if (action != null) {
+			if(tag=="level1" || tag=="level2" || tag=="level3"){
+				Daisy3XMLTagLevelControlAction level_action = (Daisy3XMLTagLevelControlAction)action;
+				level_action.storeParagraphNumforLevel(id, myModelReader.Model.BookTextModel.getParagraphsNumber());
+			}
 			action.doAtStart(this, attributes);
 		}
 		return false;
 	}
 
+	/**
+	 * Tag handler when a tag parsing ends.
+	 * @param tag String indicating tag whose parsing has ended.
+	 * @return Indicates status of operation.
+	 */
 	public boolean endElementHandler(String tag) {
 		Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag.toLowerCase());
 		if (action != null) {
@@ -162,6 +135,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		return false;
 	}
 
+	@Override
 	public void characterDataHandler(char[] data, int start, int len) {
 		if (myPreformatted) {
 			final char first = data[start]; 
@@ -202,6 +176,7 @@ cycle:
 
 	private static ArrayList<String> ourExternalDTDs = new ArrayList<String>();
 
+	
 	public static List<String> xhtmlDTDs() {
 		if (ourExternalDTDs.isEmpty()) {
 			ourExternalDTDs.add("data/formats/xhtml/xhtml-lat1.ent");
@@ -211,18 +186,22 @@ cycle:
 		return ourExternalDTDs;
 	}
 
+	@Override
 	public List<String> externalDTDs() {
 		return xhtmlDTDs();
 	}
 
+	@Override
 	public boolean dontCacheAttributeValues() {
 		return true;
 	}
-
+	
+	@Override
 	public boolean processNamespaces() {
 		return true;
 	}
-
+	
+	@Override
 	public void namespaceMapChangedHandler(HashMap<String,String> namespaceMap) {
 	}
 }
