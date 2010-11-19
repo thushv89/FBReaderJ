@@ -14,24 +14,27 @@ import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
 
 /**
  * NCX file reader for the daisy3 book
- *
+ * All the "navPoint" elements are stored in form
+ * of a navigation map. This map is used or displaying 
+ * table of contents.
  */
 class NCXReader extends ZLXMLReaderAdapter {
 	static class NavPoint {
 		final int Order;
 		final int Level;
 		String Text = "";
-		String ContentHRef = "";
+		String id = "";
+		int para;
 
 		NavPoint(int order, int level) {
 			Order = order;
-			Level = level;
+			Level = level;			
 		}
 	}
 
 	private final TreeMap<Integer,NavPoint> myNavigationMap = new TreeMap<Integer,NavPoint>();
 	private final ArrayList<NavPoint> myPointStack = new ArrayList<NavPoint>();
-
+	private BookReader myModelReader;
 	private static final int READ_NONE = 0;
 	private static final int READ_MAP = 1;
 	private static final int READ_POINT = 2;
@@ -43,6 +46,7 @@ class NCXReader extends ZLXMLReaderAdapter {
 	private String myLocalPathPrefix;
 
 	NCXReader(BookReader modelReader) {
+		myModelReader = modelReader;
 	}
 
 	boolean readFile(String filePath) {
@@ -61,7 +65,9 @@ class NCXReader extends ZLXMLReaderAdapter {
 	private static final String TAG_CONTENT = "content";
 	private static final String TAG_TEXT = "text";
 
+	private static final String ATTRIBUTE_ID = "id";
 	private static final String ATTRIBUTE_PLAYORDER = "playOrder";
+	
 
 	private int atoi(String number) {
 		try {
@@ -91,14 +97,18 @@ class NCXReader extends ZLXMLReaderAdapter {
 			case READ_POINT:
 				if (tag == TAG_NAVPOINT) {
 					final String order = attributes.getValue(ATTRIBUTE_PLAYORDER);
+					final String id = attributes.getValue(ATTRIBUTE_ID);
+					System.out.println("*** attributes.getValue(ATTRIBUTE_ID) = "+id);
 					final int index = (order != null) ? atoi(order) : myPlayIndex++;
-					myPointStack.add(new NavPoint(index, myPointStack.size()));
+					NavPoint navpoint = new NavPoint(index, myPointStack.size());
+					navpoint.id = id;
+					myPointStack.add(navpoint);
 				} else if (tag == TAG_NAVLABEL) {
 					myReadState = READ_LABEL;
 				} else if (tag == TAG_CONTENT) {
 					final int size = myPointStack.size();
 					if (size > 0) {
-						myPointStack.get(size - 1).ContentHRef = myLocalPathPrefix + attributes.getValue("src");
+					//	myPointStack.get(size - 1).id = myLocalPathPrefix + attributes.getValue("id");
 					}
 				}
 				break;
@@ -130,6 +140,7 @@ class NCXReader extends ZLXMLReaderAdapter {
 					if (last.Text.length() == 0) {
 						last.Text = "...";
 					}
+					System.out.println("*** last.id = "+last.id);
 					myNavigationMap.put(last.Order, last);
 					myPointStack.remove(myPointStack.size() - 1);
 					myReadState = (myPointStack.isEmpty()) ? READ_MAP : READ_POINT;
