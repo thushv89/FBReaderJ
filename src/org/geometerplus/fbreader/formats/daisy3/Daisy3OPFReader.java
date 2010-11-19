@@ -58,8 +58,9 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
 				
 				// Get the NCX file name
 				if(daisy3content.getExtension() == "ncx"){
-					if(!str.startsWith("._"))
+					if(!str.startsWith("._")){
 						myNCXTOCFileName = daisy3content.getName(false);
+					}
 				}
 				
 				//Get the XML file name. This file contains the Daisy3 content
@@ -67,14 +68,14 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
 					if(!str.startsWith("._"))
 					{
 						daisy3XMLFileName = daisy3content.getName(false);
-						final ZLFile daisy3XmlFile = ZLFile.createFileByPath(myFilePrefix + daisy3XMLFileName);					
+						final ZLFile daisy3XmlFile = ZLFile.createFileByPath(myFilePrefix + daisy3XMLFileName);
 						reader = new Daisy3XMLReader(myModelReader, myFileNumbers);
 						final String referenceName = "daisy3";
 						reader.readFile(daisy3XmlFile, referenceName + '#');
-						generateTOC();
 					}
 				}
 			}
+			generateTOC();
 		}
 		return true;
 	}
