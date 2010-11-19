@@ -89,13 +89,14 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		}
 
 		generateTOC();
-
 		return true;
 	}
 
 	private BookModel.Label getTOCLabel(String id) {
+		
 		final int index = id.indexOf('#');
 		final String path = (index >= 0) ? id.substring(0, index) : id;
+		
 		Integer num = myFileNumbers.get(path);
 		if (num == null) {
 			return null;
@@ -119,6 +120,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 					int level = 0;
 					for (NCXReader.NavPoint point : navigationMap.values()) {
 						final BookModel.Label label = getTOCLabel(point.ContentHRef);
+						
 						int index = (label != null) ? label.ParagraphIndex : -1;
 						while (level > point.Level) {
 							myModelReader.endContentsParagraph();
@@ -172,6 +174,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	
 	private int myState;
 
+	@Override
 	public boolean startElementHandler(String tag, ZLStringMap xmlattributes) {
 		tag = tag.toLowerCase();
 		if ((myOPFSchemePrefix != null) && tag.startsWith(myOPFSchemePrefix)) {
@@ -230,6 +233,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		return false;
 	}
 
+	@Override
 	public boolean endElementHandler(String tag) {
 		tag = tag.toLowerCase();
 		if ((myOPFSchemePrefix != null) && tag.startsWith(myOPFSchemePrefix)) {
@@ -242,10 +246,12 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		return false;
 	}
 
+	@Override
 	public boolean processNamespaces() {
 		return true;
 	}
 
+	@Override
 	public void namespaceMapChangedHandler(HashMap<String,String> namespaceMap) {
 		myOPFSchemePrefix = null;
 		for (Map.Entry<String,String> entry : namespaceMap.entrySet()) {
@@ -256,6 +262,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		}
 	}
 
+	@Override
 	public boolean dontCacheAttributeValues() {
 		return true;
 	}
