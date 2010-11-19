@@ -98,7 +98,6 @@ class NCXReader extends ZLXMLReaderAdapter {
 				if (tag == TAG_NAVPOINT) {
 					final String order = attributes.getValue(ATTRIBUTE_PLAYORDER);
 					final String id = attributes.getValue(ATTRIBUTE_ID);
-					System.out.println("*** attributes.getValue(ATTRIBUTE_ID) = "+id);
 					final int index = (order != null) ? atoi(order) : myPlayIndex++;
 					NavPoint navpoint = new NavPoint(index, myPointStack.size());
 					navpoint.id = id;
