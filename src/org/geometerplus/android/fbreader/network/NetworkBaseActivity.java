@@ -116,7 +116,7 @@ abstract class NetworkBaseActivity extends ListActivity
 	private void setupCover(final ImageView coverView, NetworkTree tree, int width, int height) {
 		Bitmap coverBitmap = null;
 		ZLImage cover = tree.getCover();
-		if (cover == null) { 
+		if (cover == null) {
 			cover = myFBReaderIcon;
 		}
 		if (cover != null) {
