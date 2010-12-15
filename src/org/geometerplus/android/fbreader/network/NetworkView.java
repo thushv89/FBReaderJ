@@ -19,26 +19,33 @@
 
 package org.geometerplus.android.fbreader.network;
 
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
+import org.geometerplus.fbreader.network.NetworkBookItem;
+import org.geometerplus.fbreader.network.NetworkImage;
+import org.geometerplus.fbreader.network.NetworkLibrary;
+import org.geometerplus.fbreader.network.NetworkTree;
+import org.geometerplus.zlibrary.core.network.ZLNetworkException;
+
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
-import android.view.MenuItem;
 import android.view.Menu;
+import android.view.MenuItem;
 
-import org.geometerplus.zlibrary.core.network.ZLNetworkException;
-
-import org.geometerplus.fbreader.network.*;
-
-class NetworkView {
+class NetworkView extends Activity{
+	private final int START_BOOKSHARE_MENU_ACTIVITY = 0;
+	private final int BOOKSHARE_MENU_FINISHED = 1;
 	private static NetworkView ourInstance;
 
 	public static NetworkView Instance() {
@@ -57,6 +64,7 @@ class NetworkView {
 	public boolean isInitialized() {
 		return myInitialized;
 	}
+	
 
 	public void initialize() throws ZLNetworkException {
 		new SQLiteNetworkDatabase();
@@ -184,6 +192,7 @@ class NetworkView {
 	public void tryResumeLoading(NetworkBaseActivity activity, NetworkTree tree, String key, Runnable expandRunnable) {
 		final ItemsLoadingRunnable runnable = getItemsLoadingRunnable(key);
 		if (runnable != null && runnable.tryResumeLoading()) {
+			System.out.println("****In tryResumeLoading, before opentree");
 			openTree(activity, tree, key);
 			return;
 		}
@@ -349,26 +358,38 @@ class NetworkView {
 	private final LinkedList<NetworkTree> myOpenedStack = new LinkedList<NetworkTree>();
 	private final HashMap<String, NetworkCatalogActivity> myOpenedActivities = new HashMap<String, NetworkCatalogActivity>();
 
+	
 	public void openTree(Context context, NetworkTree tree, String key) {
-		final int level = tree.Level - 1; // tree.Level == 1 for catalog's root element
-		if (level > myOpenedStack.size()) {
-			throw new RuntimeException("Unable to open catalog with Level greater than the number of opened catalogs.\n"
-				+ "Catalog: " + tree.getName() + "\n"
-				+ "Level: " + level + "\n"
-				+ "Opened catalogs: " + myOpenedStack.size());
+		
+		System.out.println("key = "+key);
+		if(key.equalsIgnoreCase("http://service.bookshare.org")){
+			Intent intent = new Intent(context.getApplicationContext(),Bookshare_Webservice_Login.class);
+			context.startActivity(intent);
+//			((Activity)context).startActivityForResult(intent, START_BOOKSHARE_MENU_ACTIVITY);
+			((Activity)context).finish();
 		}
-		while (level < myOpenedStack.size()) {
-			myOpenedStack.removeLast();
+		else{
+			
+			final int level = tree.Level - 1; // tree.Level == 1 for catalog's root element
+			if (level > myOpenedStack.size()) {
+				throw new RuntimeException("Unable to open catalog with Level greater than the number of opened catalogs.\n"
+					+ "Catalog: " + tree.getName() + "\n"
+					+ "Level: " + level + "\n"
+					+ "Opened catalogs: " + myOpenedStack.size());
+			}
+			while (level < myOpenedStack.size()) {
+				myOpenedStack.removeLast();
+			}
+			myOpenedStack.add(tree);
+	
+			context.startActivity(
+				new Intent(context.getApplicationContext(), NetworkCatalogActivity.class)
+					.putExtra(NetworkCatalogActivity.CATALOG_LEVEL_KEY, level)
+					.putExtra(NetworkCatalogActivity.CATALOG_KEY_KEY, key)
+			);
 		}
-		myOpenedStack.add(tree);
-
-		context.startActivity(
-			new Intent(context.getApplicationContext(), NetworkCatalogActivity.class)
-				.putExtra(NetworkCatalogActivity.CATALOG_LEVEL_KEY, level)
-				.putExtra(NetworkCatalogActivity.CATALOG_KEY_KEY, key)
-		);
 	}
-
+	
 	void setOpenedActivity(String key, NetworkCatalogActivity activity) {
 		if (activity == null) {
 			myOpenedActivities.remove(key);
