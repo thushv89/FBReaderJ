@@ -1,7 +1,5 @@
 package org.geometerplus.fbreader.network.bookshare;
 
-
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -45,7 +43,11 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
-
+/**
+ * This ListActivity shows the search results
+ * in form of a ListView.
+ *
+ */
 public class Bookshare_Books_Listing extends ListActivity{
 
 	private String URI_BOOKSHARE_ID_SEARCH ="http://service.bookshare.org/book/id/";
@@ -76,11 +78,9 @@ public class Bookshare_Books_Listing extends ListActivity{
 		Intent intent  = getIntent();
 		WS_USERNAME = intent.getStringExtra("ws_username");
 		WS_PASSWORD = intent.getStringExtra("ws_password");
-		
-			
+
 		requestURI = intent.getStringExtra("REQUEST_URI");
 		requestType = intent.getStringExtra("REQUEST_TYPE");
-		System.out.println(requestURI+" : "+requestType);
 		
 		if(requestType.equalsIgnoreCase("Title Search")
 				|| requestType.equalsIgnoreCase("Author Search")
@@ -94,19 +94,22 @@ public class Bookshare_Books_Listing extends ListActivity{
 		getListing(requestURI);
 	}
 	
+	/*
+	 * Spawn a new Thread for carrying out the search 
+	 */
 	private void getListing(final String uri){
 		
-		System.out.println("In getListing********");
-		
 		vectorResults = new Vector<Bookshare_Result_Bean>();
+
 		// Show a Progress Dialog before the book opens
 		pd_spinning = ProgressDialog.show(this, null, "Fetching books data. Please wait.", Boolean.TRUE);
 		
 		new Thread(){
 			public void run(){
-				System.out.println("Inside run");
 				try{
 					inputStream = bws.getResponseStream(WS_USERNAME, WS_PASSWORD, uri);
+					
+					// Once the response is obtained, send message to the handler
 					Message msg = Message.obtain();
 					msg.what = DATA_FETCHED;
 					msg.setTarget(handler);
@@ -154,6 +157,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 		return true;
 	}
 
+	// Handler for dealing with the stream obtained as a result of search 
 	Handler handler = new Handler(){
 
 		@Override
@@ -168,30 +172,22 @@ public class Bookshare_Books_Listing extends ListActivity{
 				pd_spinning.cancel();
 
 				String response_HTML = bws.convertStreamToString(inputStream);
-//				System.out.println(response_HTML);
+				
+				// Cleanup the HTML formatted tags
 				String response = response_HTML.replace("&apos;", "'").replace("&quot;", "\"").replace("&amp;", "&").replace("&#xd;","").replace("&#x97;", "-");
-
+				
+				// Parse the response of search result
 				parseResponse(response);
 
-/*				for(Bookshare_Result_Bean bean : vectorResults){
-					System.out.println("id = "+bean.getId());
-					System.out.println("title = "+bean.getTitle());
-					for(int i = 0; i < bean.getAuthor().length; i++){
-						System.out.println("author = "+bean.getAuthor()[i]);
-					}
-					for(int i = 0; i < bean.getDownloadFormats().length; i++){
-						System.out.println("download-format = "+bean.getDownloadFormats()[i]);
-					}
-					System.out.println("images = "+bean.getImages());
-					System.out.println("freely avalable = "+bean.getFreelyAvailable());
-					System.out.println("available-to-download = "+bean.getAvailableToDownload());
-				}*/
 				if(responseType.equalsIgnoreCase("Book Metadata Response")){
-
+					//Do nothing
 				}
 
+				// Returned response is of our use. Process it
 				if(responseType.equalsIgnoreCase("Book List Response")){
 					list.clear();
+					
+					// For each bean object stored in the vector, create a row in the list
 					for(Bookshare_Result_Bean bean : vectorResults){
 						String authors = "";
 						TreeMap<String, Object> row_item = new TreeMap<String, Object>();
@@ -206,6 +202,8 @@ public class Bookshare_Books_Listing extends ListActivity{
 						}
 						row_item.put("authors", authors);
 						row_item.put("icon", R.drawable.titles);
+						
+						// Add a download icon if the book is freely downlodable
 						if(bean.getAvailableToDownload().equals("1") &&
 							bean.getFreelyAvailable().equals("1")){
 							row_item.put("download_icon", R.drawable.download_icon);
@@ -216,9 +214,8 @@ public class Bookshare_Books_Listing extends ListActivity{
 						list.add(row_item);
 					}
 				}
-				System.out.println("******* list size = "+list.size());
-				System.out.println("***********vectorResults size = "+vectorResults.size());
 				
+				// Instantiate the custom SimpleAdapter for populating the ListView
 				MySimpleAdapter simpleadapter = new MySimpleAdapter(
 						getApplicationContext(),list,
 						R.layout.bookshare_menu_item,
@@ -229,24 +226,21 @@ public class Bookshare_Books_Listing extends ListActivity{
 				//Set the adapter for this view
 				setListAdapter(simpleadapter);
 
-//				simpleadapter.notifyDataSetChanged();
-				
 				ListView lv = getListView();
 				lv.setTextFilterEnabled(true);
-				System.out.println("******* Before lv.setOnItemClickListener");
 				lv.setOnItemClickListener(new OnItemClickListener(){
 
 					public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
 						// Obtain the layout for selected row
 						LinearLayout row_view  = (LinearLayout)view;
 
 						// Obtain the text of the row
 						TextView txt_name = (TextView)row_view.findViewById(R.id.text1);
+						
+						// Find the corresponding bean object for this row
 						for(Bookshare_Result_Bean bean : vectorResults){
-							System.out.println("bean.getTitle = "+bean.getTitle());
 							if(bean.getTitle().equalsIgnoreCase(txt_name.getText().toString())){
-								System.out.println("txt_name.getText() = "+txt_name.getText().toString());
-								System.out.println("Match found");
 								String bookshare_ID = bean.getId();
 								Intent intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 								String uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID;
@@ -261,7 +255,6 @@ public class Bookshare_Books_Listing extends ListActivity{
 								intent.putExtra("ws_username", WS_USERNAME);
 								intent.putExtra("ws_password", WS_PASSWORD);
 								startActivityForResult(intent, START_BOOKSHARE_BOOK_DETAILS_ACTIVITY);
-								//startActivity(intent);
 							}
 						}
 					}				
@@ -275,12 +268,12 @@ public class Bookshare_Books_Listing extends ListActivity{
 		if(requestCode == START_BOOKSHARE_BOOK_DETAILS_ACTIVITY){
 			if(resultCode == BOOKSHARE_BOOK_DETAILS_FINISHED){
 				setResult(BOOKSHARE_BOOKS_LISTING_FINISHED);
-				System.out.println("****** Finishing Bookshare_Books_Listing");
 				finish();
 			}
 		}
 	}
 
+	// Used for keeping the the screen from rotating
 	@Override
 	public void onConfigurationChanged(Configuration newConfig){
 		super.onConfigurationChanged(newConfig);
@@ -312,9 +305,11 @@ public class Bookshare_Books_Listing extends ListActivity{
 			System.out.println(e);
 		}
 		catch(IOException ioe){
-
+			System.out.println(ioe);
 		}
 	}
+
+	// Class containing the logic for parsing the response of search results
 	private class SAXHandler extends DefaultHandler{
 
 		int count;
@@ -380,14 +375,9 @@ public class Bookshare_Books_Listing extends ListActivity{
 			if(qName.equalsIgnoreCase("available-to-download")){
 				available_to_download = true;
 			}
-
 		}
 
 		public void endElement(String uri, String localName, String qName){
-
-			/*
-			 *  End of one result parsing. Reset the result_bean for reuse
-			 */
 
 			if(num_pages){
 				if(qName.equalsIgnoreCase("num-pages")){
@@ -454,6 +444,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 			}
 		}
 	}
+
 	// A custom SimpleAdapter class for providing data to the ListView
 	private class MySimpleAdapter extends SimpleAdapter{
 		public MySimpleAdapter(Context context, List<? extends Map<String, ?>> data,
@@ -461,7 +452,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 			super(context, data, resource, from, to);
 		}
 
-		/**
+		/*
 		 * Retrieves view for the item in the adapter, at the
 		 * specified position and populates it with data.
 		 */
@@ -486,7 +477,6 @@ public class Bookshare_Books_Listing extends ListActivity{
 				((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
 				.setImageResource(((Integer)data.get("download_icon")).intValue());
 			}
-
 			return convertView;
 		}
 	}
