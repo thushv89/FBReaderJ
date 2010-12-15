@@ -10,9 +10,11 @@ import org.geometerplus.zlibrary.ui.android.R;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -46,7 +48,21 @@ public class Bookshare_Webservice_Login extends Activity{
 
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-
+		
+		// Obtain the SharedPreferences object shared across the application
+		SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		ws_username = login_preference.getString("username", "");
+		ws_password = login_preference.getString("password", "");
+		
+		// If login credentials are already stored, navigate to the next Activity
+		if(!ws_username.equals("") && !ws_password.equals("")){
+			intent = new Intent(getApplicationContext(), Bookshare_Menu.class);
+			intent.putExtra("ws_username", ws_username);
+			intent.putExtra("ws_password", ws_password);
+			startActivity(intent);
+			finish();
+		}
+		
 		// Remove the title bar
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
@@ -211,6 +227,13 @@ public class Bookshare_Webservice_Login extends Activity{
 				intent = new Intent(getApplicationContext(), Bookshare_Menu.class);
 				intent.putExtra("ws_username", ws_username);
 				intent.putExtra("ws_password", ws_password);
+				
+				// Obtain the application wide SharedPreferences object and store the login information
+				SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+				SharedPreferences.Editor editor = login_preference.edit();
+				editor.putString("username", ws_username);
+				editor.putString("password", ws_password);
+				editor.commit();
 				startActivity(intent);
 				finish();
 				break;
