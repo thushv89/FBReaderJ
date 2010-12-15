@@ -142,5 +142,15 @@
 		<receiver android:name="org.geometerplus.android.fbreader.network.BookDownloaderCallback" android:process=":networkLibrary" />
 		<service android:name="org.geometerplus.android.fbreader.network.LibraryInitializationService" android:process=":networkLibrary" />
 		<activity android:name="org.geometerplus.android.fbreader.SpeakActivity" android:configChanges="orientation|keyboardHidden" android:theme="@android:style/Theme.Dialog"/>
+		<activity android:name="org.geometerplus.fbreader.network.bookshare.Bookshare_Menu" />
+		<activity android:name="org.geometerplus.fbreader.network.bookshare.Bookshare_Books_Listing" 
+		  		  android:screenOrientation="portrait"
+		  		  android:configChanges="orientation|keyboardHidden"/>
+		<activity android:name="org.geometerplus.fbreader.network.bookshare.Bookshare_Book_Details"
+	  			  android:screenOrientation="portrait"
+  				  android:configChanges="orientation|keyboardHidden"/>
+  		<activity android:name="org.geometerplus.fbreader.network.bookshare.Bookshare_Webservice_Login"
+			  	  android:screenOrientation="portrait"
+  				  android:configChanges="orientation|keyboardHidden"/> 
 	</application>
 </manifest> 
