@@ -8,11 +8,17 @@ import java.util.TreeMap;
 
 import org.geometerplus.zlibrary.ui.android.R;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -58,7 +64,8 @@ public class Bookshare_Menu extends ListActivity {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_menu_main);
-
+		
+		// Fetch the login info from the caller intent
 		Intent callerIntent  = getIntent();
 		ws_username = callerIntent.getStringExtra("ws_username");
 		ws_password = callerIntent.getStringExtra("ws_password");
@@ -77,8 +84,8 @@ public class Bookshare_Menu extends ListActivity {
 			row_item.put("icon", icons_map.get(new Integer(i)));
 			list.add(row_item);
 		}
-
 		
+		// Construct a SimpleAdapter which will serve as data source for this ListView
 		MySimpleAdapter simpleadapter = new MySimpleAdapter(
 				this,list,
 				R.layout.bookshare_menu_item,
@@ -133,9 +140,9 @@ public class Bookshare_Menu extends ListActivity {
 					isMetadataSearch = true;
 				}
 				else if(query_type.equalsIgnoreCase("Bookshare ID Search")){
-					int num = 0;
+					long num = 0;
 					try{
-						num = Integer.parseInt(search_term);
+						num = Long.parseLong(search_term);
 						}
 						catch(NumberFormatException e){
 							Toast toast = Toast.makeText(getApplicationContext(), search_term.trim()+": ID should be a number",Toast.LENGTH_SHORT);
@@ -174,6 +181,7 @@ public class Bookshare_Menu extends ListActivity {
 				dialog.dismiss();
 				intent.putExtra("ws_username", ws_username);
 				intent.putExtra("ws_password", ws_password);
+				
 				startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
 			}
 		});
@@ -218,7 +226,7 @@ public class Bookshare_Menu extends ListActivity {
 					dialog_search_title.setText("Enter 10 or 13 digit ISBN");
 					dialog_example_text.setText("E.g. 9780670059218 or 9781416503064");
 					query_type = "ISBN Search";
-					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);					
+					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 					intent.putExtra("REQUEST_TYPE","ISBN Search");
 				}
 				else if(txt_name.getText().equals("Bookshare ID Search")){
@@ -244,11 +252,44 @@ public class Bookshare_Menu extends ListActivity {
 	}
 	
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu){
+		menu.add("Logout");
+		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item){
+		if(item.getTitle().equals("Logout")){
+			Dialog dialog = new AlertDialog.Builder(this)
+            .setTitle("")
+            .setMessage("Are you sure you want to Logout?")
+            .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					
+					// Upon logout clear the stored login credentials
+					SharedPreferences login = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+					SharedPreferences.Editor editor = login.edit();
+					editor.putString("username", "");
+					editor.putString("password", "");
+					editor.commit();
+					finish();
+				}
+			})
+			.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			})
+            .show();
+		}
+		return true;
+	}
+	
+	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode == START_BOOKSHARE_BOOKS_LISTING_ACTIVITY){
 			if(resultCode == BOOKSHARE_BOOKS_LISTING_FINISHED){
 				setResult(BOOKSHARE_MENU_FINISHED);
-				System.out.println("****** Finishing Bookshare_Menu");
 				finish();
 			}
 		}
