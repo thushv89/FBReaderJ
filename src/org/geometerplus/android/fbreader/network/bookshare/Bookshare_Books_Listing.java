@@ -235,12 +235,31 @@ public class Bookshare_Books_Listing extends ListActivity{
 						// Obtain the layout for selected row
 						LinearLayout row_view  = (LinearLayout)view;
 
-						// Obtain the text of the row
-						TextView txt_name = (TextView)row_view.findViewById(R.id.text1);
+						// Obtain the text of the row containing title
+						TextView txt_title_name = (TextView)row_view.findViewById(R.id.text1);
 						
+						// Obtain the text of the row
+						TextView txt_authors_name = (TextView)row_view.findViewById(R.id.text2);
+						
+						String authors = "";
+
 						// Find the corresponding bean object for this row
 						for(Bookshare_Result_Bean bean : vectorResults){
-							if(bean.getTitle().equalsIgnoreCase(txt_name.getText().toString())){
+
+							// Retrieve author name(s), which serve as a comparison parameter
+							// along with title
+							for(int i = 0; i < bean.getAuthor().length; i++){
+								if(i==0){
+									authors = bean.getAuthor()[i];
+								}
+								else{
+									authors = authors +", "+ bean.getAuthor()[i];
+								}
+							}
+							
+							// Find the matching bean entry from the vector and get its book ID
+							if(bean.getTitle().equalsIgnoreCase(txt_title_name.getText().toString()) &&
+									authors.equalsIgnoreCase(txt_authors_name.getText().toString())){
 								String bookshare_ID = bean.getId();
 								Intent intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 								String uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID;
@@ -255,9 +274,10 @@ public class Bookshare_Books_Listing extends ListActivity{
 								intent.putExtra("ws_username", WS_USERNAME);
 								intent.putExtra("ws_password", WS_PASSWORD);
 								startActivityForResult(intent, START_BOOKSHARE_BOOK_DETAILS_ACTIVITY);
+								break;
 							}
 						}
-					}				
+					}
 				});
 			}
 		}
