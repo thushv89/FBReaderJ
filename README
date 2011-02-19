@@ -3,11 +3,13 @@ This fork is an initiative for developing an e-book reader for daisy 3 files.
 -----------------------------------------------------------------------------
 
 Daisy 3 is a format that helps to make reading easier for those having reading disabilities.
-Benetech (http://www.benetech.org/), is the organization that leads the efforts for making the world a better place for 
-reading disabled, is originator of this project.
+Benetech (http://www.benetech.org/), the organization that leads the efforts for making the world 
+a better place for the reading disabled, is originator of this project.
 Volunteer programmers help to develop and maintain this fork.
 
 This is a fork of the FBReaderJ project located at https://github.com/geometer/FBReaderJ.
+The original FBReaderJ project in under GNU GPL license.
+As a result, this effort is also under the same license.
 
 The apk file for this project can be downloaded from the Downloads section.
 The Daisy 3 files can be searched for on the website - http://www.bookshare.org/
@@ -22,4 +24,4 @@ This version also supports other formats namely epub, fb2, palmdoc and tcr.
 
 ----------------------------
 Last Edited by - Abhi Mahule 
----------------------------
+----------------------------
