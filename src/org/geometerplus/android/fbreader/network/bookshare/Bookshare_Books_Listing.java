@@ -262,7 +262,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 									authors.equalsIgnoreCase(txt_authors_name.getText().toString())){
 								String bookshare_ID = bean.getId();
 								Intent intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
-								String uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID;
+								String uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID + "?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
 								if(bean.getAvailableToDownload().equals("1") &&
 										bean.getFreelyAvailable().equals("1")){
 									intent.putExtra("isDownloadable", true);
