@@ -64,6 +64,6 @@ the Android SDK and NDK locations in local.properties might not be correct.
 Running the ndk-build enables compiles the native part of the code and creates shared object (.so) files.
 Running the python script (createRawResources.py) creates the necessary directory structures of resources.
 
-The Bookshare API library should be included in the build path in the Eclipse project.
+The Bookshare API library (Present in downloads section on this project's github page) should be included in the build path in the Eclipse project.
 This shall remove the compilation errors and the apk file will be created after project is built in Eclipse.
 
