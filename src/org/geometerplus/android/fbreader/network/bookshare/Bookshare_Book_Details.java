@@ -386,7 +386,9 @@ public class Bookshare_Book_Details extends Activity{
 		protected Void doInBackground(Void... params) {
 			
 			final String id = metadata_bean.getContentId();
-			String download_uri = "http://service.bookshare.org/download/content/"+id+"/version/1";
+//			String download_uri = "http://service.bookshare.org/download/content/"+id+"/version/1";
+			String download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+			
 			try{
 
 				HttpResponse response = bws.getHttpResponse(WS_USERNAME, WS_PASSWORD, download_uri);
