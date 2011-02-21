@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
+import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Menu;
 import org.geometerplus.fbreader.network.NetworkBookItem;
 import org.geometerplus.fbreader.network.NetworkImage;
 import org.geometerplus.fbreader.network.NetworkLibrary;
@@ -363,7 +363,7 @@ class NetworkView extends Activity{
 		
 		System.out.println("key = "+key);
 		if(key.equalsIgnoreCase("http://service.bookshare.org")){
-			Intent intent = new Intent(context.getApplicationContext(),Bookshare_Webservice_Login.class);
+			Intent intent = new Intent(context.getApplicationContext(),Bookshare_Menu.class);
 			context.startActivity(intent);
 //			((Activity)context).startActivityForResult(intent, START_BOOKSHARE_MENU_ACTIVITY);
 			((Activity)context).finish();
