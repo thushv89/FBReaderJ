@@ -130,13 +130,13 @@ public class Bookshare_Menu extends ListActivity {
 				search_term = search_term.replaceAll(" +", " ").replaceAll(" ", "%20");
 
 				if(query_type.equalsIgnoreCase("Title Search")){
-					search_term = URI_String+"search/title/"+search_term;
+					search_term = URI_String+"search/title/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
 				}
 				else if(query_type.equalsIgnoreCase("Author Search")){
-					search_term = URI_String+"search/author/"+search_term;
+					search_term = URI_String+"search/author/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
 				}
 				else if(query_type.equalsIgnoreCase("ISBN Search")){
-					search_term = URI_String+"isbn/"+search_term;
+					search_term = URI_String+"isbn/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
 					isMetadataSearch = true;
 				}
 				else if(query_type.equalsIgnoreCase("Bookshare ID Search")){
@@ -149,7 +149,7 @@ public class Bookshare_Menu extends ListActivity {
 							toast.show();
 							return;
 						}
-					search_term = URI_String+"id/"+search_term;
+					search_term = URI_String+"id/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
 					isMetadataSearch = true;
 				}
 				else if(query_type.equalsIgnoreCase("Latest Books")){
@@ -162,7 +162,7 @@ public class Bookshare_Menu extends ListActivity {
 						toast.show();
 					}
 					if(search_term.length()==8){
-						search_term = URI_String+"search/since/"+search_term;
+						search_term = URI_String+"search/since/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
 					}
 					else{
 						Toast toast = Toast.makeText(getApplicationContext(), search_term.trim()+": Enter date in MMDDYYYY format",Toast.LENGTH_SHORT);
@@ -253,11 +253,11 @@ public class Bookshare_Menu extends ListActivity {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
-		menu.add("Logout");
+//		menu.add("Logout");
 		return true;
 	}
 	
-	@Override
+/*	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
 		if(item.getTitle().equals("Logout")){
 			Dialog dialog = new AlertDialog.Builder(this)
@@ -284,7 +284,7 @@ public class Bookshare_Menu extends ListActivity {
 		}
 		return true;
 	}
-	
+*/	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode == START_BOOKSHARE_BOOKS_LISTING_ACTIVITY){
