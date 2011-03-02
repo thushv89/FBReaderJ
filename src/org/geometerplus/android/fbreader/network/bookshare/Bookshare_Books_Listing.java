@@ -36,12 +36,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
 
 /**
  * This ListActivity shows the search results
@@ -50,9 +50,9 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public class Bookshare_Books_Listing extends ListActivity{
 
-	private String URI_BOOKSHARE_ID_SEARCH ="http://service.bookshare.org/book/id/";
-	private String WS_USERNAME;
-	private String WS_PASSWORD;
+	private String URI_BOOKSHARE_ID_SEARCH ="https://api.bookshare.org/book/id/";
+	private String ws_username;
+	private String ws_password;
 	private String requestURI;
 	private String requestType;
 	private String responseType;
@@ -69,17 +69,24 @@ public class Bookshare_Books_Listing extends ListActivity{
 	private int total_pages_result;
 	private int current_result_page = 1;
 	private boolean total_pages_count_known = false;
-
+	private boolean isFree = false; 
+	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		Intent intent  = getIntent();
-		WS_USERNAME = intent.getStringExtra("ws_username");
-		WS_PASSWORD = intent.getStringExtra("ws_password");
+		ws_username = intent.getStringExtra("ws_username");
+		ws_password = intent.getStringExtra("ws_password");
 
+		if(ws_username == null || ws_password == null){
+			isFree = true;
+		}
+		
 		requestURI = intent.getStringExtra("REQUEST_URI");
+		System.out.println("requestURI = "+requestURI);
 		requestType = intent.getStringExtra("REQUEST_TYPE");
 		
 		if(requestType.equalsIgnoreCase("Title Search")
@@ -107,7 +114,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 		new Thread(){
 			public void run(){
 				try{
-					inputStream = bws.getResponseStream(WS_USERNAME, WS_PASSWORD, uri);
+					inputStream = bws.getResponseStream(ws_username, ws_password, uri);
 					
 					// Once the response is obtained, send message to the handler
 					Message msg = Message.obtain();
@@ -153,7 +160,15 @@ public class Bookshare_Books_Listing extends ListActivity{
 			current_result_page--;
 		}
 		list.clear();
-		getListing(requestURI+"/page/"+current_result_page);
+		
+		StringBuilder strBuilder = new StringBuilder(requestURI);
+		int index = -1;
+		
+		if((index = strBuilder.indexOf("?api_key=")) != -1){
+			strBuilder.delete(index, strBuilder.length());
+			strBuilder.append("/page/"+current_result_page+"?api_key="+developerKey);
+		}
+		getListing(strBuilder.toString());
 		return true;
 	}
 
@@ -203,9 +218,14 @@ public class Bookshare_Books_Listing extends ListActivity{
 						row_item.put("authors", authors);
 						row_item.put("icon", R.drawable.titles);
 						
-						// Add a download icon if the book is freely downlodable
-						if(bean.getAvailableToDownload().equals("1") &&
-							bean.getFreelyAvailable().equals("1")){
+						// Add a download icon if the book is available to download
+						if(!isFree){
+							if(bean.getAvailableToDownload().equals("1")){
+								row_item.put("download_icon", R.drawable.download_icon);
+							}
+						}
+						else if(isFree && bean.getAvailableToDownload().equals("1") &&
+									bean.getFreelyAvailable().equals("1")){
 							row_item.put("download_icon", R.drawable.download_icon);
 						}
 						else{
@@ -246,8 +266,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 						// Find the corresponding bean object for this row
 						for(Bookshare_Result_Bean bean : vectorResults){
 
-							// Retrieve author name(s), which serve as a comparison parameter
-							// along with title
+							// Retrieve author name(s), which serve as a comparison parameter along with title
 							for(int i = 0; i < bean.getAuthor().length; i++){
 								if(i==0){
 									authors = bean.getAuthor()[i];
@@ -262,17 +281,26 @@ public class Bookshare_Books_Listing extends ListActivity{
 									authors.equalsIgnoreCase(txt_authors_name.getText().toString())){
 								String bookshare_ID = bean.getId();
 								Intent intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
-								String uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID + "?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
-								if(bean.getAvailableToDownload().equals("1") &&
-										bean.getFreelyAvailable().equals("1")){
+								String uri = "";
+								if(isFree)
+									uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID + "?api_key="+developerKey;
+								else
+									uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID +"/for/"+ws_username+"?api_key="+developerKey;
+								
+								if((isFree && bean.getAvailableToDownload().equals("1") &&
+										bean.getFreelyAvailable().equals("1")) ||
+										(!isFree && bean.getAvailableToDownload().equals("1"))){
 									intent.putExtra("isDownloadable", true);
 								}
 								else{
 									intent.putExtra("isDownloadable", false);
 								}
 								intent.putExtra("ID_SEARCH_URI", uri);
-								intent.putExtra("ws_username", WS_USERNAME);
-								intent.putExtra("ws_password", WS_PASSWORD);
+								if(!isFree){
+									intent.putExtra("ws_username", ws_username);
+									intent.putExtra("ws_password", ws_password);
+								}
+
 								startActivityForResult(intent, START_BOOKSHARE_BOOK_DETAILS_ACTIVITY);
 								break;
 							}
