@@ -8,6 +8,7 @@ import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.zlibrary.ui.android.R;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,13 +31,14 @@ import android.widget.Toast;
  * Login page for the webservice account of Bookshare.
  * Webservice login is mandatory for accessing generally
  * available services of bookshare API. This includes
- * searching downloading public domain books.
+ * searching and downloading public domain books.
  */
 public class Bookshare_Webservice_Login extends Activity{
 
-	private String BOOKSHARE_URL ="http://service.bookshare.org/";
+	private String BOOKSHARE_URL = "https://api.bookshare.org/book/searchFTS/title/*potter*";
 	private Button btn_login;
 	private Button btn_reset;
+	private Button btn_free_content;
 	private EditText editText_username;
 	private EditText editText_password;
 	private Intent intent;
@@ -45,6 +47,9 @@ public class Bookshare_Webservice_Login extends Activity{
 	private String ws_username;
 	private String ws_password;
 	private int status;
+	private ProgressDialog pd_spinning;
+	private boolean isFree= false;
+	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -73,9 +78,13 @@ public class Bookshare_Webservice_Login extends Activity{
 
 		btn_login = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_login);
 		btn_reset = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_password);
+		btn_free_content = (Button)findViewById(R.id.btn_free_content);
 
 		editText_username = (EditText)findViewById(R.id.bookshare_webservice_login_username_edit_text);
 		editText_password = (EditText)findViewById(R.id.bookshare_webservice_login_password_edit_text);
+
+//		editText_username.setText("webservice_test1@benetech.org");
+//		editText_password.setText("8gmgsyx8");
 		
 		// Listener for login button
 		btn_login.setOnClickListener(new OnClickListener(){
@@ -88,7 +97,7 @@ public class Bookshare_Webservice_Login extends Activity{
 				ws_username = editText_username.getText().toString().trim();
 				ws_password = editText_password.getText().toString().trim();
 
-				// Test for conditions where the inout might be blank
+				// Test for conditions where the input might be blank
 				if(ws_username.equals("") && ws_password.equals("")){
 					Toast t = Toast.makeText(getApplicationContext(),"Username/Password field cannot be blank!", Toast.LENGTH_SHORT);
 					t.show();
@@ -102,13 +111,13 @@ public class Bookshare_Webservice_Login extends Activity{
 					t.show();
 				}
 				else{
-					
+					startProgressDialog();
 					// Start a new AsyncTask for background processing
 					new AuthenticationTask().execute();
 				}
-			}			
+			}
 		});
-
+		
 		// Listener for reset button
 		btn_reset.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
@@ -123,6 +132,7 @@ public class Bookshare_Webservice_Login extends Activity{
 	public boolean onCreateOptionsMenu(Menu menu){
 		
 		MenuItem item = menu.add("Cancel");
+		MenuItem item1 = menu.add("Free Content");
 		return true;
 	}
 	
@@ -131,6 +141,21 @@ public class Bookshare_Webservice_Login extends Activity{
 		
 		if(menuitem.getTitle().equals("Cancel")){
 			finish();
+		}
+		else if(menuitem.getTitle().equals("Free Content")){
+			isFree = true;
+			ws_username = null;
+			ws_password = null;
+
+			if(isFree){
+				pd_spinning = ProgressDialog.show(this, null, "Fetching free books data. Please wait.", Boolean.TRUE);
+			}
+			else{
+				pd_spinning = ProgressDialog.show(this, null, "Authenticating. Please wait.", Boolean.TRUE);
+			}
+
+			// Start a new AsyncTask for background processing
+			new AuthenticationTask().execute();
 		}
 		return true;
 	}
@@ -158,11 +183,14 @@ public class Bookshare_Webservice_Login extends Activity{
 			
 			btn_login.setEnabled(false);
 			btn_reset.setEnabled(false);
+			Toast t;
+			
+			if(isFree){
+				editText_username.setText("");
+				editText_password.setText("");
+			}
 			editText_username.setEnabled(false);
 			editText_password.setEnabled(false);
-
-			Toast t = Toast.makeText(getApplicationContext(),"Authenticating, Please wait...", Toast.LENGTH_LONG);
-			t.show();
 		}
 
 
@@ -180,8 +208,17 @@ public class Bookshare_Webservice_Login extends Activity{
 				
 				// Get a BookshareWebservice instance for accessing the utility methods
 				final BookshareWebservice bws = new BookshareWebservice();
+				if(isFree){
+					BOOKSHARE_URL = BOOKSHARE_URL + "?api_key="+developerKey;
+				}
+				else{
+					BOOKSHARE_URL = BOOKSHARE_URL + "/for/"+ws_username+"?api_key="+developerKey;
+				}
+				System.out.println("BOOKSHARE_URL = "+BOOKSHARE_URL);
+				System.out.println("**Before sending query = "+BOOKSHARE_URL);
 				InputStream inputStream = bws.getResponseStream(ws_username, ws_password, BOOKSHARE_URL);
 				result_HTML = bws.convertStreamToString(inputStream);
+				System.out.println(result_HTML);
 			}
 			catch(URISyntaxException use){
 				System.out.println(use);
@@ -194,8 +231,9 @@ public class Bookshare_Webservice_Login extends Activity{
 				t.show();
 			}
 			
-			// Authenticaiton failed
-			if(result_HTML.contains("<status-code>401</status-code>")){
+			// Authentication failed
+			if(result_HTML.contains("<status-code>401</status-code>") || result_HTML.contains("<status-code>500</status-code>")
+					|| result_HTML.contains("403") || result_HTML.contains("404")){
 				status = LOGIN_FAILED;
 			}
 			else{
@@ -219,14 +257,19 @@ public class Bookshare_Webservice_Login extends Activity{
 			editText_username.setEnabled(true);
 			editText_password.setEnabled(true);
 			editText_username.requestFocus();
+			if(pd_spinning != null)
+				pd_spinning.cancel();
 
 			switch(status){
 			
 			// Navigate to the next Activity
 			case LOGIN_SUCCESSFUL:
 				intent = new Intent(getApplicationContext(), Bookshare_Menu.class);
-				intent.putExtra("ws_username", ws_username);
-				intent.putExtra("ws_password", ws_password);
+				
+				if(!isFree){
+					intent.putExtra("ws_username", ws_username);
+					intent.putExtra("ws_password", ws_password);
+				}
 				
 				// Obtain the application wide SharedPreferences object and store the login information
 				SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -240,6 +283,7 @@ public class Bookshare_Webservice_Login extends Activity{
 				
 			// Give the failure notification and show the login screen
 			case LOGIN_FAILED:
+				BOOKSHARE_URL = "https://api.bookshare.org/book/searchFTS/title/*potter*";
 				Toast toast = Toast.makeText(getApplicationContext(), "Login failed!", Toast.LENGTH_SHORT);
 				toast.show();
 				editText_username.setText("");
@@ -251,4 +295,13 @@ public class Bookshare_Webservice_Login extends Activity{
 			}
 		}
 	}
+	private void startProgressDialog(){
+		if(isFree){
+			pd_spinning = ProgressDialog.show(this, null, "Fetching free books data. Please wait.", Boolean.TRUE);
+		}
+		else{
+			pd_spinning = ProgressDialog.show(this, null, "Authenticating. Please wait.", Boolean.TRUE);
+		}
+	}
+
 }
