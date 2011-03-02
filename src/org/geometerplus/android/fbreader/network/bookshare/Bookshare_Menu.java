@@ -50,14 +50,16 @@ public class Bookshare_Menu extends ListActivity {
 	private TextView dialog_search_title;
 	private TextView dialog_example_text;
 	private String search_term = "";
-	private String URI_String="http://service.bookshare.org/book/";
+	private String URI_String = "https://api.bookshare.org/book/";
 	private String query_type;
 	private Intent intent;
 	private final int START_BOOKSHARE_BOOKS_LISTING_ACTIVITY = 0;
 	private final int BOOKSHARE_BOOKS_LISTING_FINISHED = 2;
 	private final int BOOKSHARE_MENU_FINISHED = 1;
-	String ws_username;
-	String ws_password;
+	private String ws_username;
+	private String ws_password;
+	private boolean isFree = false; 
+	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -69,6 +71,10 @@ public class Bookshare_Menu extends ListActivity {
 		Intent callerIntent  = getIntent();
 		ws_username = callerIntent.getStringExtra("ws_username");
 		ws_password = callerIntent.getStringExtra("ws_password");
+		
+		if(ws_username == null || ws_password == null){
+			isFree = true;
+		}
 
 		icons_map.put(new Integer(0), R.drawable.titles);
 		icons_map.put(new Integer(1), R.drawable.authors);
@@ -130,13 +136,23 @@ public class Bookshare_Menu extends ListActivity {
 				search_term = search_term.replaceAll(" +", " ").replaceAll(" ", "%20");
 
 				if(query_type.equalsIgnoreCase("Title Search")){
-					search_term = URI_String+"search/title/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+					if(isFree)
+						search_term = URI_String+"search/title/"+search_term+"?api_key="+developerKey;
+					else
+						search_term = URI_String+"search/title/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
 				}
 				else if(query_type.equalsIgnoreCase("Author Search")){
-					search_term = URI_String+"search/author/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+					if(isFree)
+						search_term = URI_String+"search/author/"+search_term+"?api_key="+developerKey;
+					else
+						search_term = URI_String+"search/author/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
 				}
 				else if(query_type.equalsIgnoreCase("ISBN Search")){
-					search_term = URI_String+"isbn/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+					if(isFree)
+						search_term = URI_String+"isbn/"+search_term+"?api_key="+developerKey;
+					else
+						search_term = URI_String+"isbn/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
+					
 					isMetadataSearch = true;
 				}
 				else if(query_type.equalsIgnoreCase("Bookshare ID Search")){
@@ -149,7 +165,11 @@ public class Bookshare_Menu extends ListActivity {
 							toast.show();
 							return;
 						}
-					search_term = URI_String+"id/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+					if(isFree)
+						search_term = URI_String+"id/"+search_term+"?api_key="+developerKey;
+					else
+						search_term = URI_String+"id/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
+
 					isMetadataSearch = true;
 				}
 				else if(query_type.equalsIgnoreCase("Latest Books")){
@@ -162,7 +182,10 @@ public class Bookshare_Menu extends ListActivity {
 						toast.show();
 					}
 					if(search_term.length()==8){
-						search_term = URI_String+"search/since/"+search_term+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+						if(isFree)
+							search_term = URI_String+"search/since/"+search_term+"?api_key="+developerKey;
+						else
+							search_term = URI_String+"search/since/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
 					}
 					else{
 						Toast toast = Toast.makeText(getApplicationContext(), search_term.trim()+": Enter date in MMDDYYYY format",Toast.LENGTH_SHORT);
@@ -179,8 +202,10 @@ public class Bookshare_Menu extends ListActivity {
 					intent.putExtra("REQUEST_URI", search_term);
 				}
 				dialog.dismiss();
-				intent.putExtra("ws_username", ws_username);
-				intent.putExtra("ws_password", ws_password);
+				if(!isFree){
+					intent.putExtra("ws_username", ws_username);
+					intent.putExtra("ws_password", ws_password);
+				}
 				
 				startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
 			}
@@ -253,11 +278,11 @@ public class Bookshare_Menu extends ListActivity {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
-//		menu.add("Logout");
+		menu.add("Logout");
 		return true;
 	}
 	
-/*	@Override
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
 		if(item.getTitle().equals("Logout")){
 			Dialog dialog = new AlertDialog.Builder(this)
@@ -284,7 +309,7 @@ public class Bookshare_Menu extends ListActivity {
 		}
 		return true;
 	}
-*/	
+	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode == START_BOOKSHARE_BOOKS_LISTING_ACTIVITY){
