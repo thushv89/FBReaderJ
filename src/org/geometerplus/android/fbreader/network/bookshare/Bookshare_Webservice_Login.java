@@ -78,7 +78,6 @@ public class Bookshare_Webservice_Login extends Activity{
 
 		btn_login = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_login);
 		btn_reset = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_password);
-		btn_free_content = (Button)findViewById(R.id.btn_free_content);
 
 		editText_username = (EditText)findViewById(R.id.bookshare_webservice_login_username_edit_text);
 		editText_password = (EditText)findViewById(R.id.bookshare_webservice_login_password_edit_text);
