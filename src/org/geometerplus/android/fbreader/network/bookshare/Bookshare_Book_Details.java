@@ -1,16 +1,29 @@
 package org.geometerplus.android.fbreader.network.bookshare;
 
+
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -31,16 +44,16 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
 
 /**
  * Shows the details of a selected book.
@@ -49,8 +62,8 @@ import android.widget.Toast;
  */
 public class Bookshare_Book_Details extends Activity{
 
-	private String WS_USERNAME;
-	private String WS_PASSWORD;
+	private String ws_username;
+	private String ws_password;
 	private Bookshare_Metadata_Bean metadata_bean;
 	private InputStream inputStream;
 	private BookshareWebservice bws = new BookshareWebservice();
@@ -69,20 +82,26 @@ public class Bookshare_Book_Details extends Activity{
 	private Button btn_download;
 	boolean isDownloadable;
 	private final int BOOKSHARE_BOOK_DETAILS_FINISHED = 1;
-	private File downloaded_zip_file;
-
+	private boolean isFree = false;
+	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_blank_page);
 		
-		// Set full screen 
+		// Set full screen
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		Intent intent  = getIntent();
-		WS_USERNAME = intent.getStringExtra("ws_username");
-		WS_PASSWORD = intent.getStringExtra("ws_password");
+		ws_username = intent.getStringExtra("ws_username");
+		ws_password = intent.getStringExtra("ws_password");
+		
+		if(ws_username == null || ws_password == null){
+			isFree = true;
+		}
+
 		final String uri = intent.getStringExtra("ID_SEARCH_URI");
 		isDownloadable = intent.getBooleanExtra("isDownloadable", false);
 
@@ -90,7 +109,7 @@ public class Bookshare_Book_Details extends Activity{
 		new Thread(){
 			public void run(){
 				try{
-					inputStream = bws.getResponseStream(WS_USERNAME, WS_PASSWORD, uri);
+					inputStream = bws.getResponseStream(ws_username, ws_password, uri);
 					Message msg = Message.obtain(handler);
 					msg.what = DATA_FETCHED;
 					msg.sendToTarget();
@@ -321,7 +340,7 @@ public class Bookshare_Book_Details extends Activity{
 						}
 						temp  = temp.trim().equals("") ? "Not available" : temp;
 						bookshare_book_detail_synopsis_text.setText(temp.trim());
-						System.out.println("Complete synopsis = "+temp.trim());
+						//System.out.println("Complete synopsis = "+temp.trim());
 						temp = "";
 					}
 					else if(metadata_bean.getBriefSynopsis() != null &&
@@ -386,12 +405,15 @@ public class Bookshare_Book_Details extends Activity{
 		protected Void doInBackground(Void... params) {
 			
 			final String id = metadata_bean.getContentId();
-//			String download_uri = "http://service.bookshare.org/download/content/"+id+"/version/1";
-			String download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+			String download_uri = "";
+			if(isFree)
+				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+			else
+				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1/for/"+ws_username+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
 			
 			try{
-
-				HttpResponse response = bws.getHttpResponse(WS_USERNAME, WS_PASSWORD, download_uri);
+				System.out.println("download_uri :"+download_uri);
+				HttpResponse response = bws.getHttpResponse(ws_username, ws_password, download_uri);
 
 				// Get hold of the response entity
 				HttpEntity entity = response.getEntity();
@@ -404,16 +426,19 @@ public class Bookshare_Book_Details extends Activity{
 							temp = temp + metadata_bean.getTitle()[i];
 						}
 						filename = temp;
-						filename = filename.replaceAll(" +", "_");
+						filename = filename.replaceAll(" +", "_").replaceAll(":", "__");
 					}
 					String zip_file = Paths.BooksDirectoryOption.getValue() +"/"+ filename + ".zip";
-					downloaded_zip_file = new File(zip_file);
+					
+					File downloaded_zip_file = new File(zip_file);
 					if(downloaded_zip_file.exists()){
 						downloaded_zip_file.delete();
 					}
 					Header header = entity.getContentType();
+					System.out.println("******  zip_file *****"+zip_file);
 					if(header.getValue().contains("zip")){
 						try{
+							System.out.println("Contains zip");
 							java.io.BufferedInputStream in = new java.io.BufferedInputStream(entity.getContent());
 							java.io.FileOutputStream fos = new java.io.FileOutputStream(downloaded_zip_file);
 							java.io.BufferedOutputStream bout = new BufferedOutputStream(fos,1024);
@@ -427,18 +452,101 @@ public class Bookshare_Book_Details extends Activity{
 							fos.close();
 							bout.close();
 							in.close();
+							
+							System.out.println("******** Downloading complete");
+							
+							// Unzip the encrypted archive file 
+							if(!isFree){
+								System.out.println("******Before creating ZipFile******"+zip_file);
+								// Initiate ZipFile object with the path/name of the zip file.
+								ZipFile zipFile = new ZipFile(zip_file);
+								
+								// Check to see if the zip file is password protected
+								if (zipFile.isEncrypted()) {
+									System.out.println("******isEncrypted******");
+									// if yes, then set the password for the zip file
+									zipFile.setPassword(ws_password);
+								}
+								
+								// Get the list of file headers from the zip file
+								List fileHeaderList = zipFile.getFileHeaders();
+
+								System.out.println("******Before for******");
+								// Loop through the file headers
+								for (int i = 0; i < fileHeaderList.size(); i++) {
+									FileHeader fileHeader = (FileHeader)fileHeaderList.get(i);
+									System.out.println(Paths.BooksDirectoryOption.getValue() +"/"+ filename);
+									// Extract the file to the specified destination
+									zipFile.extractFile(fileHeader, Paths.BooksDirectoryOption.getValue() +"/"+ filename);
+								}
+							}
+							
+							// Unzip the non-encrypted archive file
+							else{
+								try
+						        {
+									File file = new File(Paths.BooksDirectoryOption.getValue() +"/"+ filename);
+									file.mkdir();
+						            String destinationname = Paths.BooksDirectoryOption.getValue() +"/"+ filename + "/";
+						            byte[] buf = new byte[1024];
+						            ZipInputStream zipinputstream = null;
+						            ZipEntry zipentry;
+						            zipinputstream = new ZipInputStream(
+						                new FileInputStream(zip_file));
+
+						            zipentry = zipinputstream.getNextEntry();
+						            while (zipentry != null)
+						            { 
+						                //for each entry to be extracted
+						                String entryName = zipentry.getName();
+						                System.out.println("entryname "+entryName);
+						                int n;
+						                FileOutputStream fileoutputstream;
+						                File newFile = new File(entryName);
+						                String directory = newFile.getParent();
+						                
+						                if(directory == null)
+						                {
+						                    if(newFile.isDirectory())
+						                        break;
+						                }
+						                
+						                fileoutputstream = new FileOutputStream(
+						                   destinationname+entryName);             
+
+						                while ((n = zipinputstream.read(buf, 0, 1024)) > -1)
+						                    fileoutputstream.write(buf, 0, n);
+
+						                fileoutputstream.close(); 
+						                zipinputstream.closeEntry();
+						                zipentry = zipinputstream.getNextEntry();
+
+						            }//while
+
+						            zipinputstream.close();
+						        }
+						        catch (Exception e)
+						        {
+						            e.printStackTrace();
+						        }
+							}
+							// Delete the downloaded zip file as it has been extracted
+							downloaded_zip_file = new File(zip_file);
+							if(downloaded_zip_file.exists()){
+								downloaded_zip_file.delete();
+							}
 						}
-						catch (Exception e){
-							System.out.println(e);
+						catch(ZipException e){
+							System.out.println("ZipException:"+e);
 						}
 					}
 				}
 			}
 			catch(URISyntaxException use){
-				System.out.println(use);
+				System.out.println("URISyntaxException: "+use);
 			}
 			catch(IOException ie){
-				System.out.println(ie);
+				System.out.println("IOException: "+ie);
 			}
 			return null;
 		}
