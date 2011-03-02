@@ -197,6 +197,11 @@
 					<node name="summaryOff" value="Scroll pages vertically"/>
 				</node>
 			</node>
+			<node name="Version" value="Versioning">
+				<node name="versionSettings" value="Version Number">
+					<node name="versionNumber" value="1.5"/>
+				</node>
+			</node>
 		</node>
 		<node name="OptionsDialog">
 			<node name="title" value="FBReader - Options"/>
