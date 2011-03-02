@@ -67,6 +67,12 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 
 	@Override
 	protected void init() {
+		
+		// Add a version number in the Menu->More->Settings
+		final Category versionCategory = createCategory("Version");
+		final Screen versionScreen = versionCategory.createPreferenceScreen("versionSettings");
+		versionScreen.setSummary(versionScreen.Resource.getResource("versionNumber").getValue());
+		
 		final Category libraryCategory = createCategory("Library");
 		/*
 		libraryCategory.addPreference(new InfoPreference(
