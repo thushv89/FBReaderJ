@@ -27,7 +27,7 @@
  -->
 	<TextView
 		android:id="@+id/bookshare_webservice_login_username_text"
-		android:text="Webservice username"
+		android:text="Username"
 		android:textColor="#000"
 		android:textSize="18dip"
 		android:typeface="sans"
@@ -46,7 +46,7 @@
 		
 	<TextView
 		android:id="@+id/bookshare_webservice_login_password_text"
-		android:text="Webservice password"
+		android:text="Password"
 		android:textColor="#000"
 		android:textSize="18dip"
 		android:typeface="sans"
