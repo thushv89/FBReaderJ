@@ -198,9 +198,7 @@
 				</node>
 			</node>
 			<node name="Version" value="Versioning">
-				<node name="versionSettings" value="Version Number">
-					<node name="versionNumber" value="1.5"/>
-				</node>
+				<node name="versionSettings" value="Version Number"/>
 			</node>
 		</node>
 		<node name="OptionsDialog">
