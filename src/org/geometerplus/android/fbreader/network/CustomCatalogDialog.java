@@ -79,12 +79,7 @@ class CustomCatalogDialog extends NetworkDialog {
 		mySummary = ((TextView) alert.findViewById(R.id.network_catalog_summary)).getText().toString().trim();
 
 		if(myUrl.equalsIgnoreCase("bookshare") ||
-				myUrl.equalsIgnoreCase("http://bookshare.org")||
-				myUrl.equalsIgnoreCase("http://api.bookshare.org")||
-				myUrl.equalsIgnoreCase("https://api.bookshare.org")||
-				myUrl.equalsIgnoreCase("http://service.bookshare.org")||
-				myUrl.equalsIgnoreCase("https://service.bookshare.org")||
-				myUrl.equalsIgnoreCase("bookshare.org")){
+				myUrl.endsWith("bookshare.org")){
 			myUrl = "https://api.bookshare.org";
 			myTitle = "Bookshare";
 			mySummary = "Daisy-3 Books Collection";
