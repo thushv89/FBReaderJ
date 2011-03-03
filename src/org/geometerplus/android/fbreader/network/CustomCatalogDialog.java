@@ -72,11 +72,28 @@ class CustomCatalogDialog extends NetworkDialog {
 
 	@Override
 	protected void onPositive(DialogInterface dialog) {
+		System.out.println("Inside onPositive");
 		AlertDialog alert = (AlertDialog) dialog;
 		myTitle = ((TextView) alert.findViewById(R.id.network_catalog_title)).getText().toString().trim();
 		myUrl = ((TextView) alert.findViewById(R.id.network_catalog_url)).getText().toString().trim();
 		mySummary = ((TextView) alert.findViewById(R.id.network_catalog_summary)).getText().toString().trim();
 
+		if(myUrl.equalsIgnoreCase("bookshare") ||
+				myUrl.equalsIgnoreCase("http://bookshare.org")||
+				myUrl.equalsIgnoreCase("http://api.bookshare.org")||
+				myUrl.equalsIgnoreCase("https://api.bookshare.org")||
+				myUrl.equalsIgnoreCase("http://service.bookshare.org")||
+				myUrl.equalsIgnoreCase("https://service.bookshare.org")||
+				myUrl.equalsIgnoreCase("bookshare.org")){
+			myUrl = "https://api.bookshare.org";
+			myTitle = "Bookshare";
+			mySummary = "Daisy-3 Books Collection";
+		}
+
+		System.out.println("myTitle: "+myTitle);
+		System.out.println("myUrl: "+myUrl);
+		System.out.println("mySummary: "+mySummary);
+		
 		if (myTitle.length() == 0) {
 			myTitle = null;
 			if (myLink != null) {
@@ -94,16 +111,54 @@ class CustomCatalogDialog extends NetworkDialog {
 		if (mySummary.length() == 0) {
 			mySummary = null;
 		}
+		if(myUrl.equalsIgnoreCase("https://api.bookshare.org")){
+			
+			String bookshareSiteName = "https://api.bookshare.org";
+			myLinkWithoutInfo = true;
+			myLink = OPDSLinkReader.createCustomLinkWithoutInfo(bookshareSiteName, myUrl);
 
+			final ICustomNetworkLink link = (ICustomNetworkLink) myLink;
+			link.setSiteName(bookshareSiteName);
+			link.setTitle(myTitle);
+			link.setSummary(mySummary);
+			link.setLink(INetworkLink.URL_MAIN, myUrl);
+			System.out.println("myLinkWithoutInfo = "+myLinkWithoutInfo);
+			final NetworkLibrary library = NetworkLibrary.Instance();
+
+			if (myLink != null && library.hasCustomLinkTitle(myTitle, (ICustomNetworkLink) myLink)) {
+				final String err = myResource.getResource("titleAlreadyExists").getValue();
+				System.out.println("Before sendError1");
+				sendError(true, false, err);
+				return;
+			}
+			if (library.hasCustomLinkSite(bookshareSiteName, (ICustomNetworkLink) myLink)) {
+				final String err = myResource.getResource("siteAlreadyExists").getValue();
+				System.out.println("Before sendError2");
+				sendError(true, false, err);
+				return;
+			}
+			if (myLinkWithoutInfo) {
+				NetworkLibrary.Instance().addCustomLink(link);
+				myLinkWithoutInfo = false;
+			} else {
+				link.saveLink();
+			}
+
+			sendSuccess(true);
+			return;
+		}
 		Uri uri = Uri.parse(myUrl);
 		if (uri.getScheme() == null) {
 			myUrl = "http://" + myUrl;
 			uri = Uri.parse(myUrl);
 		}
-
+		System.out.println("myUrl = "+myUrl);
 		String siteName = uri.getHost();
+		
+		System.out.println("siteName = "+siteName);
 		if (siteName == null) {
 			final String err = myResource.getResource("invalidUrl").getValue();
+			System.out.println("Before sendError");
 			sendError(true, false, err);
 			return;
 		}
@@ -114,22 +169,24 @@ class CustomCatalogDialog extends NetworkDialog {
 		final NetworkLibrary library = NetworkLibrary.Instance();
 		if (myLink != null && library.hasCustomLinkTitle(myTitle, (ICustomNetworkLink) myLink)) {
 			final String err = myResource.getResource("titleAlreadyExists").getValue();
+			System.out.println("Before sendError1");
 			sendError(true, false, err);
 			return;
 		}
 		if (library.hasCustomLinkSite(siteName, (ICustomNetworkLink) myLink)) {
 			final String err = myResource.getResource("siteAlreadyExists").getValue();
+			System.out.println("Before sendError2");
 			sendError(true, false, err);
 			return;
 		}
-
 		if (myLink != null) {
+//			System.out.println("Inside myLink != null : "+myLink);
 			final ICustomNetworkLink link = (ICustomNetworkLink) myLink;
 			link.setSiteName(siteName);
 			link.setTitle(myTitle);
 			link.setSummary(mySummary);
 			link.setLink(INetworkLink.URL_MAIN, myUrl);
-
+			System.out.println("myLinkWithoutInfo = "+myLinkWithoutInfo);
 			if (myLinkWithoutInfo) {
 				NetworkLibrary.Instance().addCustomLink(link);
 				myLinkWithoutInfo = false;
@@ -137,9 +194,10 @@ class CustomCatalogDialog extends NetworkDialog {
 				link.saveLink();
 			}
 			sendSuccess(true);
+			System.out.println("Before return in myLink != null");
 			return;
 		}
-
+		System.out.println("Outside myLink != null");
 		myLinkWithoutInfo = true;
 		myLink = OPDSLinkReader.createCustomLinkWithoutInfo(siteName, myUrl);
 
@@ -150,9 +208,11 @@ class CustomCatalogDialog extends NetworkDialog {
 					final DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
 							if (which == DialogInterface.BUTTON_NEGATIVE) {
+								System.out.println("BUTTON_NEGATIVE");
 								sendSuccess(true);
 							} else {
 								if (which == DialogInterface.BUTTON_NEUTRAL) {
+									System.out.println("BUTTON_NEUTRAL");
 									myLinkWithoutInfo = false;
 									myLink = null;
 								}
@@ -193,6 +253,7 @@ class CustomCatalogDialog extends NetworkDialog {
 				handler.sendMessage(handler.obtainMessage(0, error));
 			}
 		}; 
+		System.out.println("Before ZLAndroidDialogManager.Instance()).wait");
 		((ZLAndroidDialogManager)ZLAndroidDialogManager.Instance()).wait("loadingCatalogInfo", loadInfoRunnable, myActivity);
 	}
 
