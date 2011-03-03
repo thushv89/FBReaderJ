@@ -19,16 +19,17 @@
 
 package org.geometerplus.android.fbreader.preferences;
 
-import android.content.Context;
-import android.preference.Preference;
-import android.preference.PreferenceScreen;
-
+import org.geometerplus.fbreader.Paths;
+import org.geometerplus.fbreader.fbreader.FBReader;
+import org.geometerplus.fbreader.fbreader.ScrollingPreferences;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
-
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
 
-import org.geometerplus.fbreader.fbreader.*;
-import org.geometerplus.fbreader.Paths;
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.preference.Preference;
+import android.preference.PreferenceScreen;
 
 public class PreferenceActivity extends ZLPreferenceActivity {
 	public PreferenceActivity() {
@@ -71,7 +72,15 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 		// Add a version number in the Menu->More->Settings
 		final Category versionCategory = createCategory("Version");
 		final Screen versionScreen = versionCategory.createPreferenceScreen("versionSettings");
-		versionScreen.setSummary(versionScreen.Resource.getResource("versionNumber").getValue());
+		String versionName = "";
+		try{
+			PackageInfo pinfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+			versionName = pinfo.versionName;
+		}
+		catch(NameNotFoundException nnfe){
+			System.out.println(nnfe);
+		}
+		versionScreen.setSummary(versionName);
 		
 		final Category libraryCategory = createCategory("Library");
 		/*
