@@ -363,9 +363,7 @@ class NetworkView extends Activity{
 	public void openTree(Context context, NetworkTree tree, String key) {
 		
 		System.out.println("key = "+key);
-		if(key.equalsIgnoreCase("https://api.bookshare.org") ||
-				key.equalsIgnoreCase("http://api.bookshare.org") ||
-				key.equalsIgnoreCase("http://service.bookshare.org") ){
+		if(key.equalsIgnoreCase("https://api.bookshare.org")){
 			Intent intent = new Intent(context.getApplicationContext(),Bookshare_Webservice_Login.class);
 			context.startActivity(intent);
 			((Activity)context).finish();
