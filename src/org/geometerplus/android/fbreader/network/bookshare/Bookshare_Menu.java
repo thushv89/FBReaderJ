@@ -296,6 +296,7 @@ public class Bookshare_Menu extends ListActivity {
 					SharedPreferences.Editor editor = login.edit();
 					editor.putString("username", "");
 					editor.putString("password", "");
+					editor.putBoolean("isOM", false);
 					editor.commit();
 					finish();
 				}
