@@ -51,8 +51,8 @@ import android.widget.TextView;
 public class Bookshare_Books_Listing extends ListActivity{
 
 	private String URI_BOOKSHARE_ID_SEARCH ="https://api.bookshare.org/book/id/";
-	private String ws_username;
-	private String ws_password;
+	private String username;
+	private String password;
 	private String requestURI;
 	private String requestType;
 	private String responseType;
@@ -62,14 +62,14 @@ public class Bookshare_Books_Listing extends ListActivity{
 	private final int START_BOOKSHARE_BOOK_DETAILS_ACTIVITY = 0;
 	private final int BOOKSHARE_BOOK_DETAILS_FINISHED = 1;
 	private final int BOOKSHARE_BOOKS_LISTING_FINISHED = 2;
-	ArrayList<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
+	private ArrayList<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
 	TreeMap<Integer,Object> icons_map = new TreeMap<Integer,Object>();
 	InputStream inputStream;
 	final BookshareWebservice bws = new BookshareWebservice();
 	private int total_pages_result;
 	private int current_result_page = 1;
 	private boolean total_pages_count_known = false;
-	private boolean isFree = false; 
+	private boolean isFree = false;
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	
 	@Override
@@ -78,10 +78,10 @@ public class Bookshare_Books_Listing extends ListActivity{
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		Intent intent  = getIntent();
-		ws_username = intent.getStringExtra("ws_username");
-		ws_password = intent.getStringExtra("ws_password");
+		username = intent.getStringExtra("ws_username");
+		password = intent.getStringExtra("ws_password");
 
-		if(ws_username == null || ws_password == null){
+		if(username == null || password == null){
 			isFree = true;
 		}
 		
@@ -102,7 +102,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 	}
 	
 	/*
-	 * Spawn a new Thread for carrying out the search 
+	 * Spawn a new Thread for carrying out the search
 	 */
 	private void getListing(final String uri){
 		
@@ -114,7 +114,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 		new Thread(){
 			public void run(){
 				try{
-					inputStream = bws.getResponseStream(ws_username, ws_password, uri);
+					inputStream = bws.getResponseStream(username, password, uri);
 					
 					// Once the response is obtained, send message to the handler
 					Message msg = Message.obtain();
@@ -285,7 +285,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 								if(isFree)
 									uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID + "?api_key="+developerKey;
 								else
-									uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID +"/for/"+ws_username+"?api_key="+developerKey;
+									uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID +"/for/"+username+"?api_key="+developerKey;
 								
 								if((isFree && bean.getAvailableToDownload().equals("1") &&
 										bean.getFreelyAvailable().equals("1")) ||
@@ -297,8 +297,8 @@ public class Bookshare_Books_Listing extends ListActivity{
 								}
 								intent.putExtra("ID_SEARCH_URI", uri);
 								if(!isFree){
-									intent.putExtra("ws_username", ws_username);
-									intent.putExtra("ws_password", ws_password);
+									intent.putExtra("username", username);
+									intent.putExtra("password", password);
 								}
 
 								startActivityForResult(intent, START_BOOKSHARE_BOOK_DETAILS_ACTIVITY);
