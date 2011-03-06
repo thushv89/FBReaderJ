@@ -73,7 +73,6 @@ public class Bookshare_Result_Bean implements Comparable{
 		return this.availableToDownload;
 	}
 	public int compareTo(Object another) {
-		
 		return 0;
 	}
 }
