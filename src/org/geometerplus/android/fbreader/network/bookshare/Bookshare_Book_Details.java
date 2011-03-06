@@ -1,17 +1,14 @@
 package org.geometerplus.android.fbreader.network.bookshare;
 
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -41,11 +38,13 @@ import org.xml.sax.helpers.DefaultHandler;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -62,8 +61,8 @@ import android.widget.Toast;
  */
 public class Bookshare_Book_Details extends Activity{
 
-	private String ws_username;
-	private String ws_password;
+	private String username;
+	private String password;
 	private Bookshare_Metadata_Bean metadata_bean;
 	private InputStream inputStream;
 	private BookshareWebservice bws = new BookshareWebservice();
@@ -83,7 +82,11 @@ public class Bookshare_Book_Details extends Activity{
 	boolean isDownloadable;
 	private final int BOOKSHARE_BOOK_DETAILS_FINISHED = 1;
 	private boolean isFree = false;
+	private boolean isOM;
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
+	private final int START_BOOKSHARE_OM_LIST = 0;
+	private String memberId = null;
+	private String omDownloadPassword;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -95,13 +98,16 @@ public class Bookshare_Book_Details extends Activity{
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		Intent intent  = getIntent();
-		ws_username = intent.getStringExtra("ws_username");
-		ws_password = intent.getStringExtra("ws_password");
+		username = intent.getStringExtra("username");
+		password = intent.getStringExtra("password");
 		
-		if(ws_username == null || ws_password == null){
+		if(username == null || password == null){
 			isFree = true;
 		}
-
+		// Obtain the application wide SharedPreferences object and store the login information
+		SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		isOM = login_preference.getBoolean("isOM", false);
+		
 		final String uri = intent.getStringExtra("ID_SEARCH_URI");
 		isDownloadable = intent.getBooleanExtra("isDownloadable", false);
 
@@ -109,7 +115,7 @@ public class Bookshare_Book_Details extends Activity{
 		new Thread(){
 			public void run(){
 				try{
-					inputStream = bws.getResponseStream(ws_username, ws_password, uri);
+					inputStream = bws.getResponseStream(username, password, uri);
 					Message msg = Message.obtain(handler);
 					msg.what = DATA_FETCHED;
 					msg.sendToTarget();
@@ -122,6 +128,17 @@ public class Bookshare_Book_Details extends Activity{
 				}
 			}
 		}.start();
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		if(requestCode == START_BOOKSHARE_OM_LIST){
+			if(data != null){
+				memberId = data.getStringExtra("memberId");
+				System.out.println("Member ID = "+memberId);
+				//new DownloadFilesTask().execute();
+			}
+		}
 	}
 
 	// Handler for processing the returned stream from book detail search
@@ -163,7 +180,13 @@ public class Bookshare_Book_Details extends Activity{
 						public void onClick(View v){
 							
 							if(btn_download.getText().toString().equalsIgnoreCase("Download")){
-								new DownloadFilesTask().execute();
+								if(isOM){
+									Intent intent = new Intent(getApplicationContext(), Bookshare_OM_List.class);
+									intent.putExtra("username", username);
+									intent.putExtra("password", password);
+									startActivityForResult(intent, START_BOOKSHARE_OM_LIST);
+									//System.out.println("Member ID = "+memberId);
+								}
 							}
 							
 							// Navigate to the local library
@@ -407,13 +430,17 @@ public class Bookshare_Book_Details extends Activity{
 			final String id = metadata_bean.getContentId();
 			String download_uri = "";
 			if(isFree)
-				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
-			else
-				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1/for/"+ws_username+"?api_key=yb5ahe9sn8k5jq9gwmn7y7s9";
+				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1?api_key="+developerKey;
+			else if(isOM){
+				download_uri = "https://api.bookshare.org/download/member/"+memberId+"content/"+id+"/version/1/for/"+username+"?api_key="+developerKey;
+			}
+			else{
+				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1/for/"+username+"?api_key="+developerKey;
+			}
 			
 			try{
 				System.out.println("download_uri :"+download_uri);
-				HttpResponse response = bws.getHttpResponse(ws_username, ws_password, download_uri);
+				HttpResponse response = bws.getHttpResponse(username, password, download_uri);
 
 				// Get hold of the response entity
 				HttpEntity entity = response.getEntity();
@@ -464,8 +491,18 @@ public class Bookshare_Book_Details extends Activity{
 								// Check to see if the zip file is password protected
 								if (zipFile.isEncrypted()) {
 									System.out.println("******isEncrypted******");
+
 									// if yes, then set the password for the zip file
-									zipFile.setPassword(ws_password);
+									if(!isOM){
+										zipFile.setPassword(password);
+									}
+									// Set the OM password sent by the Intent
+									else{
+										// Obtain the SharedPreferences object shared across the application
+										SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+										omDownloadPassword = login_preference.getString("downloadPassword", "");
+										zipFile.setPassword(omDownloadPassword);
+									}
 								}
 								
 								// Get the list of file headers from the zip file
