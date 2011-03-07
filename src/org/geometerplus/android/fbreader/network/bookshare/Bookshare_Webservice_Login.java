@@ -283,8 +283,11 @@ public class Bookshare_Webservice_Login extends Activity{
 				if(isOM){
 					String downloadPassword = new Bookshare_OM_Download_Password().getDownloadPassword(response);
 					System.out.println("downloadPassword = "+downloadPassword);
-					if(downloadPassword == null)
+					if(downloadPassword == null){
 						status = LOGIN_FAILED;
+						return null;	
+					}
+					
 					SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 					SharedPreferences.Editor editor = login_preference.edit();
 					editor.putString("downloadPassword", downloadPassword);
