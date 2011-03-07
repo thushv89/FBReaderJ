@@ -130,13 +130,13 @@ public class Bookshare_Book_Details extends Activity{
 		}.start();
 	}
 	
+	// Start downlading task if the OM download password has been received
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode == START_BOOKSHARE_OM_LIST){
 			if(data != null){
 				memberId = data.getStringExtra("memberId");
-				System.out.println("Member ID = "+memberId);
-				//new DownloadFilesTask().execute();
+				new DownloadFilesTask().execute();
 			}
 		}
 	}
@@ -180,12 +180,17 @@ public class Bookshare_Book_Details extends Activity{
 						public void onClick(View v){
 							
 							if(btn_download.getText().toString().equalsIgnoreCase("Download")){
+								
+								// Start a new Activity for getting the OM member list
+								// See onActivityResult for further processing
 								if(isOM){
 									Intent intent = new Intent(getApplicationContext(), Bookshare_OM_List.class);
 									intent.putExtra("username", username);
 									intent.putExtra("password", password);
 									startActivityForResult(intent, START_BOOKSHARE_OM_LIST);
-									//System.out.println("Member ID = "+memberId);
+								}
+								else{
+									new DownloadFilesTask().execute();
 								}
 							}
 							
@@ -441,7 +446,6 @@ public class Bookshare_Book_Details extends Activity{
 			try{
 				System.out.println("download_uri :"+download_uri);
 				HttpResponse response = bws.getHttpResponse(username, password, download_uri);
-
 				// Get hold of the response entity
 				HttpEntity entity = response.getEntity();
 				
@@ -495,10 +499,10 @@ public class Bookshare_Book_Details extends Activity{
 									// if yes, then set the password for the zip file
 									if(!isOM){
 										zipFile.setPassword(password);
-									}
+									}									
 									// Set the OM password sent by the Intent
 									else{
-										// Obtain the SharedPreferences object shared across the application
+										// Obtain the SharedPreferences object shared across the application. It is stored in login activity
 										SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 										omDownloadPassword = login_preference.getString("downloadPassword", "");
 										zipFile.setPassword(omDownloadPassword);
@@ -517,7 +521,6 @@ public class Bookshare_Book_Details extends Activity{
 									zipFile.extractFile(fileHeader, Paths.BooksDirectoryOption.getValue() +"/"+ filename);
 								}
 							}
-							
 							// Unzip the non-encrypted archive file
 							else{
 								try
@@ -528,13 +531,12 @@ public class Bookshare_Book_Details extends Activity{
 						            byte[] buf = new byte[1024];
 						            ZipInputStream zipinputstream = null;
 						            ZipEntry zipentry;
-						            zipinputstream = new ZipInputStream(
-						                new FileInputStream(zip_file));
+						            zipinputstream = new ZipInputStream(new FileInputStream(zip_file));
 
 						            zipentry = zipinputstream.getNextEntry();
 						            while (zipentry != null)
-						            { 
-						                //for each entry to be extracted
+						            {
+						                // for each entry to be extracted
 						                String entryName = zipentry.getName();
 						                System.out.println("entryname "+entryName);
 						                int n;
