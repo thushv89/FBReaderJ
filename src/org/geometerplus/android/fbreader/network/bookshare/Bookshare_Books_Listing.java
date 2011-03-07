@@ -78,8 +78,8 @@ public class Bookshare_Books_Listing extends ListActivity{
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		Intent intent  = getIntent();
-		username = intent.getStringExtra("ws_username");
-		password = intent.getStringExtra("ws_password");
+		username = intent.getStringExtra("username");
+		password = intent.getStringExtra("password");
 
 		if(username == null || password == null){
 			isFree = true;
