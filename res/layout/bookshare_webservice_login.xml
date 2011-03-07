@@ -26,8 +26,8 @@
 		android:layout_gravity="center_horizontal"/>
  -->
 	<TextView
-		android:id="@+id/bookshare_webservice_login_username_text"
-		android:text="Username"
+		android:id="@+id/bookshare_login_username_text"
+		android:text="IM username"
 		android:textColor="#000"
 		android:textSize="18dip"
 		android:typeface="sans"
@@ -37,7 +37,7 @@
 		android:layout_marginTop="40dip"/>
 		
 	<EditText
-		android:id="@+id/bookshare_webservice_login_username_edit_text"
+		android:id="@+id/bookshare_login_username_edit_text"
 		android:layout_width="fill_parent"
 		android:layout_marginLeft="20dip"
 		android:layout_marginRight="20dip"
@@ -45,8 +45,8 @@
 		android:layout_height="50dip"/>
 		
 	<TextView
-		android:id="@+id/bookshare_webservice_login_password_text"
-		android:text="Password"
+		android:id="@+id/bookshare_login_password_text"
+		android:text="IM password"
 		android:textColor="#000"
 		android:textSize="18dip"
 		android:typeface="sans"
@@ -56,7 +56,7 @@
 		android:layout_marginTop="20dip"/>
 		
 	<EditText
-		android:id="@+id/bookshare_webservice_login_password_edit_text"
+		android:id="@+id/bookshare_login_password_edit_text"
 		android:password="true"
 		android:layout_width="fill_parent"
 		android:layout_marginLeft="20dip"
