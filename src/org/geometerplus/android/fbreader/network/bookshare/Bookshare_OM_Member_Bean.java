@@ -1,5 +1,10 @@
 package org.geometerplus.android.fbreader.network.bookshare;
 
+/**
+ * 
+ * A POJO representing a Bookshare Organization Member
+ *
+ */
 public class Bookshare_OM_Member_Bean {
 	private String memberId;
 	private String firstName;
@@ -27,6 +32,5 @@ public class Bookshare_OM_Member_Bean {
 	}
 	public String getlastName(){
 		return LastName;
-	}
-	
+	}	
 }
