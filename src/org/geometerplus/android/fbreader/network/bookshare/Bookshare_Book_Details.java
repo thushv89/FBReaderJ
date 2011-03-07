@@ -87,6 +87,7 @@ public class Bookshare_Book_Details extends Activity{
 	private final int START_BOOKSHARE_OM_LIST = 0;
 	private String memberId = null;
 	private String omDownloadPassword;
+	private boolean downloadSucess;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -574,10 +575,14 @@ public class Bookshare_Book_Details extends Activity{
 							if(downloaded_zip_file.exists()){
 								downloaded_zip_file.delete();
 							}
+							downloadSucess  = true;
 						}
 						catch(ZipException e){
 							System.out.println("ZipException:"+e);
 						}
+					}
+					else{
+						downloadSucess = false;
 					}
 				}
 			}
@@ -593,11 +598,22 @@ public class Bookshare_Book_Details extends Activity{
 		// Will be called in the UI thread
 		@Override
 		protected void onPostExecute(Void param){
-			Toast toast = Toast.makeText(getApplicationContext(),
-					"Book downloaded to local library!", Toast.LENGTH_SHORT);
-			toast.show();
-			btn_download.setText("Open local library");
-			btn_download.setEnabled(true);
+			if(downloadSucess){
+				Toast toast = Toast.makeText(getApplicationContext(),
+						"Book downloaded to local library!", Toast.LENGTH_SHORT);
+				toast.show();
+				btn_download.setText("Open local library");
+				btn_download.setEnabled(true);
+			}
+			else{
+				System.out.println("In else");
+				Toast toast = Toast.makeText(getApplicationContext(),
+						"Download failed!", Toast.LENGTH_LONG);
+				toast.show();
+				btn_download.setText("Download");
+				btn_download.setEnabled(true);
+				//finish();
+			}
 		}
 	}
 
