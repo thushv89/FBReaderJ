@@ -56,8 +56,8 @@ public class Bookshare_Menu extends ListActivity {
 	private final int START_BOOKSHARE_BOOKS_LISTING_ACTIVITY = 0;
 	private final int BOOKSHARE_BOOKS_LISTING_FINISHED = 2;
 	private final int BOOKSHARE_MENU_FINISHED = 1;
-	private String ws_username;
-	private String ws_password;
+	private String username;
+	private String password;
 	private boolean isFree = false; 
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	
@@ -69,10 +69,10 @@ public class Bookshare_Menu extends ListActivity {
 		
 		// Fetch the login info from the caller intent
 		Intent callerIntent  = getIntent();
-		ws_username = callerIntent.getStringExtra("ws_username");
-		ws_password = callerIntent.getStringExtra("ws_password");
+		username = callerIntent.getStringExtra("username");
+		password = callerIntent.getStringExtra("password");
 		
-		if(ws_username == null || ws_password == null){
+		if(username == null || password == null){
 			isFree = true;
 		}
 
@@ -139,19 +139,19 @@ public class Bookshare_Menu extends ListActivity {
 					if(isFree)
 						search_term = URI_String+"search/title/"+search_term+"?api_key="+developerKey;
 					else
-						search_term = URI_String+"search/title/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
+						search_term = URI_String+"search/title/"+search_term+"/for/"+username+"?api_key="+developerKey;
 				}
 				else if(query_type.equalsIgnoreCase("Author Search")){
 					if(isFree)
 						search_term = URI_String+"search/author/"+search_term+"?api_key="+developerKey;
 					else
-						search_term = URI_String+"search/author/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
+						search_term = URI_String+"search/author/"+search_term+"/for/"+username+"?api_key="+developerKey;
 				}
 				else if(query_type.equalsIgnoreCase("ISBN Search")){
 					if(isFree)
 						search_term = URI_String+"isbn/"+search_term+"?api_key="+developerKey;
 					else
-						search_term = URI_String+"isbn/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
+						search_term = URI_String+"isbn/"+search_term+"/for/"+username+"?api_key="+developerKey;
 					
 					isMetadataSearch = true;
 				}
@@ -168,7 +168,7 @@ public class Bookshare_Menu extends ListActivity {
 					if(isFree)
 						search_term = URI_String+"id/"+search_term+"?api_key="+developerKey;
 					else
-						search_term = URI_String+"id/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
+						search_term = URI_String+"id/"+search_term+"/for/"+username+"?api_key="+developerKey;
 
 					isMetadataSearch = true;
 				}
@@ -185,7 +185,7 @@ public class Bookshare_Menu extends ListActivity {
 						if(isFree)
 							search_term = URI_String+"search/since/"+search_term+"?api_key="+developerKey;
 						else
-							search_term = URI_String+"search/since/"+search_term+"/for/"+ws_username+"?api_key="+developerKey;
+							search_term = URI_String+"search/since/"+search_term+"/for/"+username+"?api_key="+developerKey;
 					}
 					else{
 						Toast toast = Toast.makeText(getApplicationContext(), search_term.trim()+": Enter date in MMDDYYYY format",Toast.LENGTH_SHORT);
@@ -203,8 +203,8 @@ public class Bookshare_Menu extends ListActivity {
 				}
 				dialog.dismiss();
 				if(!isFree){
-					intent.putExtra("ws_username", ws_username);
-					intent.putExtra("ws_password", ws_password);
+					intent.putExtra("username", username);
+					intent.putExtra("password", password);
 				}
 				
 				startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
@@ -287,7 +287,7 @@ public class Bookshare_Menu extends ListActivity {
 		if(item.getTitle().equals("Logout")){
 			Dialog dialog = new AlertDialog.Builder(this)
             .setTitle("")
-            .setMessage("Are you sure you want to Logout?")
+            .setMessage("Log out?")
             .setPositiveButton("YES", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					
