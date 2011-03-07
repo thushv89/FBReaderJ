@@ -45,8 +45,13 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+/**
+ * 
+ * This Class lists the Organizational Members for a given sponsor account
+ *
+ */
 public class Bookshare_OM_List extends ListActivity{
-	private String uri = "https://api.bookshare.org/user/members/list/for/";
+
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	private String username;
 	private String password;
@@ -69,11 +74,14 @@ public class Bookshare_OM_List extends ListActivity{
 		password = intent.getStringExtra("password");
 
 		// Show a Progress Dialog before the book opens
-		pd_spinning = ProgressDialog.show(this, null, "Fetching books data. Please wait.", Boolean.TRUE);
+		pd_spinning = ProgressDialog.show(this, null, "Fetching member list. Please wait.", Boolean.TRUE);
 		vectorResults = new Vector<Bookshare_OM_Member_Bean>();
+		
+		// Carry out the network operation in a non-UI thread
 		new Thread(){
 			public void run(){
 				try{
+					String uri = "https://api.bookshare.org/user/members/list/for/";
 					uri += username+"/?api_key="+developerKey;
 					System.out.println(uri);
 					inputStream = bws.getResponseStream(username, password, uri);
@@ -91,13 +99,13 @@ public class Bookshare_OM_List extends ListActivity{
 		}.start();
 	}
 
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+//	@Override
+/*	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode == START_BOOKSHARE_OM_DOWNLOAD_PASSWORD){
 			omDownloadPassword = data.getStringExtra("omDownloadPassword");
 		}
 	}
-
+*/
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
 		menu.add("Cancel");
@@ -127,7 +135,7 @@ public class Bookshare_OM_List extends ListActivity{
 				pd_spinning.cancel();
 
 				String response_HTML = bws.convertStreamToString(inputStream);
-				System.out.println(response_HTML);
+
 				// Cleanup the HTML formatted tags
 				String response = response_HTML.replace("&apos;", "'").replace("&quot;", "\"").replace("&amp;", "&").replace("&#xd;","").replace("&#x97;", "-");
 
@@ -183,6 +191,7 @@ public class Bookshare_OM_List extends ListActivity{
 		}
 	};
 	
+	// Confirmation dialog to select the OM for download
 	private void buildDialog(final Bookshare_OM_Member_Bean bean){
 		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 		    @Override
@@ -208,7 +217,7 @@ public class Bookshare_OM_List extends ListActivity{
 
 	}
 
-	// Used for keeping the the screen from rotating
+	// Used for keeping the screen from rotating
 	@Override
 	public void onConfigurationChanged(Configuration newConfig){
 		super.onConfigurationChanged(newConfig);
