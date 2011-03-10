@@ -149,7 +149,7 @@ public class Bookshare_Book_Details extends Activity{
 				progessDialog.cancel();
 
 				String response_HTML = bws.convertStreamToString(inputStream);
-				String response = response_HTML.replace("&apos;", "'").replace("&quot;", "\"").replace("&amp;", "&").replace("&#xd;\n", "\n").replace("&#x97;", "-");
+				String response = response_HTML.replace("&apos;", "\'").replace("&quot;", "\"").replace("&amp;", "and").replace("&#xd;\n", "\n").replace("&#x97;", "-");
 				
 				// Parse the response String
 				parseResponse(response);
