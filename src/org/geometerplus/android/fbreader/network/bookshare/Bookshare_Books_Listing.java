@@ -189,8 +189,10 @@ public class Bookshare_Books_Listing extends ListActivity{
 				String response_HTML = bws.convertStreamToString(inputStream);
 				
 				// Cleanup the HTML formatted tags
-				String response = response_HTML.replace("&apos;", "'").replace("&quot;", "\"").replace("&amp;", "&").replace("&#xd;","").replace("&#x97;", "-");
+				String response = response_HTML.replace("&apos;", "\'").replace("&quot;", "\"").replace("&amp;", "and").replace("&#xd;","").replace("&#x97;", "-");
+//				String response = response_HTML.replace("&apos;", "\'").replace("&quot;", "\"").replace("&#xd;","").replace("&#x97;", "-");
 				
+				System.out.println(response);
 				// Parse the response of search result
 				parseResponse(response);
 
@@ -219,13 +221,16 @@ public class Bookshare_Books_Listing extends ListActivity{
 						row_item.put("icon", R.drawable.titles);
 						
 						// Add a download icon if the book is available to download
-						if(!isFree){
-							if(bean.getAvailableToDownload().equals("1")){
-								row_item.put("download_icon", R.drawable.download_icon);
-							}
+/*						if(!isFree && bean.getAvailableToDownload().equals("1")){
+							row_item.put("download_icon", R.drawable.download_icon);
 						}
 						else if(isFree && bean.getAvailableToDownload().equals("1") &&
-									bean.getFreelyAvailable().equals("1")){
+									bean.getFreelyAvailable().equals("1") ){
+							row_item.put("download_icon", R.drawable.download_icon);
+						}*/
+						if((isFree && bean.getAvailableToDownload().equals("1") &&
+								bean.getFreelyAvailable().equals("1")) ||
+								(!isFree && bean.getAvailableToDownload().equals("1"))){
 							row_item.put("download_icon", R.drawable.download_icon);
 						}
 						else{
@@ -521,7 +526,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 			((ImageView) convertView.findViewById(R.id.row_icon))
 			.setImageResource(((Integer)data.get("icon")).intValue());
 
-			if(data.get("download_icon") != null){				
+			if(data.get("download_icon") != null){
 				((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
 				.setImageResource(((Integer)data.get("download_icon")).intValue());
 			}
