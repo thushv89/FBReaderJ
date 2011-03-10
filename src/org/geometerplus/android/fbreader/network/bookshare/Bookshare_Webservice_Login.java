@@ -39,6 +39,7 @@ public class Bookshare_Webservice_Login extends Activity{
 	private String BOOKSHARE_URL = "https://api.bookshare.org/book/searchFTS/title/*potter*";
 	private Button btn_login;
 	private Button btn_reset;
+	private Button btn_continue_without_login;
 	private Button btn_free_content;
 	private TextView text_username;
 	private TextView text_password;
@@ -84,12 +85,13 @@ public class Bookshare_Webservice_Login extends Activity{
 
 		btn_login = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_login);
 		btn_reset = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_password);
+		btn_continue_without_login = (Button)findViewById(R.id.btn_bookshare_bookshare_continue_without_login);
 		
 		text_username = (TextView)findViewById(R.id.bookshare_login_username_text);
 		text_password = (TextView)findViewById(R.id.bookshare_login_password_text);
 		editText_username = (EditText)findViewById(R.id.bookshare_login_username_edit_text);
 		editText_password = (EditText)findViewById(R.id.bookshare_login_password_edit_text);
-		
+
 		// Listener for login button
 		btn_login.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
@@ -130,6 +132,29 @@ public class Bookshare_Webservice_Login extends Activity{
 				editText_username.requestFocus();
 			}
 		});
+		
+		btn_continue_without_login.setOnClickListener(new OnClickListener(){
+			public void onClick(View v){
+				getFreeContent();
+			}
+		});
+	}
+	
+	private void getFreeContent(){
+		isFree = true;
+		isOM = false;
+		username = null;
+		password = null;
+		
+		if(isFree){
+			pd_spinning = ProgressDialog.show(this, null, "Fetching free books data. Please wait.", Boolean.TRUE);
+		}
+		else{
+			pd_spinning = ProgressDialog.show(this, null, "Authenticating. Please wait.", Boolean.TRUE);
+		}
+
+		// Start a new AsyncTask for background processing
+		new AuthenticationTask().execute();
 	}
 	
 	@Override
@@ -137,11 +162,10 @@ public class Bookshare_Webservice_Login extends Activity{
 		
 		menu.add(Menu.NONE,1,Menu.NONE,"Cancel");
 		menu.add(Menu.NONE,2,Menu.NONE,"Free Content");
-		menu.add(Menu.NONE,3,Menu.NONE,"OM login");
 		return true;
 	}
 	
-	@Override
+/*	@Override
 	public boolean onPrepareOptionsMenu(Menu menu){
 		// Toggle the entry depending on whether the login is for Individual Member or Organizational Member
 		MenuItem item = menu.findItem(3);
@@ -154,7 +178,7 @@ public class Bookshare_Webservice_Login extends Activity{
 			
 		return true;
 	}
-	
+*/	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem menuitem){
 		
@@ -163,7 +187,7 @@ public class Bookshare_Webservice_Login extends Activity{
 		}
 
 		// Toggle the entry depending on whether the login is for Individual Member or Organizational Member
-		else if(menuitem.getTitle().equals("OM login")){
+/*		else if(menuitem.getTitle().equals("OM login")){
 			text_username.setText("OM username");
 			text_password.setText("OM password");
 			menuitem.setTitle("IM login");
@@ -174,7 +198,7 @@ public class Bookshare_Webservice_Login extends Activity{
 			text_password.setText("IM password");
 			menuitem.setTitle("OM login");
 			isOM = false;
-		}
+		}*/
 		else if(menuitem.getTitle().equals("Free Content")){
 			isFree = true;
 			isOM = false;
@@ -248,11 +272,8 @@ public class Bookshare_Webservice_Login extends Activity{
 				if(isFree){
 					BOOKSHARE_URL = BOOKSHARE_URL + "?api_key="+developerKey;
 				}
-				else if(isOM){
-					BOOKSHARE_URL = "https://api.bookshare.org/user/preferences/list/for/"+username+"/?api_key="+developerKey;
-				}
 				else{
-					BOOKSHARE_URL = BOOKSHARE_URL + "/for/"+username+"?api_key="+developerKey;
+					BOOKSHARE_URL = "https://api.bookshare.org/user/preferences/list/for/"+username+"/?api_key="+developerKey;
 				}
 				System.out.println("BOOKSHARE_URL = "+BOOKSHARE_URL);
 				InputStream inputStream = bws.getResponseStream(username, password, BOOKSHARE_URL);
@@ -280,18 +301,21 @@ public class Bookshare_Webservice_Login extends Activity{
 				status = LOGIN_FAILED;
 			}
 			else{
-				if(isOM){
-					String downloadPassword = new Bookshare_OM_Download_Password().getDownloadPassword(response);
-					System.out.println("downloadPassword = "+downloadPassword);
-					if(downloadPassword == null){
-						status = LOGIN_FAILED;
-						return null;	
+				if(!isFree){
+					Bookshare_UserType userTypeObj = new Bookshare_UserType();
+					isOM = userTypeObj.isOM(response);
+					if(isOM){
+						String downloadPassword = userTypeObj.getDownloadPassword();
+						if(downloadPassword == null){
+							status = LOGIN_FAILED;
+							return null;
+						}
+						
+						SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+						SharedPreferences.Editor editor = login_preference.edit();
+						editor.putString("downloadPassword", downloadPassword);
+						editor.commit();
 					}
-					
-					SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-					SharedPreferences.Editor editor = login_preference.edit();
-					editor.putString("downloadPassword", downloadPassword);
-					editor.commit();
 				}
 				status = LOGIN_SUCCESSFUL;
 			}
