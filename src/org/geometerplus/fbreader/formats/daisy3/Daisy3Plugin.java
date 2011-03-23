@@ -48,9 +48,10 @@ public class Daisy3Plugin extends FormatPlugin {
 
 	@Override
 	public boolean readMetaInfo(Book book) {
+		
+		// Read the opf file that contains the meta info for the book
 		final ZLFile opfFile = getOpfFile(book.File);
-//		return (opfFile != null) ? new OEBMetaInfoReader(book).readMetaInfo(opfFile) : false;
-		return true;
+		return (opfFile != null) ? new Daisy3MetaInfoReader(book).readMetaInfo(opfFile) : false;
 	}
 	
 	@Override
@@ -63,8 +64,7 @@ public class Daisy3Plugin extends FormatPlugin {
 	@Override
 	public ZLImage readCover(Book book) {
 		final ZLFile opfFile = getOpfFile(book.File);
-//		return (opfFile != null) ? new OEBCoverReader().readCover(opfFile) : null;		
+//		return (opfFile != null) ? new OEBCoverReader().readCover(opfFile) : null;
 		return null;
 	}
-	
 }
