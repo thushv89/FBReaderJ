@@ -20,22 +20,36 @@
 package org.geometerplus.android.fbreader;
 
 
-import android.app.*;
-import android.os.Bundle;
-import android.view.*;
-import android.widget.*;
-import android.content.DialogInterface;
 
-import org.geometerplus.zlibrary.ui.android.R;
 
-import org.geometerplus.zlibrary.core.tree.ZLTree;
+import org.geometerplus.fbreader.bookmodel.BookModel;
+import org.geometerplus.fbreader.fbreader.FBReader;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.library.BookTree;
+import org.geometerplus.fbreader.library.Library;
+import org.geometerplus.fbreader.library.LibraryTree;
+import org.geometerplus.fbreader.tree.FBTree;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.core.tree.ZLTree;
+import org.geometerplus.zlibrary.ui.android.R;
 
-import org.geometerplus.fbreader.fbreader.FBReader;
-import org.geometerplus.fbreader.bookmodel.BookModel;
-import org.geometerplus.fbreader.library.*;
-import org.geometerplus.fbreader.tree.FBTree;
+import android.app.AlertDialog;
+import android.app.TabActivity;
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.view.ContextMenu;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TabHost;
+import android.widget.TextView;
 
 public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuItemClickListener {
 	static LibraryTabActivity Instance;
