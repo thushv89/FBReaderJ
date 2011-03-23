@@ -77,7 +77,7 @@ public final class Library {
 			doReadMetaInfo = true;
 			book = new Book(bookFile);
 		}
-
+			
 		if (doReadMetaInfo && !book.readMetaInfo()) {
 			return null;
 		}
@@ -112,7 +112,7 @@ public final class Library {
 			if (physicalFile == null || !physicalFile.exists()) {
 				continue;
 			}
-			boolean reloadMetaInfo = false; 
+			boolean reloadMetaInfo = false;
 			if (myUpdatedFiles.contains(physicalFile)) {
 				reloadMetaInfo = true;
 			} else if (!fileInfos.check(physicalFile)) {
