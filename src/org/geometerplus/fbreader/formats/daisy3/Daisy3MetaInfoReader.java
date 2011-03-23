@@ -61,7 +61,6 @@ class Daisy3MetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	}
 
 	boolean readMetaInfo(ZLFile file) {
-		System.out.println("$$$$$$$$ In Daisy3 readMetaInfo $$$$$$$$$$");
 		myReadMetaData = false;
 		myReadState = READ_NONE;
 
@@ -77,7 +76,6 @@ class Daisy3MetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 			} else {
 				a = a.trim();
 			}
-			System.out.println("****in readMetaInfo, "+a);
 			myBook.addAuthor(a);
 		}
 
