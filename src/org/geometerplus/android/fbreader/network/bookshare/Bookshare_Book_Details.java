@@ -234,7 +234,7 @@ public class Bookshare_Book_Details extends Activity{
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_authors_text.setText("Not available");				
+						bookshare_book_detail_authors_text.setText("Not available");
 					}
 
 					if(metadata_bean.getIsbn() != null){
