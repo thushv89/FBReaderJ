@@ -99,7 +99,15 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
 						String id = point.id;
 						int para;
 						if(id.trim() != ""){
-							para = toc_para_map.get(point.id).intValue();
+							
+							// If the retrieved value is null, then set the para value to 0.
+							// This will take the link in TOC to the start of the book.
+							if(toc_para_map.get(point.id) != null){
+								para = toc_para_map.get(point.id).intValue();
+							}
+							else{
+								para = 0;
+							}
 						}
 						else{
 							para = 0;
