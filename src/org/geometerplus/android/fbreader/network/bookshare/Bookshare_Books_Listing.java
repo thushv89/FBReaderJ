@@ -219,7 +219,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 						}
 						row_item.put("authors", authors);
 						row_item.put("icon", R.drawable.titles);
-						
+						row_item.put("book_id", bean.getId());
 						// Add a download icon if the book is available to download
 /*						if(!isFree && bean.getAvailableToDownload().equals("1")){
 							row_item.put("download_icon", R.drawable.download_icon);
@@ -241,12 +241,12 @@ public class Bookshare_Books_Listing extends ListActivity{
 				}
 				
 				// Instantiate the custom SimpleAdapter for populating the ListView
+				// The bookId view in the layout file is used to store the id , but is not shown on screen
 				MySimpleAdapter simpleadapter = new MySimpleAdapter(
 						getApplicationContext(),list,
 						R.layout.bookshare_menu_item,
-						new String[]{"title","authors","icon","download_icon"},
-						new int[]{R.id.text1, R.id.text2,R.id.row_icon, R.id.bookshare_download_icon});
-
+						new String[]{"title","authors","icon","download_icon","book_id"},
+						new int[]{R.id.text1, R.id.text2,R.id.row_icon, R.id.bookshare_download_icon,R.id.bookId});
 
 				//Set the adapter for this view
 				setListAdapter(simpleadapter);
@@ -260,30 +260,15 @@ public class Bookshare_Books_Listing extends ListActivity{
 						// Obtain the layout for selected row
 						LinearLayout row_view  = (LinearLayout)view;
 
-						// Obtain the text of the row containing title
-						TextView txt_title_name = (TextView)row_view.findViewById(R.id.text1);
+						//Obtain the book ID
+						TextView bookId = (TextView)row_view.findViewById(R.id.bookId);
 						
-						// Obtain the text of the row
-						TextView txt_authors_name = (TextView)row_view.findViewById(R.id.text2);
-						
-						String authors = "";
-
 						// Find the corresponding bean object for this row
 						for(Bookshare_Result_Bean bean : vectorResults){
 
-							// Retrieve author name(s), which serve as a comparison parameter along with title
-							for(int i = 0; i < bean.getAuthor().length; i++){
-								if(i==0){
-									authors = bean.getAuthor()[i];
-								}
-								else{
-									authors = authors +", "+ bean.getAuthor()[i];
-								}
-							}
-							
-							// Find the matching bean entry from the vector and get its book ID
-							if(bean.getTitle().equalsIgnoreCase(txt_title_name.getText().toString()) &&
-									authors.equalsIgnoreCase(txt_authors_name.getText().toString())){
+							// Since book ID is unique, that can serve as comparison parameter
+							// Retrieve the book ID from the entry that is clicked
+							if(bean.getId().equalsIgnoreCase(bookId.getText().toString())){
 								String bookshare_ID = bean.getId();
 								Intent intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 								String uri = "";
@@ -529,6 +514,9 @@ public class Bookshare_Books_Listing extends ListActivity{
 			if(data.get("download_icon") != null){
 				((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
 				.setImageResource(((Integer)data.get("download_icon")).intValue());
+				
+				((TextView) convertView.findViewById(R.id.bookId))
+				.setText((String) data.get("book_id"));
 			}
 			return convertView;
 		}
