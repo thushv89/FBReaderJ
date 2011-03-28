@@ -174,12 +174,25 @@ abstract class NetworkBaseActivity extends ListActivity
 			view.requestLayout();
 		}
 
-		final ImageView coverView = (ImageView)view.findViewById(R.id.network_tree_item_icon);
-		coverView.getLayoutParams().width = myCoverWidth;
-		coverView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-		coverView.requestLayout();
-		setupCover(coverView, tree, myCoverWidth, myCoverWidth);
-
+		// If it is a bookshare link, then add the bookshare icon
+		if(tree.getName().equalsIgnoreCase("bookshare")){
+			System.out.println("getName().equalsIgnoreCase(bookshare)");
+			if(convertView!=null){
+				System.out.println("convertView != null");
+				((ImageView) convertView.findViewById(R.id.network_tree_item_icon))
+				.setImageResource(R.drawable.bookshare_large1);
+				System.out.println(((ImageView) convertView.findViewById(R.id.network_tree_item_icon)).toString());
+			}
+		}
+		// Not a bookshare link
+		else{
+			final ImageView coverView = (ImageView)view.findViewById(R.id.network_tree_item_icon);
+			coverView.getLayoutParams().width = myCoverWidth;
+			coverView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+			coverView.requestLayout();
+			setupCover(coverView, tree, myCoverWidth, myCoverWidth);
+		}
+		
 		final ImageView statusView = (ImageView)view.findViewById(R.id.network_tree_item_status);
 		final int status = (tree instanceof NetworkBookTree) ?
 				NetworkBookActions.getBookStatus(((NetworkBookTree) tree).Book, Connection) : 0;
