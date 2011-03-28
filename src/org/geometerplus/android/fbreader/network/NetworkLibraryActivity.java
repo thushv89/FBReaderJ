@@ -19,23 +19,26 @@
 
 package org.geometerplus.android.fbreader.network;
 
+import org.geometerplus.fbreader.network.NetworkLibrary;
+import org.geometerplus.fbreader.network.NetworkTree;
+import org.geometerplus.fbreader.tree.FBTree;
+import org.geometerplus.zlibrary.core.network.ZLNetworkException;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.ui.android.R;
+import org.geometerplus.zlibrary.ui.android.dialogs.ZLAndroidDialogManager;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.*;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.BaseAdapter;
-
-import org.geometerplus.zlibrary.core.resources.ZLResource;
-import org.geometerplus.zlibrary.core.network.ZLNetworkException;
-
-import org.geometerplus.zlibrary.ui.android.R;
-import org.geometerplus.zlibrary.ui.android.dialogs.ZLAndroidDialogManager;
-
-import org.geometerplus.fbreader.network.NetworkTree;
-import org.geometerplus.fbreader.network.NetworkLibrary;
 
 
 public class NetworkLibraryActivity extends NetworkBaseActivity {
