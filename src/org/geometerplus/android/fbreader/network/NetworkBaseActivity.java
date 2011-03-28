@@ -176,11 +176,9 @@ abstract class NetworkBaseActivity extends ListActivity
 
 		// If it is a bookshare link, then add the bookshare icon
 		if(tree.getName().equalsIgnoreCase("bookshare")){
-			System.out.println("getName().equalsIgnoreCase(bookshare)");
 			if(convertView!=null){
-				System.out.println("convertView != null");
 				((ImageView) convertView.findViewById(R.id.network_tree_item_icon))
-				.setImageResource(R.drawable.bookshare_large1);
+				.setImageResource(R.drawable.bookshare_large);
 				System.out.println(((ImageView) convertView.findViewById(R.id.network_tree_item_icon)).toString());
 			}
 		}
