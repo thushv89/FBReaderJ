@@ -53,6 +53,12 @@
 				android:textAppearance="?android:attr/textAppearanceSmall"
 				android:ellipsize="marquee"
 				android:marqueeRepeatLimit="marquee_forever"/>
+			<TextView
+				android:id="@+id/bookId"
+				android:visibility="gone"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				/>
 		</LinearLayout>
 		<ImageView
 			android:id="@+id/bookshare_download_icon"
@@ -62,7 +68,6 @@
 			android:layout_alignParentBottom="true"
 			android:layout_marginRight="4dip"
 			android:gravity="right"/>
-			
 			
 	</RelativeLayout>
 </LinearLayout>
