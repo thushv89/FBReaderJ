@@ -237,6 +237,7 @@ public class Bookshare_Menu extends ListActivity {
 					query_type = "Title Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra("REQUEST_TYPE", "Title Search");
+					dialog.show();
 				}
 				else if(txt_name.getText().equals("Author Search")){
 					dialog.setTitle("Search by Author Name");
@@ -245,6 +246,7 @@ public class Bookshare_Menu extends ListActivity {
 					query_type = "Author Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra("REQUEST_TYPE","Author Search");
+					dialog.show();
 				}
 				else if(txt_name.getText().equals("ISBN Search")){
 					dialog.setTitle("Search by ISBN");
@@ -253,6 +255,7 @@ public class Bookshare_Menu extends ListActivity {
 					query_type = "ISBN Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 					intent.putExtra("REQUEST_TYPE","ISBN Search");
+					dialog.show();
 				}
 				else if(txt_name.getText().equals("Bookshare ID Search")){
 					dialog.setTitle("Search by Bookshare ID");
@@ -261,17 +264,29 @@ public class Bookshare_Menu extends ListActivity {
 					query_type = "Bookshare ID Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 					intent.putExtra("REQUEST_TYPE","Bookshare ID Search");
+					dialog.show();
 				}
+				
+				// Changed the behavior to search for the latest book without having to enter the date range
 				else if(txt_name.getText().equals("Latest Books")){
-					dialog.setTitle("Search for latest books");
-					dialog_search_title.setText("Enter \"from\" date in MMDDYYYY format");
-					dialog_example_text.setText("E.g. 01012001 or 10022005");
+					//dialog.setTitle("Search for latest books");
+					//dialog_search_title.setText("Enter \"from\" date in MMDDYYYY format");
+					//dialog_example_text.setText("E.g. 01012001 or 10022005");
+					
+					if(isFree)
+						search_term = URI_String+"search/latest?api_key="+developerKey;
+					else
+						search_term = URI_String+"search/latest/for/"+username+"?api_key="+developerKey;
 					query_type = "Latest Books";
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra("REQUEST_TYPE","Latest Books");
-				}
-					dialog.show();
-				
+					intent.putExtra("REQUEST_URI", search_term);
+					if(!isFree){
+						intent.putExtra("username", username);
+						intent.putExtra("password", password);
+					}
+					startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
+				}					
 			}
 		});
 	}
