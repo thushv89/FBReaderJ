@@ -51,8 +51,7 @@ Part B
    Will still contain some compilation errors related to Bookshare classes.
 4. Create a new Android project in Eclipse.
 5. Choose create project from existing source. Point to the location of the downloaded code.
-6. Put the Bookshare API access library on the build path (Present in downloads section on this project's github page)
-   This step should remove all the errors mentioned in the step 3.
+6. Put the Bookshare_API.jar and zip4j_1.1.7.jar on the build path (Present in downloads section on this project's github page).  This step should remove all the errors mentioned in the step 3.
 7. Build from within Eclipse
 8. The signed apk will be present in the /bin folder which can be installed on the Android device/emulator.
 
@@ -64,6 +63,6 @@ the Android SDK and NDK locations in local.properties might not be correct.
 Running the ndk-build enables compiles the native part of the code and creates shared object (.so) files.
 Running the python script (createRawResources.py) creates the necessary directory structures of resources.
 
-The Bookshare API library (Present in downloads section on this project's github page) should be included in the build path in the Eclipse project.
+The Bookshare_API and zip4j_1.1.1.7 libraries (Present in downloads section on this project's github page) should be included in the build path in the Eclipse project.
 This shall remove the compilation errors and the apk file will be created after project is built in Eclipse.
 
