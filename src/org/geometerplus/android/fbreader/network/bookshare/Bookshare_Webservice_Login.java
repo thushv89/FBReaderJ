@@ -92,6 +92,9 @@ public class Bookshare_Webservice_Login extends Activity{
 		editText_username = (EditText)findViewById(R.id.bookshare_login_username_edit_text);
 		editText_password = (EditText)findViewById(R.id.bookshare_login_password_edit_text);
 
+		editText_username.setText("webservice_test1@benetech.org");
+		editText_password.setText("8gmgsyx8");
+		
 		// Listener for login button
 		btn_login.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
@@ -276,13 +279,13 @@ public class Bookshare_Webservice_Login extends Activity{
 					BOOKSHARE_URL = "https://api.bookshare.org/user/preferences/list/for/"+username+"/?api_key="+developerKey;
 				}
 				System.out.println("BOOKSHARE_URL = "+BOOKSHARE_URL);
-				InputStream inputStream = bws.getResponseStream(username, password, BOOKSHARE_URL);
+				InputStream inputStream = bws.getResponseStream(password, BOOKSHARE_URL);
 				result_HTML = bws.convertStreamToString(inputStream);
 
 				// Cleanup the HTML formatted tags
 				response = result_HTML.replace("&apos;", "'").replace("&quot;", "\"").replace("&amp;", "&").replace("&#xd;","").replace("&#x97;", "-");
 
-				System.out.println(response);
+				//System.out.println(response);
 			}
 			catch(URISyntaxException use){
 				System.out.println(use);
@@ -297,7 +300,10 @@ public class Bookshare_Webservice_Login extends Activity{
 
 			// Authentication failed
 			if(result_HTML.contains("<status-code>401</status-code>") || result_HTML.contains("<status-code>500</status-code>")
-					|| result_HTML.contains("403") || result_HTML.contains("404")){
+					|| result_HTML.contains("<status-code>403</status-code>") || result_HTML.contains("<status-code>404</status-code>")){
+				
+				System.out.println("LOGIN_FAILED");
+				System.out.println(result_HTML);
 				status = LOGIN_FAILED;
 			}
 			else{
