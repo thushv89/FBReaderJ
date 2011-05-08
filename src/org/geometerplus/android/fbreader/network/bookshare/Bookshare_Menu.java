@@ -41,8 +41,8 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public class Bookshare_Menu extends ListActivity {
 
-	private final String[] items = {"Title Search","Author Search","ISBN Search","Bookshare ID Search","Latest Books"};
-	private final String[] description = {"Search by title","Search by author","Search by book's ISBN","Search by Bookshare ID","Search the latest catalog"};
+	private final String[] items = {"Title Search","Author Search","ISBN Search","Bookshare ID Search","Latest Books","Popular Books"};
+	private final String[] description = {"Search by title","Search by author","Search by book's ISBN","Search by Bookshare ID","Search the latest catalog","Search popular books "};
 	ArrayList<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
 	TreeMap<Integer,Object> icons_map = new TreeMap<Integer,Object>();
 	private Dialog dialog;
@@ -81,9 +81,10 @@ public class Bookshare_Menu extends ListActivity {
 		icons_map.put(new Integer(2), R.drawable.isbn);
 		icons_map.put(new Integer(3), R.drawable.bookshare);
 		icons_map.put(new Integer(4), R.drawable.latest);
+		icons_map.put(new Integer(5), R.drawable.isbn);
 		
 		//Create a TreeMap for use in the SimpleAdapter
-		for(int i = 0; i < 5; i++){
+		for(int i = 0; i < 6; i++){
 			TreeMap<String, Object> row_item = new TreeMap<String, Object>();
 			row_item.put("Name", items[i]);
 			row_item.put("description", description[i]);
@@ -172,7 +173,7 @@ public class Bookshare_Menu extends ListActivity {
 
 					isMetadataSearch = true;
 				}
-				else if(query_type.equalsIgnoreCase("Latest Books")){
+				/*else if(query_type.equalsIgnoreCase("Latest Books")){
 					int num = 0;
 					try{
 						num = Integer.parseInt(search_term);
@@ -192,7 +193,7 @@ public class Bookshare_Menu extends ListActivity {
 						toast.show();
 						return;
 					}
-				}
+				}*/
 
 				if(isMetadataSearch){
 					intent.putExtra("ID_SEARCH_URI", search_term);
@@ -274,9 +275,9 @@ public class Bookshare_Menu extends ListActivity {
 					//dialog_example_text.setText("E.g. 01012001 or 10022005");
 					
 					if(isFree)
-						search_term = URI_String+"search/latest?api_key="+developerKey;
+						search_term = URI_String+"latest?api_key="+developerKey;
 					else
-						search_term = URI_String+"search/latest/for/"+username+"?api_key="+developerKey;
+						search_term = URI_String+"latest/for/"+username+"?api_key="+developerKey;
 					query_type = "Latest Books";
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra("REQUEST_TYPE","Latest Books");
@@ -286,7 +287,24 @@ public class Bookshare_Menu extends ListActivity {
 						intent.putExtra("password", password);
 					}
 					startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
-				}					
+				}
+				
+				// Option to search for popular books on Bookshare website
+				else if(txt_name.getText().equals("Popular Books")){
+					if(isFree)
+						search_term = URI_String+"popular?api_key="+developerKey;
+					else
+						search_term = URI_String+"popular/for/"+username+"?api_key="+developerKey;
+					query_type = "Popular Books";
+					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
+					intent.putExtra("REQUEST_TYPE","Popular Books");
+					intent.putExtra("REQUEST_URI", search_term);
+					if(!isFree){
+						intent.putExtra("username", username);
+						intent.putExtra("password", password);
+					}
+					startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
+				}
 			}
 		});
 	}
