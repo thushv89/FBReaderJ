@@ -116,7 +116,7 @@ public class Bookshare_Book_Details extends Activity{
 		new Thread(){
 			public void run(){
 				try{
-					inputStream = bws.getResponseStream(username, password, uri);
+					inputStream = bws.getResponseStream(password, uri);
 					Message msg = Message.obtain(handler);
 					msg.what = DATA_FETCHED;
 					msg.sendToTarget();
@@ -446,7 +446,7 @@ public class Bookshare_Book_Details extends Activity{
 			
 			try{
 				System.out.println("download_uri :"+download_uri);
-				HttpResponse response = bws.getHttpResponse(username, password, download_uri);
+				HttpResponse response = bws.getHttpResponse(password, download_uri);
 				// Get hold of the response entity
 				HttpEntity entity = response.getEntity();
 				
