@@ -92,9 +92,6 @@ public class Bookshare_Webservice_Login extends Activity{
 		editText_username = (EditText)findViewById(R.id.bookshare_login_username_edit_text);
 		editText_password = (EditText)findViewById(R.id.bookshare_login_password_edit_text);
 
-		editText_username.setText("webservice_test1@benetech.org");
-		editText_password.setText("8gmgsyx8");
-		
 		// Listener for login button
 		btn_login.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
