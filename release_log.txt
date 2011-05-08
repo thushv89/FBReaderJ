@@ -2,4 +2,4 @@ This file is intended to give a snapshot of the releases made in the past.
 
 Version   	Details
 1.6.3.2		Fixed issue # 57 - Latest books can be searched for without giving date range.
-1.6.3.3		Fixed issue # 65 - Continue without login now works without errors.	
+1.6.3.3		Fixed issue # 65 - Continue without login now works without errors; search popular books activated
