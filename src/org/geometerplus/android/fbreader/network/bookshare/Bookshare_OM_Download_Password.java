@@ -24,7 +24,7 @@ public class Bookshare_OM_Download_Password {
 	/**
 	 * Retrieve the download password for OM
 	 * @param response A String containing the XML response
-	 * @return String representing
+	 * @return String representing the download password
 	 */
 	public String getDownloadPassword(String response){
 		InputSource is = new InputSource(new StringReader(response));
