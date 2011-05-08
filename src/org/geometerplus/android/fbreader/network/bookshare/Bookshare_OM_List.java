@@ -84,7 +84,7 @@ public class Bookshare_OM_List extends ListActivity{
 					String uri = "https://api.bookshare.org/user/members/list/for/";
 					uri += username+"/?api_key="+developerKey;
 					System.out.println(uri);
-					inputStream = bws.getResponseStream(username, password, uri);
+					inputStream = bws.getResponseStream(password, uri);
 					Message msg = Message.obtain(handler);
 					msg.what = DATA_FETCHED;
 					msg.sendToTarget();
