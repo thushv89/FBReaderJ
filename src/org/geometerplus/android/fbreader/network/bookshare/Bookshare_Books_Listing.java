@@ -114,7 +114,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 		new Thread(){
 			public void run(){
 				try{
-					inputStream = bws.getResponseStream(username, password, uri);
+					inputStream = bws.getResponseStream(password, uri);
 					
 					// Once the response is obtained, send message to the handler
 					Message msg = Message.obtain();
