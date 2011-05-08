@@ -91,7 +91,9 @@ public class Bookshare_Books_Listing extends ListActivity{
 		
 		if(requestType.equalsIgnoreCase("Title Search")
 				|| requestType.equalsIgnoreCase("Author Search")
-				|| requestType.equalsIgnoreCase("Latest Books")){
+				|| requestType.equalsIgnoreCase("Latest Books")
+				|| requestType.equalsIgnoreCase("Popular Books")
+				){
 			responseType = "Book List Response";
 		}
 		else if(requestType.equalsIgnoreCase("Bookshare ID Search")
