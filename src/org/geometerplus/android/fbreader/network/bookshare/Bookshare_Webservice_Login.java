@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -158,47 +159,34 @@ public class Bookshare_Webservice_Login extends Activity{
 	}
 	
 	@Override
+	/*
+	 * @Non Javadoc
+	 * Menu items that will shown when the Menu button on the phone 
+	 * is clicked.
+	 */
 	public boolean onCreateOptionsMenu(Menu menu){
-		
-		menu.add(Menu.NONE,1,Menu.NONE,"Cancel");
-		menu.add(Menu.NONE,2,Menu.NONE,"Free Content");
+		menu.add(Menu.NONE,1,Menu.NONE,"Free Content");
+		menu.add(Menu.NONE,2,Menu.NONE,"Forgot Password");
+		menu.add(Menu.NONE,3,Menu.NONE,"Signup");
 		return true;
 	}
 	
-/*	@Override
-	public boolean onPrepareOptionsMenu(Menu menu){
-		// Toggle the entry depending on whether the login is for Individual Member or Organizational Member
-		MenuItem item = menu.findItem(3);
-		if(!isOM){
-			item.setTitle("OM login");
-		}
-		else{
-			item.setTitle("IM login");
-		}
-			
-		return true;
-	}
-*/	
 	@Override
+	/*
+	 * @Non Javadoc
+	 * Callback method that will be called when a menu item is clicked.
+	 */
 	public boolean onOptionsItemSelected(MenuItem menuitem){
 		
-		if(menuitem.getTitle().equals("Cancel")){
-			finish();
+		if(menuitem.getTitle().equals("Forgot Password")){
+			Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.bookshare.org/forgotPassword"));
+			startActivity(myIntent);
+		}
+		else if(menuitem.getTitle().equals("Signup")){
+			Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.bookshare.org/signUpType"));
+			startActivity(myIntent);
 		}
 
-		// Toggle the entry depending on whether the login is for Individual Member or Organizational Member
-/*		else if(menuitem.getTitle().equals("OM login")){
-			text_username.setText("OM username");
-			text_password.setText("OM password");
-			menuitem.setTitle("IM login");
-			isOM = true;
-		}
-		else if(menuitem.getTitle().equals("IM login")){
-			text_username.setText("IM username");
-			text_password.setText("IM password");
-			menuitem.setTitle("OM login");
-			isOM = false;
-		}*/
 		else if(menuitem.getTitle().equals("Free Content")){
 			isFree = true;
 			isOM = false;
