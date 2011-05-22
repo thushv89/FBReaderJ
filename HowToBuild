@@ -51,7 +51,7 @@ Part B
    Will still contain some compilation errors related to Bookshare classes.
 4. Create a new Android project in Eclipse.
 5. Choose create project from existing source. Point to the location of the downloaded code.
-6. Put the Bookshare_API.jar and zip4j_1.1.7.jar on the build path (Present in downloads section on this project's github page).  This step should remove all the errors mentioned in the step 3.
+6. Put the Bookshare_API.jar and zip4j_1.1.7.jar on the build path (Present in downloads section on this project's github page).  In Eclipse this is best done from FBReader->Properties->Java Build Path->Add External JARs for both JAR files.  This step should remove all the errors mentioned in the step 3.
 7. To enable use of the Bookshare library, you need to obtain a developer key at http://developer.bookshare.org.  One you have an application key, you need to enter it into org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey.java
 8. Build from within Eclipse
 9. The signed apk will be present in the /bin folder which can be installed on the Android device/emulator.
