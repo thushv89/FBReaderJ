@@ -1,0 +1,6 @@
+1.
+File: org/geometerplus/android/fbreader;/SQLiteBooksDatabase
+Method: loadTags(long bookId)
+Line number: inserted line at 426
+Code: cursor.close();
+Reason: Needed to resolve "Finalizing a Cursor that has not been deactivated or closed".
