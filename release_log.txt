@@ -4,3 +4,4 @@ Version   	Details
 1.6.3.2		Fixed issue # 57 - Latest books can be searched for without giving date range.
 1.6.3.3		Fixed issue # 65 - Continue without login now works without errors; search popular books option activated
 1.6.3.4		Fixed issues # 4, #6 - Added Forgot password and Signup functionality on login page menu
+1.6.3.5		Added classes related to the accessibility functionality 
