@@ -19,19 +19,12 @@
 
 package org.geometerplus.android.fbreader;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
-import android.app.SearchManager;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.PowerManager;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
-
+import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
+import org.geometerplus.fbreader.bookmodel.BookModel;
+import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.view.ZLView;
@@ -39,15 +32,38 @@ import org.geometerplus.zlibrary.text.model.ZLTextModel;
 import org.geometerplus.zlibrary.text.view.ZLTextFixedPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
+import org.geometerplus.zlibrary.ui.android.R;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
-import org.geometerplus.zlibrary.ui.android.R;
 
-import org.geometerplus.fbreader.bookmodel.BookModel;
-import org.geometerplus.fbreader.fbreader.ActionCode;
+import android.app.Activity;
+import android.app.SearchManager;
+import android.content.Intent;
+import android.gesture.Gesture;
+import android.gesture.GestureLibraries;
+import android.gesture.GestureLibrary;
+import android.gesture.GestureOverlayView;
+import android.gesture.GestureOverlayView.OnGesturePerformedListener;
+import android.gesture.Prediction;
+import android.os.Bundle;
+import android.os.PowerManager;
+import android.view.GestureDetector.OnDoubleTapListener;
+import android.view.GestureDetector.OnGestureListener;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
-public final class FBReader extends ZLAndroidActivity {
+public final class FBReader extends ZLAndroidActivity implements OnGestureListener, OnGesturePerformedListener, OnDoubleTapListener	 {
 	static FBReader Instance;
+	private int count = 0;
+    private GestureLibrary mLibrary;
+	
+//	private Speech speech;
 
 	private int myFullScreenFlag;
 
@@ -84,7 +100,14 @@ public final class FBReader extends ZLAndroidActivity {
 
 	@Override
 	public void onCreate(Bundle icicle) {
-		super.onCreate(icicle);
+		try
+		{
+			super.onCreate(icicle);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 		/*
 		android.telephony.TelephonyManager tele =
 			(android.telephony.TelephonyManager)getSystemService(TELEPHONY_SERVICE);
@@ -110,11 +133,13 @@ public final class FBReader extends ZLAndroidActivity {
 	@Override
 	public void onStart() {
 		super.onStart();
+//		speech = new Speech(this);
 		final ZLAndroidApplication application = ZLAndroidApplication.Instance();
 
 		final int fullScreenFlag =
 			application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
-		if (fullScreenFlag != myFullScreenFlag) {
+		if (fullScreenFlag != myFullScreenFlag) 
+		{
 			finish();
 			startActivity(new Intent(this, this.getClass()));
 		}
@@ -133,6 +158,7 @@ public final class FBReader extends ZLAndroidActivity {
 			final ControlPanel panel = new ControlPanel(this);
 			final View layout = getLayoutInflater().inflate(R.layout.navigate, panel, false);
 			createNavigation(layout);
+			//speech.processView(layout);
 			panel.setExtension(layout);
 			myNavigatePanel.setControlPanel(panel, root, true);
 		}
@@ -146,13 +172,39 @@ public final class FBReader extends ZLAndroidActivity {
 				return false;
 			}
 		});
+        mLibrary = GestureLibraries.fromRawResource(this, R.raw.spells);
+        if (!mLibrary.load()) {
+        	finish();
+        }
+
+        GestureOverlayView gestures = (GestureOverlayView) findViewById(R.id.gestures);
+        gestures.addOnGesturePerformedListener(this);
 	}
+
+	public void onGesturePerformed(GestureOverlayView overlay, Gesture gesture) {
+		ArrayList<Prediction> predictions = mLibrary.recognize(gesture);
+		System.out.println("************ Count = "+count);
+		// We want at least one prediction
+		if (predictions.size() > 0) {
+			Prediction prediction = predictions.get(0);
+			// We want at least some confidence in the result
+			if (prediction.score > 1.0 && count==0) {
+				count++;	
+				Toast.makeText(this, "Opening Bookshare login", Toast.LENGTH_SHORT).show();
+				Intent intent = new Intent(getApplicationContext(),Bookshare_Webservice_Login.class);
+				startActivity(intent);
+				//finish();
+			}
+		}
+	}
+
 
 	private PowerManager.WakeLock myWakeLock;
 
 	@Override
 	public void onResume() {
 		super.onResume();
+		count=0;	
 		ControlButtonPanel.restoreVisibilities();
 		if (ZLAndroidApplication.Instance().DontTurnScreenOffOption.getValue()) {
 			myWakeLock =
@@ -288,8 +340,8 @@ public final class FBReader extends ZLAndroidActivity {
 		btnOk.setOnClickListener(listener);
 		btnCancel.setOnClickListener(listener);
 		final ZLResource buttonResource = ZLResource.resource("dialog").getResource("button");
-		btnOk.setText(buttonResource.getResource("ok").getValue());
-		btnCancel.setText(buttonResource.getResource("cancel").getValue());
+		btnOk.setText("Ok");//buttonResource.getResource("ok").getValue());
+		btnCancel.setText("Cancel");//buttonResource.getResource("cancel").getValue());
 	}
 
 	private final void setupNavigation(ControlPanel panel) {
@@ -311,4 +363,61 @@ public final class FBReader extends ZLAndroidActivity {
 	private static String makeProgressText(int page, int pagesNumber) {
 		return "" + page + " / " + pagesNumber;
 	}
+
+	@Override
+	public boolean onDoubleTap(MotionEvent arg0) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean onDoubleTapEvent(MotionEvent e) 
+	{
+	//	speech.speak("tap tap");
+		return false;
+	}
+
+	@Override
+	public boolean onSingleTapConfirmed(MotionEvent e) 
+	{
+	//	speech.speak("tap");
+		return false;
+	}
+
+	@Override
+	public boolean onDown(MotionEvent arg0) 
+	{
+		return false;
+	}
+
+	@Override
+	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3) 
+	{
+		return false;
+	}
+
+	@Override
+	public void onLongPress(MotionEvent arg0) 
+	{
+	}
+
+	@Override
+	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3) 
+	{
+		return false;
+	}
+
+	@Override
+	public void onShowPress(MotionEvent arg0) 
+	{
+		
+	}
+
+	@Override
+	public boolean onSingleTapUp(MotionEvent arg0) 
+	{
+		return false;
+	}
+	
+	
 }
