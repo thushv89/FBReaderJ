@@ -19,6 +19,8 @@
 
 package org.geometerplus.android.fbreader;
 
+
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -36,19 +38,14 @@ import org.geometerplus.zlibrary.ui.android.R;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
 
-import android.app.Activity;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Intent;
-import android.gesture.Gesture;
-import android.gesture.GestureLibraries;
-import android.gesture.GestureLibrary;
-import android.gesture.GestureOverlayView;
-import android.gesture.GestureOverlayView.OnGesturePerformedListener;
-import android.gesture.Prediction;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.view.GestureDetector.OnDoubleTapListener;
 import android.view.GestureDetector.OnGestureListener;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -58,10 +55,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public final class FBReader extends ZLAndroidActivity implements OnGestureListener, OnGesturePerformedListener, OnDoubleTapListener	 {
+public final class FBReader extends ZLAndroidActivity implements OnGestureListener, OnDoubleTapListener	 {
 	static FBReader Instance;
 	private int count = 0;
-    private GestureLibrary mLibrary;
+
 	
 //	private Speech speech;
 
@@ -129,6 +126,43 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 			myNavigatePanel.register();
 		}
 	}
+	boolean menuFlag;
+	
+	
+	
+		/*
+		 * Process Menu key event
+		 * @see org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity#onKeyDown(int, android.view.KeyEvent)
+		 */
+//	    @Override	
+	    public boolean onKeyDown(int keyCode, KeyEvent event) {
+	    		System.out.println("Inside onKeyDown");		
+
+		           if (keyCode == KeyEvent.KEYCODE_MENU) {
+		        	   	if(!menuFlag){
+		        	   		System.out.println("******* Before starting the MenuActivity");	
+		        	   		Intent i = new Intent(this, MenuActivity.class);
+		        	   		startActivity(i);
+		        	   	}
+	
+		        	   		
+//		        	   		Dialog dialog = new Dialog(this);
+//		                       
+//		                       dialog.setContentView(R.layout.bookshare_dialog);
+//		                       dialog.show();
+		       
+		        /*       if (mMenuBar.getVisibility() == View.INVISIBLE) {
+		                   mMenuBar.setVisibility(View.VISIBLE);
+		                   mBaseLayout.addView(mMenuBar, 0);
+		                   mMenuButton.requestFocus();
+		               } else {
+	                   mMenuBar.setVisibility(View.INVISIBLE);
+		                   mBaseLayout.removeView(mMenuBar);
+		               }*/
+		           }
+		           
+		        return super.onKeyDown(keyCode, event);
+		    }
 
 	@Override
 	public void onStart() {
@@ -157,12 +191,12 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		if (!myNavigatePanel.hasControlPanel()) {
 			final ControlPanel panel = new ControlPanel(this);
 			final View layout = getLayoutInflater().inflate(R.layout.navigate, panel, false);
+			
 			createNavigation(layout);
 			//speech.processView(layout);
 			panel.setExtension(layout);
 			myNavigatePanel.setControlPanel(panel, root, true);
 		}
-
 		findViewById(R.id.main_view).setOnLongClickListener(new View.OnLongClickListener() {
 			public boolean onLongClick(View v) {
 				if (!myNavigatePanel.getVisibility()) {
@@ -172,33 +206,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 				return false;
 			}
 		});
-        mLibrary = GestureLibraries.fromRawResource(this, R.raw.spells);
-        if (!mLibrary.load()) {
-        	finish();
-        }
-
-        GestureOverlayView gestures = (GestureOverlayView) findViewById(R.id.gestures);
-        gestures.addOnGesturePerformedListener(this);
 	}
-
-	public void onGesturePerformed(GestureOverlayView overlay, Gesture gesture) {
-		ArrayList<Prediction> predictions = mLibrary.recognize(gesture);
-		System.out.println("************ Count = "+count);
-		// We want at least one prediction
-		if (predictions.size() > 0) {
-			Prediction prediction = predictions.get(0);
-			// We want at least some confidence in the result
-			if (prediction.score > 1.0 && count==0) {
-				count++;	
-				Toast.makeText(this, "Opening Bookshare login", Toast.LENGTH_SHORT).show();
-				Intent intent = new Intent(getApplicationContext(),Bookshare_Webservice_Login.class);
-				startActivity(intent);
-				//finish();
-			}
-		}
-	}
-
-
 	private PowerManager.WakeLock myWakeLock;
 
 	@Override
