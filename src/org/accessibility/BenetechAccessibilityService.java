@@ -19,16 +19,16 @@ public class BenetechAccessibilityService extends AccessibilityService
 	{
 		tts = new TextToSpeech(owner, new OnInitListener()
 		{
-			public void onInit(int status) 
+			public void onInit(int status)  
 			{
 				System.out.println("initialize speech");
 				if (status == TextToSpeech.SUCCESS) 
 				{
 					isInitialized = true;
-noConversionSpeak("Ready");
-checkHeld();
+					noConversionSpeak("Ready");
+					checkHeld();
 				}
-	}
+			}
 		});
 		}
 	
