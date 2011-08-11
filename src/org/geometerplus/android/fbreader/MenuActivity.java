@@ -72,13 +72,13 @@ public class MenuActivity extends Activity {
 			}
 		});
 		
-		final Button buttonOk = (Button) findViewById(R.id.ok);
-    			
-		buttonOk.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				finish();
-			}
-		});			
+//		final Button buttonOk = (Button) findViewById(R.id.ok);
+//    			
+//		buttonOk.setOnClickListener(new View.OnClickListener() {
+//			public void onClick(View v) {
+//				finish();
+//			}
+//		});			
     }
     
 	private class ListItemsAdapter extends ArrayAdapter<Object> {
