@@ -55,7 +55,7 @@ Part B
 7. To enable use of the Bookshare library, you need to obtain a developer key at http://developer.bookshare.org.  One you have an application key, you need to enter it into org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey.java
 8. Build from within Eclipse
 9. The signed apk will be present in the /bin folder which can be installed on the Android device/emulator.
-10. To test the Bookshare library, you need to add "bookshare.org" as a catalog from the Network Library option.  For more information on obtaining a test account, visit http://developer.bookshare.org
+10. To test the Bookshare library, you need to add "bookshare.org" as a catalog from the Network Library option under the main menu.  For more information on obtaining a test account, visit http://developer.bookshare.org
 
 Side Notes:
 One common reason the build steps mentioned in Part A may fail is because 
