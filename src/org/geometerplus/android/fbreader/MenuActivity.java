@@ -25,6 +25,7 @@ import android.widget.TextView;
 public class MenuActivity extends Activity {
 	private List<Object> listItems = new ArrayList<Object>(); 
 	private ListItemsAdapter adapter = null; 
+	static boolean show_day = false;
 
     /** Called when the activity is first created. */
     @Override
@@ -33,7 +34,7 @@ public class MenuActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog);
         
-        for ( int i = 0; i < 5; i++ ) {
+        for ( int i = 0; i < 13; i++ ) {
 			Object object = new Object();
 			listItems.add(object);
         }
@@ -58,15 +59,49 @@ public class MenuActivity extends Activity {
 					finish();
 				}
 				else if(position == 3){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_BOOK_INFO);
+					ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
 					finish();
 				}
 				else if(position == 4){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
+					ZLApplication.Instance().doAction(ActionCode.SHOW_BOOKMARKS);
 					finish();
 				}
 				else if(position == 5){
+					if(show_day)
+						ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_DAY_PROFILE);
+					else
+						ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_NIGHT_PROFILE);
+					System.out.println("****** show_day = "+show_day);
+					show_day = !show_day;
+					System.out.println("****** show_day = "+show_day);
+					finish();
+				}
+				else if(position == 6){
 					ZLApplication.Instance().doAction(ActionCode.SEARCH);
+					finish();
+				}
+				else if(position == 7){
+					ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
+					finish();
+				}
+				else if(position == 8){
+					ZLApplication.Instance().doAction(ActionCode.SHOW_BOOK_INFO);
+					finish();
+				}
+				else if(position == 9){
+					ZLApplication.Instance().doAction(ActionCode.ROTATE);
+					finish();
+				}
+				else if(position == 10){
+					ZLApplication.Instance().doAction(ActionCode.INCREASE_FONT);
+					finish();
+				}
+				else if(position == 11){
+					ZLApplication.Instance().doAction(ActionCode.DECREASE_FONT);
+					finish();
+				}
+				else if(position == 12){
+					ZLApplication.Instance().doAction(ActionCode.SHOW_NAVIGATION);
 					finish();
 				}
 			}
@@ -87,6 +122,7 @@ public class MenuActivity extends Activity {
 		}
 
 		public View getView(int position, View convertView, ViewGroup parent) {
+			System.out.println("******* Entered getView");
 			ViewHolder holder;
 
 			LayoutInflater inflater = getLayoutInflater();
@@ -104,7 +140,7 @@ public class MenuActivity extends Activity {
 
 			holder.text.setTypeface(Typeface.defaultFromStyle (Typeface.BOLD));
 			
-			switch ( position % 6 ) {
+			switch ( position ) {
 			case 0:
 				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Speak");
@@ -119,11 +155,47 @@ public class MenuActivity extends Activity {
 				break;
 			case 3:
 				holder.text.setTextColor( 0xFFFFFFFF );
-				holder.text.setText("Show Book Info");
+				holder.text.setText("Table of Contents");
 				break;
 			case 4:
 				holder.text.setTextColor( 0xFFFFFFFF );
-				holder.text.setText("Show Preferences");
+				holder.text.setText("Bookmarks");
+				break;
+			case 5:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				System.out.println("**** In getView, show_day = "+show_day);
+				if(show_day)
+					holder.text.setText("Day View");
+				else
+					holder.text.setText("Night View");
+				break;
+			case 6:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				holder.text.setText("Search");
+				break;
+			case 7:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				holder.text.setText("Settings");
+				break;
+			case 8:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				holder.text.setText("Book Info");
+				break;
+			case 9:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				holder.text.setText("Rotate Screen");
+				break;
+			case 10:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				holder.text.setText("Zoom In");
+				break;
+			case 11:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				holder.text.setText("Zoom Out");
+				break;
+			case 12:
+				holder.text.setTextColor( 0xFFFFFFFF );
+				holder.text.setText("Navigate");
 				break;
 			default:
 				holder.text.setTextColor( 0xFFFFFFFF );
