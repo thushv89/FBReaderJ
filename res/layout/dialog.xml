@@ -8,32 +8,13 @@
 	<TextView
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:textSize="35sp"
-		android:textStyle="bold" 
-		android:textColor="#ffffffff"	
+		android:paddingTop="10sp"
+		android:paddingBottom="10sp"
+		android:textSize="25sp"
 		android:maxLines="1"
 		android:text="Main Menu"
 		android:gravity="center"/>	    
 	
-	<LinearLayout android:orientation="horizontal"
-	    android:layout_width="fill_parent"
-	    android:layout_height="5dip"/>		    
-
-	<View android:layout_width="fill_parent" 
-		android:layout_height="4dp" 
-		android:background="?android:attr/listDivider"/>
-
-	<LinearLayout
-	    android:orientation="horizontal"
-	    android:gravity="center_horizontal"
-	    android:paddingTop="10dip"
-	    android:paddingBottom="10dip"
-	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content">
-    
-
-	</LinearLayout>
-
 	<View android:layout_width="fill_parent" 
 		android:layout_height="4dp" 
 		android:background="?android:attr/listDivider"/>
@@ -49,29 +30,5 @@
    
 	<View android:layout_width="fill_parent" 
 		android:layout_height="4dp" 
-		android:background="?android:attr/listDivider"/>   
-   
-	 <LinearLayout
-	    android:orientation="horizontal"
-	    android:gravity="center_horizontal"
-	    android:layout_width="fill_parent" 
-	    android:layout_height="wrap_content">	   
-	    
-<!-- 	    <Button android:id="@+id/cancel"
-    	    android:layout_width="fill_parent"
-    	    android:layout_weight="1"
-	        android:textSize="25px"
-	        android:layout_height="60dip"		        
-	        android:text="Cancel"/>
- -->
- <!-- 
-	    <Button android:id="@+id/ok"
-     		android:layout_width="fill_parent"
-     		android:layout_weight="1"
-			android:textSize="25px"
-			android:layout_height="60dip"		        
-			android:text="Ok"/>
- -->
-	</LinearLayout>   
-       
+		android:background="?android:attr/listDivider"/>       
 </LinearLayout>
