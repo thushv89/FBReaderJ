@@ -6,3 +6,5 @@ Version   	Details
 1.6.3.4		Fixed issues # 4, #6 - Added Forgot password and Signup functionality on login page menu
 1.6.3.5		Added classes related to the accessibility functionality 
 1.6.4		Added preliminary Gestures support. User can navigate to Bookshare library directly based on a circle/horizontal line gesture.
+1.6.4.1		Incorporated changes made as part of googleserve. Menubar appears at the top now.
+1.6.4.2		The orientation has been changed to auto mode for all screens. Menu bar appears at the bottom.
