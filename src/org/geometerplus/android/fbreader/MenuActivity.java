@@ -71,9 +71,7 @@ public class MenuActivity extends Activity {
 						ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_DAY_PROFILE);
 					else
 						ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_NIGHT_PROFILE);
-					System.out.println("****** show_day = "+show_day);
 					show_day = !show_day;
-					System.out.println("****** show_day = "+show_day);
 					finish();
 				}
 				else if(position == 6){
@@ -106,14 +104,6 @@ public class MenuActivity extends Activity {
 				}
 			}
 		});
-		
-//		final Button buttonOk = (Button) findViewById(R.id.ok);
-//    			
-//		buttonOk.setOnClickListener(new View.OnClickListener() {
-//			public void onClick(View v) {
-//				finish();
-//			}
-//		});			
     }
     
 	private class ListItemsAdapter extends ArrayAdapter<Object> {
@@ -122,7 +112,6 @@ public class MenuActivity extends Activity {
 		}
 
 		public View getView(int position, View convertView, ViewGroup parent) {
-			System.out.println("******* Entered getView");
 			ViewHolder holder;
 
 			LayoutInflater inflater = getLayoutInflater();
@@ -136,69 +125,54 @@ public class MenuActivity extends Activity {
 			// Bind the data efficiently with the holder.
 			holder.text.setText( "Item: " + (position+1) );
 			final Typeface typeface;
-			holder.text.setTextSize( 25 );
+			//holder.text.setTextSize( 20 );
 
-			holder.text.setTypeface(Typeface.defaultFromStyle (Typeface.BOLD));
+			holder.text.setTypeface(Typeface.defaultFromStyle (Typeface.NORMAL));
 			
 			switch ( position ) {
 			case 0:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Speak");
 				break;
 			case 1:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Library");
 				break;
 			case 2:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Network Library");	
 				break;
 			case 3:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Table of Contents");
 				break;
 			case 4:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Bookmarks");
 				break;
 			case 5:
-				holder.text.setTextColor( 0xFFFFFFFF );
-				System.out.println("**** In getView, show_day = "+show_day);
 				if(show_day)
 					holder.text.setText("Day View");
 				else
 					holder.text.setText("Night View");
 				break;
 			case 6:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Search");
 				break;
 			case 7:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Settings");
 				break;
 			case 8:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Book Info");
 				break;
 			case 9:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Rotate Screen");
 				break;
 			case 10:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Zoom In");
 				break;
 			case 11:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Zoom Out");
 				break;
 			case 12:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Navigate");
 				break;
 			default:
-				holder.text.setTextColor( 0xFFFFFFFF );
 				holder.text.setText("Search");
 				break;
 			}
