@@ -130,39 +130,23 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	
 	
 	
-		/*
-		 * Process Menu key event
-		 * @see org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity#onKeyDown(int, android.view.KeyEvent)
-		 */
-//	    @Override	
-	    public boolean onKeyDown(int keyCode, KeyEvent event) {
-	    		System.out.println("Inside onKeyDown");		
-
-		           if (keyCode == KeyEvent.KEYCODE_MENU) {
-		        	   	if(!menuFlag){
-		        	   		System.out.println("******* Before starting the MenuActivity");	
-		        	   		Intent i = new Intent(this, MenuActivity.class);
-		        	   		startActivity(i);
-		        	   	}
-	
-		        	   		
-//		        	   		Dialog dialog = new Dialog(this);
-//		                       
-//		                       dialog.setContentView(R.layout.bookshare_dialog);
-//		                       dialog.show();
-		       
-		        /*       if (mMenuBar.getVisibility() == View.INVISIBLE) {
-		                   mMenuBar.setVisibility(View.VISIBLE);
-		                   mBaseLayout.addView(mMenuBar, 0);
-		                   mMenuButton.requestFocus();
-		               } else {
-	                   mMenuBar.setVisibility(View.INVISIBLE);
-		                   mBaseLayout.removeView(mMenuBar);
-		               }*/
-		           }
-		           
-		        return super.onKeyDown(keyCode, event);
-		    }
+	/*
+	 * Process Menu key event
+	 * @see org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity#onKeyDown(int, android.view.KeyEvent)
+	 * This method has been overridden to show a full screen menu when the menu button on the device is clicked
+	 * instead of the menu shown at the bottom of the screen. Comment this method to show the regular menu.
+	*/
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		System.out.println("Inside onKeyDown");		
+		if (keyCode == KeyEvent.KEYCODE_MENU) {
+			if(!menuFlag){
+    	   		System.out.println("******* Before starting the MenuActivity");	
+    	   		Intent i = new Intent(this, MenuActivity.class);
+    	   		startActivity(i);
+    	   	}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
 
 	@Override
 	public void onStart() {
