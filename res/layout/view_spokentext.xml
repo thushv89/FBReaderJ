@@ -4,25 +4,36 @@
   android:layout_width="wrap_content"
   android:layout_height="wrap_content"
   android:orientation="horizontal">
-    <ImageButton android:id="@+id/spokentextback"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_previous"/> 
-    <ImageButton android:id="@+id/spokentextpause"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_play"
-            />
-    <ImageButton android:id="@+id/spokentextstop"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_close"           
+
+     <Button android:id="@+id/spokentextpause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+		    android:textSize="20dip"
+            android:text="Play or Pause"
+            android:padding="10dip"
             />
 
-    <ImageButton android:id="@+id/spokentextforward"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_next"
+    <Button android:id="@+id/spokentextstop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+           	android:textSize="20dip"
+            android:text="Stop speaking"
+            android:padding="10dip"
+            />
+
+     <Button android:id="@+id/spokentextback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Previous Paragraph"
+            android:textSize="20dip"
+            android:padding="10dip"/>
+
+    <Button android:id="@+id/spokentextforward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Next Paragraph"
+           	android:textSize="20dip"
+           	android:padding="10dip"
             />
 
 </LinearLayout>
