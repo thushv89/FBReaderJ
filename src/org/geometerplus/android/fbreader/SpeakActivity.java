@@ -1,3 +1,4 @@
+
 package org.geometerplus.android.fbreader;
 
 import java.util.HashMap;
@@ -35,7 +36,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 
-public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener {
+// This class is used to compile for the non TTS version (regular). It contains the ImageButtons for TTS player controls
+//public class SpeakActivity_nonTTS extends Activity implements OnInitListener, OnUtteranceCompletedListener {
+public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener{
     	static final int ACTIVE = 1;
     	static final int INACTIVE = 0;
 		private static final int CHECK_TTS_INSTALLED = 0;
@@ -49,18 +52,20 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	private FBView theView;
     	private FBReader Reader; 
     	private ZLTextParagraphCursor myParaCursor;
-    	/* Replacing the ImageButtons with TextView for talkback
+    	
     	private ImageButton pausebutton;
     	private ImageButton forwardbutton;
     	private ImageButton backbutton;
     	private ImageButton stopbutton;
-    	 */
+    	
+    	/*
     	private Button pausebutton;
     	private Button forwardbutton;
     	private Button backbutton;
     	private Button stopbutton;
-    	private int state = INACTIVE;  
-
+    	*/
+    	private int state = INACTIVE;
+		
 
     	class UpdateControls implements Runnable { 
     		private int state;
@@ -68,12 +73,14 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     		static final int PLAY = 1;
 			public void run() { 
 				if(state==PLAY) { 
-					pausebutton.setText("Play");
+					pausebutton.setImageResource(R.drawable.speak_play);
+					//pausebutton.setText("Play");
 				} else if (state==PAUSE){
-					pausebutton.setText("Pause");
-				}			
-			} 
-    		public UpdateControls(int value) { this.state = value; } 
+					pausebutton.setImageResource(R.drawable.speak_pause);
+					//pausebutton.setText("Pause");
+				}
+			}
+    		public UpdateControls(int value) { this.state = value; }
     	} 
     	
     	
@@ -132,20 +139,23 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       requestWindowFeature(Window.FEATURE_NO_TITLE);
 	       setContentView(R.layout.view_spokentext);
 	       
-	       backbutton = (Button)findViewById(R.id.spokentextback);
+	       //backbutton = (Button)findViewById(R.id.spokentextback);
+	       backbutton = (ImageButton)findViewById(R.id.spokentextback);
 	       backbutton.setOnClickListener(backListener);
 	       	       
-	       forwardbutton = (Button)findViewById(R.id.spokentextforward);
+	       //forwardbutton = (Button)findViewById(R.id.spokentextforward);
+	       forwardbutton = (ImageButton)findViewById(R.id.spokentextforward);
 	       forwardbutton.setOnClickListener(forwardListener);
 	       
-	       pausebutton = (Button)findViewById(R.id.spokentextpause);
+	       //pausebutton = (Button)findViewById(R.id.spokentextpause);
+	       pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
 	       pausebutton.setOnClickListener(pauseListener);
 	       
-	       stopbutton = (Button)findViewById(R.id.spokentextstop);
+	       //stopbutton = (Button)findViewById(R.id.spokentextstop);
+	       stopbutton = (ImageButton)findViewById(R.id.spokentextstop);
 	       stopbutton.setOnClickListener(stopListener);
 	       
-	       
-	       setState(INACTIVE); 
+	       setState(INACTIVE);
 	       	       
 	       TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 	       tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
