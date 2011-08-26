@@ -8,3 +8,4 @@ Version   	Details
 1.6.4		Added preliminary Gestures support. User can navigate to Bookshare library directly based on a circle/horizontal line gesture.
 1.6.4.1		Incorporated changes made as part of googleserve. Menubar appears at the top now.
 1.6.4.2		The orientation has been changed to auto mode for all screens. Menu bar appears at the bottom.
+1.6.5		The talkback will start when the play button from the playback is explicitly selected. The order of control buttons is changed
