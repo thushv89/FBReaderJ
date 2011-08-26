@@ -35,7 +35,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 
-
 public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener {
     	static final int ACTIVE = 1;
     	static final int INACTIVE = 0;
@@ -46,16 +45,20 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		static final int SEARCHFORWARD = 1;
 		static final int SEARCHBACKWARD = 2;
 		
-		
     	private TextToSpeech mTts=null;
     	private FBView theView;
     	private FBReader Reader; 
     	private ZLTextParagraphCursor myParaCursor;
+    	/* Replacing the ImageButtons with TextView for talkback
     	private ImageButton pausebutton;
     	private ImageButton forwardbutton;
     	private ImageButton backbutton;
     	private ImageButton stopbutton;
-    	
+    	 */
+    	private Button pausebutton;
+    	private Button forwardbutton;
+    	private Button backbutton;
+    	private Button stopbutton;
     	private int state = INACTIVE;  
 
 
@@ -65,11 +68,10 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     		static final int PLAY = 1;
 			public void run() { 
 				if(state==PLAY) { 
-					pausebutton.setImageResource(R.drawable.speak_play); 
+					pausebutton.setText("Play");
 				} else if (state==PAUSE){
-					pausebutton.setImageResource(R.drawable.speak_pause);
-				}
-			
+					pausebutton.setText("Pause");
+				}			
 			} 
     		public UpdateControls(int value) { this.state = value; } 
     	} 
@@ -97,7 +99,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	    public void onClick(View v) {
     	    	stopTalking();
     	    	nextParagraphString(true,false,SEARCHBACKWARD);
-    	    	
     	    }
     	};
     	
@@ -118,10 +119,8 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	    public void onClick(View v) {
     	    	stopTalking();
     	    	finish();
-    	    	
     	    }
     	};
-		
     	
 	   @Override
 	   public void onCreate(Bundle savedInstanceState) {
@@ -129,46 +128,37 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       
     		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
     		Reader = (FBReader)ZLApplication.Instance();
-
 	       
 	       requestWindowFeature(Window.FEATURE_NO_TITLE);
 	       setContentView(R.layout.view_spokentext);
 	       
-	       backbutton = (ImageButton)findViewById(R.id.spokentextback);
+	       backbutton = (Button)findViewById(R.id.spokentextback);
 	       backbutton.setOnClickListener(backListener);
 	       	       
-	       forwardbutton = (ImageButton)findViewById(R.id.spokentextforward);
+	       forwardbutton = (Button)findViewById(R.id.spokentextforward);
 	       forwardbutton.setOnClickListener(forwardListener);
 	       
-	       pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
+	       pausebutton = (Button)findViewById(R.id.spokentextpause);
 	       pausebutton.setOnClickListener(pauseListener);
 	       
-	       stopbutton = (ImageButton)findViewById(R.id.spokentextstop);
+	       stopbutton = (Button)findViewById(R.id.spokentextstop);
 	       stopbutton.setOnClickListener(stopListener);
 	       
 	       
 	       setState(INACTIVE); 
-	       
-	       
+	       	       
 	       TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 	       tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
 	       
-	       
  		   theView = ((FBReader)FBReader.Instance()).getTextView();
  		   
- 		   
-
 		   ZLTextWordCursor cursor = theView.getStartCursor();
 		   myParaCursor = cursor.getParagraphCursor(); 
-
 	       
 	       Intent checkIntent = new Intent();
 	       checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 	       startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
-
-	       
 	   }
-
 	   
 	   protected void onActivityResult(
 	           int requestCode, int resultCode, Intent data) {
@@ -195,7 +185,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 			cursor.nextWord();				
 		} 				
 		return(sb.toString());
-
 	}
 	
 	private void setState(int value){
@@ -206,8 +195,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		}else if(state==INACTIVE) {
 			pausebutton.post(new UpdateControls(UpdateControls.PLAY));			 
 		}
-		
-		
 	}
 	
 	private void speakString(String s){
@@ -225,9 +212,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		Reader.repaintView(); 
 		Reader.showBookTextView();
 		//theView.getModel().Book.storePosition(BookTextView.getStartCursor());
-		
-		
-		
 	}
 
 	private String lookforValidParagraphString(int direction){
@@ -245,23 +229,17 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
   				break;
 			}
 			s = getParagraphText(myParaCursor);
-				
 		}	
         return s;
-		
 	}
-
 	
 	private String nextParagraphString(boolean show,boolean speak, int direction){
 		String s = lookforValidParagraphString(direction);
-		
+		show = true;
 		if(show) showString(s);
 		if(speak) speakString(s);
-		
         return s;
-		
 	}
-
 	
 	@Override
 	protected void  onDestroy(){	
@@ -271,13 +249,11 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		super.onDestroy();				
 	}
 	
-	
 	private void stopTalking(){
 		setState(INACTIVE);
 		if(mTts!=null){
 		    if(mTts.isSpeaking()) mTts.stop();
 		}
-		
 	}
 	
 	@Override
@@ -295,28 +271,22 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	@Override
 	protected void  onResume(){			
 		super.onResume();
-		
-
 	}
 
 	
 //	@Override
-	public void onInit(int status) { 
-			
+	public void onInit(int status) {
 		mTts.setOnUtteranceCompletedListener(this);
-		setState(ACTIVE);
-		nextParagraphString(true,true,CURRENTORFORWARD);
-
+		setState(INACTIVE);
+		//Don't start speaking rightaway.Hence commented
+		//nextParagraphString(true,true,CURRENTORFORWARD);
 	}
-	
 	
 	public void onUtteranceCompleted(String uttId) {
 		if(	state == ACTIVE & uttId.equals(this.PARAGRAPHUTTERANCE)) {
 			nextParagraphString(true,true,SEARCHFORWARD);
 		} else {
 			setState(INACTIVE);
-		}
-		
+		}		
 	}
-
 }
