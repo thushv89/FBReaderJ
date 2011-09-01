@@ -1,17 +1,20 @@
 How to Build for Android
 ------------------------
-For those who use Eclipse for Android development (most of you), jump to Part B
-
-------------------------------------------------------------------------------------------------
-Part A.
-------------------------------------------------------------------------------------------------
 Prerequisites:
 
 1. Android SDK >= 1.6
 
 2. Android NDK >= r4b
 
-3. python
+3. Python
+
+4. We would recommend using Eclipse with the Android plugin
+
+For those who use Eclipse for Android development (most of you), jump to Part B
+
+------------------------------------------------------------------------------------------------
+Part A.
+------------------------------------------------------------------------------------------------
 
 To build:
 
