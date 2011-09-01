@@ -40,7 +40,7 @@ Part B
 
 1. Download the project code from git onto your local drive "git clone git://github.com/amahule/FBReaderJ.git".
 2. Change the local.properties file to point to your Android SDK and NDK installations.
-3. If you are running Linux or Mac OS, run "ant package" from inside the project directory containing build.xml 
+3. If you are running Linux or Mac OS, run "ant package" from inside the project directory containing build.xml. You may get some compile errors around the zip4j and bookshare classes, but don't worry at this point, since we will build with Eclipse. 
    If you are running Windows, 
    - Run ndk-build (a program from Android NDK directory) in your project catalog;
       This program only runs from Cygwin >= 1.7, please read NDK docs for details.
@@ -48,10 +48,9 @@ Part B
 
    Make sure directories res/raw and res/drawable get created and are populated.
    These newly created resource directories are mandatory for creating an Eclipse project.
-   Will still contain some compilation errors related to Bookshare classes.
 4. Create a new Android project in Eclipse.
 5. Choose create project from existing source. Point to the location of the downloaded code.
-6. Put the Bookshare_API.jar and zip4j_1.1.7.jar on the build path (Present in downloads section on this project's github page).  In Eclipse this is best done from FBReader->Properties->Java Build Path->Add External JARs for both JAR files.  This step should remove all the errors mentioned in the step 3.
+6. Put the Bookshare_API.jar and zip4j_1.1.7.jar on the build path (present in FBReaderJ directory).  In Eclipse this is best done from FBReader->Properties->Java Build Path->Add JARs for both JAR files.  This step should remove all the errors mentioned in the step 3.
 7. To enable use of the Bookshare library, you need to obtain a developer key at http://developer.bookshare.org.  One you have an application key, you need to enter it into org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey.java
 8. Build from within Eclipse
 9. The signed apk will be present in the /bin folder which can be installed on the Android device/emulator.
@@ -64,6 +63,6 @@ the Android SDK and NDK locations in local.properties might not be correct.
 Running the ndk-build enables compiles the native part of the code and creates shared object (.so) files.
 Running the python script (createRawResources.py) creates the necessary directory structures of resources.
 
-The Bookshare_API and zip4j_1.1.1.7 libraries (Present in downloads section on this project's github page) should be included in the build path in the Eclipse project.
+The Bookshare_API and zip4j_1.1.1.7 libraries should be included in the build path in the Eclipse project.
 This shall remove the compilation errors and the apk file will be created after project is built in Eclipse.
 
