@@ -7,4 +7,6 @@ res/drawable/
 libs/
 obj/
 .classpath
+.project
+BookshareDeveloperKey.java
 *~
