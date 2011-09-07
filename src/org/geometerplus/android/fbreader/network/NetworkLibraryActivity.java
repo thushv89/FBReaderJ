@@ -49,7 +49,7 @@ public class NetworkLibraryActivity extends NetworkBaseActivity {
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 	}
 
