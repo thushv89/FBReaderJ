@@ -6,6 +6,7 @@
   android:orientation="horizontal">
 
  <!-- For the non-TTS version where the control labels need not be spoken back -->
+ <!-- 
      <ImageButton android:id="@+id/spokentextpause"
             android:layout_width="70dip"
             android:layout_height="50dip"
@@ -28,9 +29,9 @@
             android:layout_height="50dip"
             android:src="@drawable/speak_previous"/>
 
-             
+ -->             
 <!-- For the TTS version where the control labels need to be spoken back -->
-<!-- 
+ 
      <Button android:id="@+id/spokentextpause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -52,5 +53,5 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Previous Paragraph"/>
-  -->
+  
 </LinearLayout>
