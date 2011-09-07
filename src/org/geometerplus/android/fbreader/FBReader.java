@@ -114,6 +114,10 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		final ZLAndroidApplication application = ZLAndroidApplication.Instance();
 		myFullScreenFlag =
 			application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
+		/*
+		 * Added to make the app go non-fullscreen for barnes and noble testing 
+		 */
+		myFullScreenFlag = 0;
 		getWindow().setFlags(
 			WindowManager.LayoutParams.FLAG_FULLSCREEN, myFullScreenFlag
 		);
@@ -154,8 +158,13 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 //		speech = new Speech(this);
 		final ZLAndroidApplication application = ZLAndroidApplication.Instance();
 
-		final int fullScreenFlag =
-			application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
+		/*
+		 * Added to make the app go non-fullscreen for barnes and noble testing 
+		 */
+		//final int fullScreenFlag =
+		//	application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
+		final int fullScreenFlag = 0;
+
 		if (fullScreenFlag != myFullScreenFlag) 
 		{
 			finish();
