@@ -99,7 +99,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 
 		setCurrentBook();
 
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 
 		final TabHost host = getTabHost();
