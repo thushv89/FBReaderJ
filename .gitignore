@@ -9,3 +9,4 @@ libs/
 obj/
 .classpath
 *~
+src/org/geometerplus/android/fbreader/network/bookshare/BookshareDeveloperKey.java
