@@ -7,7 +7,6 @@ res/drawable/
 libs/
 obj/
 .classpath
-BookshareDeveloperKey.java
 *~
 src/org/geometerplus/android/fbreader/network/BookshareDeveloperKey.java
 
