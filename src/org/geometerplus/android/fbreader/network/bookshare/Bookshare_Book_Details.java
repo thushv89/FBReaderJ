@@ -68,6 +68,7 @@ public class Bookshare_Book_Details extends Activity{
 	private BookshareWebservice bws = new BookshareWebservice();
 	private final int DATA_FETCHED = 99;
 	private ProgressDialog progessDialog;
+	private View book_detail_view;
 	private TextView bookshare_book_detail_title_text;
 	private TextView bookshare_book_detail_authors_text;
 	private TextView bookshare_book_detail_isbn_text;
@@ -161,6 +162,7 @@ public class Bookshare_Book_Details extends Activity{
 				}
 				if(metadata_bean != null){
 					setContentView(R.layout.bookshare_book_detail);
+					book_detail_view = (View)findViewById(R.id.book_detail_view);
 					bookshare_book_detail_title_text = (TextView)findViewById(R.id.bookshare_book_detail_title_text);
 					bookshare_book_detail_authors_text = (TextView)findViewById(R.id.bookshare_book_detail_authors_text);
 					bookshare_book_detail_isbn_text= (TextView)findViewById(R.id.bookshare_book_detail_isbn_text);
@@ -173,6 +175,7 @@ public class Bookshare_Book_Details extends Activity{
 					bookshare_book_detail_synopsis_text = (TextView)findViewById(R.id.bookshare_book_detail_synopsis_text);
 					btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 
+					book_detail_view.requestFocus();
 					// If the book is not downloadable, do not show the download button
 					if(!isDownloadable){
 						btn_download.setVisibility(View.INVISIBLE);
