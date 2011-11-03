@@ -44,6 +44,8 @@ class NCXReader extends ZLXMLReaderAdapter {
 	int myReadState = READ_NONE;
 	int myPlayIndex = -65535;
 	private String myLocalPathPrefix;
+	private boolean firstNavPointStart = true;
+	
 
 	NCXReader(BookReader modelReader) {
 		myModelReader = modelReader;
@@ -88,9 +90,20 @@ class NCXReader extends ZLXMLReaderAdapter {
 				break;
 			case READ_MAP:
 				if (tag == TAG_NAVPOINT) {
+					// Hack to make the first level TOC entries work
+					// When first <navPoint> is encountered, add another <navPoint> as top level row in the TOC
+					if(firstNavPointStart){
+						firstNavPointStart = false;
+						final int index = myPlayIndex++;
+						System.out.println("********** In firstNavPointStart, index = "+index);
+						NavPoint first = new NavPoint(index, myPointStack.size());
+						myPointStack.add(first);
+						myReadState = READ_POINT;
+					}
 					final String order = attributes.getValue(ATTRIBUTE_PLAYORDER);
 					final int index = (order != null) ? atoi(order) : myPlayIndex++;
-					myPointStack.add(new NavPoint(index, myPointStack.size()));
+					NavPoint point = new NavPoint(index, myPointStack.size());
+					myPointStack.add(point);
 					myReadState = READ_POINT;
 				}
 				break;
@@ -130,6 +143,14 @@ class NCXReader extends ZLXMLReaderAdapter {
 				break;
 			case READ_MAP:
 				if (TAG_NAVMAP == tag) {
+					// Hack to make the first level TOC entries work
+					// Ending of the artificially added navPoint above
+					NavPoint last = myPointStack.get(myPointStack.size() - 1);
+					if (last.Text.length() == 0) {
+						last.Text = "...";
+					}
+					myNavigationMap.put(last.Order, last);
+					myPointStack.remove(myPointStack.size() - 1);
 					myReadState = READ_NONE;
 				}
 				break;
