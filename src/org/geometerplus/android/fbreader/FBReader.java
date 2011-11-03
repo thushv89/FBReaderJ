@@ -21,10 +21,9 @@ package org.geometerplus.android.fbreader;
 
 
 
-import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
-import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
 import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
@@ -38,9 +37,12 @@ import org.geometerplus.zlibrary.ui.android.R;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
 
-import android.app.Dialog;
 import android.app.SearchManager;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.view.GestureDetector.OnDoubleTapListener;
@@ -53,10 +55,14 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public final class FBReader extends ZLAndroidActivity implements OnGestureListener, OnDoubleTapListener	 {
 	static FBReader Instance;
+	
+	//Added for the detecting whether the talkback is on
+	private final static String SCREENREADER_INTENT_ACTION = "android.accessibilityservice.AccessibilityService";
+    private final static String SCREENREADER_INTENT_CATEGORY = "android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_SPOKEN";
+
 	private int count = 0;
 
 	
@@ -131,8 +137,36 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		}
 	}
 	boolean menuFlag;
-	
-	
+
+	private boolean isScreenReaderActive() {
+        // Restrict the set of intents to only accessibility services that have
+        // the category FEEDBACK_SPOKEN (aka, screen readers).
+        Intent screenReaderIntent = new Intent(SCREENREADER_INTENT_ACTION);
+        screenReaderIntent.addCategory(SCREENREADER_INTENT_CATEGORY);
+        List<ResolveInfo> screenReaders = getPackageManager().queryIntentServices(
+                screenReaderIntent, 0);
+        ContentResolver cr = getContentResolver();
+        Cursor cursor = null;
+        int status = 0;
+        for (ResolveInfo screenReader : screenReaders) {
+            // All screen readers are expected to implement a content provider
+            // that responds to
+            // content://<nameofpackage>.providers.StatusProvider
+            cursor = cr.query(Uri.parse("content://" + screenReader.serviceInfo.packageName
+                    + ".providers.StatusProvider"), null, null, null, null);
+            if (cursor != null) {
+                cursor.moveToFirst();
+                // These content providers use a special cursor that only has one element, 
+                // an integer that is 1 if the screen reader is running.
+                status = cursor.getInt(0);
+                cursor.close();
+                if (status == 1) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 	
 	/*
 	 * Process Menu key event
@@ -141,13 +175,19 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	 * instead of the menu shown at the bottom of the screen. Comment this method to show the regular menu.
 	*/
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		System.out.println("Inside onKeyDown");		
-		if (keyCode == KeyEvent.KEYCODE_MENU) {
-			if(!menuFlag){
-    	   		System.out.println("******* Before starting the MenuActivity");	
-    	   		Intent i = new Intent(this, MenuActivity.class);
-    	   		startActivity(i);
-    	   	}
+		System.out.println("************ Inside onKeyDown");
+		System.out.println("************ isScreenReaderActive() = "+isScreenReaderActive());
+   		Intent i = new Intent(this, MenuActivity.class);
+   		startActivity(i);
+
+		if(isScreenReaderActive()){
+			if (keyCode == KeyEvent.KEYCODE_MENU) {
+				if(!menuFlag){
+	    	   		System.out.println("******* Before starting the MenuActivity");
+//	    	   		Intent i = new Intent(this, MenuActivity.class);
+//	    	   		startActivity(i);
+	    	   	}
+			}
 		}
 		return super.onKeyDown(keyCode, event);
 	}
