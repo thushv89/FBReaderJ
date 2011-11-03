@@ -75,6 +75,7 @@ public class TOCActivity extends ListActivity {
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
+		System.out.println("******* In onContextItemSelected");
 		final int position = ((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position;
 		final TOCTree tree = (TOCTree)myAdapter.getItem(position);
 		switch (item.getItemId()) {
@@ -118,10 +119,19 @@ public class TOCActivity extends ListActivity {
 		}
 
 		void openBookText(TOCTree tree) {
+			System.out.println("********** In openBookText, printing tree details");
+			System.out.println("********* tree.getText() = "+tree.getText());
+			System.out.println("********* tree.getSize() = "+tree.getSize());
+			System.out.println("********* tree.Level = "+tree.Level);
+			System.out.println("********* tree.Parent = "+tree.Parent);
+			System.out.println("********* tree.hasChildren() = "+tree.hasChildren());
+
+			
 			final TOCTree.Reference reference = tree.getReference();
 			if (reference != null) {
 				finish();
 				final FBReader fbreader = (FBReader)ZLApplication.Instance();
+				System.out.println("*********reference.ParagraphIndex = "+reference.ParagraphIndex);
 				fbreader.BookTextView.gotoPosition(reference.ParagraphIndex, 0, 0);
 				fbreader.showBookTextView();
 			}
