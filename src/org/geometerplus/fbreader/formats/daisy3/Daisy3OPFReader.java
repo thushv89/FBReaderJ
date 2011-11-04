@@ -119,9 +119,7 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
 						}
 						while (++level <= point.Level) {
 							myModelReader.beginContentsParagraph(-2);
-							//myModelReader.addContentsData(Dots);
-							// Show the text as "Table Of Contents" in the topmost row in TOC
-							myModelReader.addContentsData("Table of Contents".toCharArray());
+							myModelReader.addContentsData(Dots);
 						}
 						
 						// The paragraph number gets associated with the TOC entry in this method
