@@ -94,6 +94,7 @@ class NCXReader extends ZLXMLReaderAdapter {
 					final String id = attributes.getValue(ATTRIBUTE_ID);
 					final int index = (order != null) ? atoi(order) : myPlayIndex++;
 					NavPoint point = new NavPoint(index, myPointStack.size());
+					// Adding id resolved the bug for first level TOC entries
 					point.id = id;
 					myPointStack.add(point);
 					myReadState = READ_POINT;
