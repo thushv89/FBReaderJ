@@ -12,3 +12,4 @@ Version   	Details
 1.6.6     Download button on the Book details screen now located at top
 1.6.7     The Download button is selectable using virtual D-pad
 1.6.8     Fixed the first level TOC items issue. JIRA# FBR-15
+1.6.9     Removed the extra row from Table of Contents added in previous version 1.6.8. Contains the fix for first level TOC items issue. JIRA# FBR-15
