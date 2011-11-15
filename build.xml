@@ -16,8 +16,6 @@
 		classname="com.android.ant.SetupTask"
 		classpathref="android.antlibs" />
 
-	<setup />
-
   <target name="native">
 		<exec executable="${ndk.dir}/ndk-build" />
 	</target>
@@ -26,8 +24,8 @@
 		<exec executable="./createRawResources.py" />
 	</target>
 
-  <target name="package" depends="native,resources,release" />
-  <target name="dbg" depends="native,resources,debug" />
+  <target name="package" depends="native,resources" />
+  <target name="dbg" depends="native,resources" />
 
   <target name="clean">
 		<delete dir="gen" />
