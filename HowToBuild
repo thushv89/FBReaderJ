@@ -41,7 +41,7 @@ If you are Windows user
 Part B
 ------------------------------------------------------------------------------------------------------
 
-1. Download the project code from git onto your local drive "git clone git://github.com/amahule/FBReaderJ.git".
+1. Download the project code from git onto your local drive "git clone git://github.com/benetech/FBReaderJ.git".
 2. Change the local.properties file to point to your Android SDK and NDK installations.
 3. If you are running Linux or Mac OS, run "ant package" from inside the project directory containing build.xml. You may get some compile errors around the zip4j and bookshare classes, but don't worry at this point, since we will build with Eclipse. 
    If you are running Windows, 
