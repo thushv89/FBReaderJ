@@ -47,8 +47,6 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -79,6 +77,7 @@ public class Bookshare_Book_Details extends Activity{
 	private TextView bookshare_book_detail_copyright_text;
 	private TextView bookshare_book_detail_bookshare_id_text;
 	private TextView bookshare_book_detail_synopsis_text;
+	private TextView bookshare_download_not_available_text;
 	private Button btn_download;
 	boolean isDownloadable;
 	private final int BOOKSHARE_BOOK_DETAILS_FINISHED = 1;
@@ -174,39 +173,41 @@ public class Bookshare_Book_Details extends Activity{
 					bookshare_book_detail_bookshare_id_text = (TextView)findViewById(R.id.bookshare_book_detail_bookshare_id_text);
 					bookshare_book_detail_synopsis_text = (TextView)findViewById(R.id.bookshare_book_detail_synopsis_text);
 					btn_download = (Button)findViewById(R.id.bookshare_btn_download);
-
+					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
 					book_detail_view.requestFocus();
 					// If the book is not downloadable, do not show the download button
 					if(!isDownloadable){
-						btn_download.setVisibility(View.INVISIBLE);
-					}
-					btn_download.setOnClickListener(new OnClickListener(){
-						public void onClick(View v){
-							
-							if(btn_download.getText().toString().equalsIgnoreCase("Download")){
+						btn_download.setVisibility(View.GONE);
+					} else {
+						bookshare_download_not_available_text.setVisibility(View.GONE);
+						btn_download.setOnClickListener(new OnClickListener(){
+							public void onClick(View v){
 								
-								// Start a new Activity for getting the OM member list
-								// See onActivityResult for further processing
-								if(isOM){
-									Intent intent = new Intent(getApplicationContext(), Bookshare_OM_List.class);
-									intent.putExtra("username", username);
-									intent.putExtra("password", password);
-									startActivityForResult(intent, START_BOOKSHARE_OM_LIST);
+								if(btn_download.getText().toString().equalsIgnoreCase("Download")){
+									
+									// Start a new Activity for getting the OM member list
+									// See onActivityResult for further processing
+									if(isOM){
+										Intent intent = new Intent(getApplicationContext(), Bookshare_OM_List.class);
+										intent.putExtra("username", username);
+										intent.putExtra("password", password);
+										startActivityForResult(intent, START_BOOKSHARE_OM_LIST);
+									}
+									else{
+										new DownloadFilesTask().execute();
+									}
 								}
-								else{
-									new DownloadFilesTask().execute();
+								
+								// Navigate to the local library
+								else if(btn_download.getText().toString().equalsIgnoreCase("Open local library")){
+									setResult(BOOKSHARE_BOOK_DETAILS_FINISHED);
+									Intent intent = new Intent(getApplicationContext(), LibraryTabActivity.class);
+									startActivity(intent);
+									finish();
 								}
 							}
-							
-							// Navigate to the local library
-							else if(btn_download.getText().toString().equalsIgnoreCase("Open local library")){
-								setResult(BOOKSHARE_BOOK_DETAILS_FINISHED);
-								Intent intent = new Intent(getApplicationContext(), LibraryTabActivity.class);
-								startActivity(intent);
-								finish();
-							}
-						}
-					});
+						});
+					}
 					
 					// Set the fields of the layout with book details
 					if(metadata_bean.getTitle()!=null){
@@ -423,6 +424,8 @@ public class Bookshare_Book_Details extends Activity{
 	// A custom AsyncTask class for carrying out the downloading task in a separate background thread
 	private class DownloadFilesTask extends AsyncTask<Void, Void, Void>{
 		
+		private Bookshare_Error_Bean error;
+		
 		// Will be called n the UI thread
 		@Override
 		protected void onPreExecute(){
@@ -586,6 +589,8 @@ public class Bookshare_Book_Details extends Activity{
 					}
 					else{
 						downloadSucess = false;
+						error = new Bookshare_Error_Bean();
+						error.parseInputStream(response.getEntity().getContent());
 					}
 				}
 			}
@@ -610,8 +615,9 @@ public class Bookshare_Book_Details extends Activity{
 			}
 			else{
 				System.out.println("In else");
+				final String errorMessage = error != null ? error.getMessagesFormatted() : "";
 				Toast toast = Toast.makeText(getApplicationContext(),
-						"Download failed!", Toast.LENGTH_LONG);
+						errorMessage != "" ? errorMessage : "Download Failed!", Toast.LENGTH_LONG);
 				toast.show();
 				btn_download.setText("Download");
 				btn_download.setEnabled(true);
