@@ -169,9 +169,8 @@ public class Bookshare_Webservice_Login extends Activity{
 	 * is clicked.
 	 */
 	public boolean onCreateOptionsMenu(Menu menu){
-		menu.add(Menu.NONE,1,Menu.NONE,"Free Content");
-		menu.add(Menu.NONE,2,Menu.NONE,"Forgot Password");
-		menu.add(Menu.NONE,3,Menu.NONE,"Signup");
+		menu.add(Menu.NONE,1,Menu.NONE,"Forgot Password");
+		menu.add(Menu.NONE,2,Menu.NONE,"Signup");
 		return true;
 	}
 	
@@ -189,23 +188,6 @@ public class Bookshare_Webservice_Login extends Activity{
 		else if(menuitem.getTitle().equals("Signup")){
 			Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.bookshare.org/signUpType"));
 			startActivity(myIntent);
-		}
-
-		else if(menuitem.getTitle().equals("Free Content")){
-			isFree = true;
-			isOM = false;
-			username = null;
-			password = null;
-			
-			if(isFree){
-				pd_spinning = ProgressDialog.show(this, null, "Fetching free books data. Please wait.", Boolean.TRUE);
-			}
-			else{
-				pd_spinning = ProgressDialog.show(this, null, "Authenticating. Please wait.", Boolean.TRUE);
-			}
-
-			// Start a new AsyncTask for background processing
-			new AuthenticationTask().execute();
 		}
 		return true;
 	}
