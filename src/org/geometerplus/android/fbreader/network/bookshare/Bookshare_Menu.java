@@ -1,11 +1,11 @@
 package org.geometerplus.android.fbreader.network.bookshare;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
 import org.geometerplus.zlibrary.ui.android.R;
 
 import android.app.AlertDialog;
@@ -21,7 +21,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -34,10 +33,9 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
+
 /**
- * This class is a ListActivity which shows the various options
- * for retrieving data from bookshare web services.
- * 
+ * This ListActivity shows options for retrieving data from Bookshare.
  */
 public class Bookshare_Menu extends ListActivity {
 
@@ -121,7 +119,7 @@ public class Bookshare_Menu extends ListActivity {
 				imm.hideSoftInputFromWindow(dialog_search_term.getWindowToken(), 0);
 				
 				// Remove the leading and trailing spaces
-				String search_term = dialog_search_term.getText().toString().trim();
+				String search_term = ZLNetworkUtil.htmlEncode(dialog_search_term.getText().toString().trim());
 				
 				if(search_term.equals("")){
 					Toast toast = Toast.makeText(getApplicationContext(), "Search term cannot be blank", Toast.LENGTH_SHORT);
@@ -130,11 +128,6 @@ public class Bookshare_Menu extends ListActivity {
 				}
 				
 				boolean isMetadataSearch = false;
-				
-				/* Replace the extra spaces with one space and 
-				   replace that space with "%20"
-				*/
-				search_term = search_term.replaceAll(" +", " ").replaceAll(" ", "%20");
 
 				if(query_type.equalsIgnoreCase("Title Search")){
 					if(isFree)
