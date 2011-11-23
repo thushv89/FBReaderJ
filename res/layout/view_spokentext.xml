@@ -1,37 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-  android:orientation="horizontal">
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical">
 
- <!-- For the non-TTS version where the control labels need not be spoken back -->
- <!-- 
+    <LinearLayout
+         android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:orientation="horizontal"
+  android:gravity="center_horizontal">
+  
+        
+     <ImageButton android:id="@+id/spokentextback"
+            android:layout_width="70dip"
+            android:layout_height="50dip"
+            android:src="@drawable/speak_previous"
+            android:contentDescription="@string/previous"
+            />
+     
      <ImageButton android:id="@+id/spokentextpause"
             android:layout_width="70dip"
             android:layout_height="50dip"
             android:src="@drawable/speak_play"
+            android:contentDescription="@string/play"
             />
-    <ImageButton android:id="@+id/spokentextstop"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_close"           
-            />
-
+  
     <ImageButton android:id="@+id/spokentextforward"
             android:layout_width="70dip"
             android:layout_height="50dip"
             android:src="@drawable/speak_next"
+            android:contentDescription="@string/next"
             />
-
-    <ImageButton android:id="@+id/spokentextback"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_previous"/>
-
- -->             
-<!-- For the TTS version where the control labels need to be spoken back -->
- 
+<!--  old text based buttons
      <Button android:id="@+id/spokentextpause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,5 +54,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Previous Paragraph"/>
-  
+ -->   
+         
+    </LinearLayout>
+ <TextView
+  android:id="@+id/spokentextdisplay"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:text=""/>
+     
 </LinearLayout>
