@@ -1,4 +1,3 @@
-
 package org.geometerplus.android.fbreader;
 
 import java.util.HashMap;
@@ -52,18 +51,19 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	private FBView theView;
     	private FBReader Reader; 
     	private ZLTextParagraphCursor myParaCursor;
-    	/*
+    	
     	private ImageButton pausebutton;
     	private ImageButton forwardbutton;
     	private ImageButton backbutton;
     	private ImageButton stopbutton;
-    	*/
+    	private TextView spokentext;
     	
+    	/*
     	private Button pausebutton;
     	private Button forwardbutton;
     	private Button backbutton;
     	private Button stopbutton;
-    	
+    	*/
     	private int state = INACTIVE;
 		
 
@@ -73,11 +73,11 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     		static final int PLAY = 1;
 			public void run() { 
 				if(state==PLAY) { 
-					//pausebutton.setImageResource(R.drawable.speak_play);
-					pausebutton.setText("Play");
+					pausebutton.setImageResource(R.drawable.speak_play);
+					//pausebutton.setText("Play");
 				} else if (state==PAUSE){
-					//pausebutton.setImageResource(R.drawable.speak_pause);
-					pausebutton.setText("Pause");
+					pausebutton.setImageResource(R.drawable.speak_pause);
+					//pausebutton.setText("Pause");
 				}
 			}
     		public UpdateControls(int value) { this.state = value; }
@@ -139,21 +139,22 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       //requestWindowFeature(Window.FEATURE_NO_TITLE);
 	       setContentView(R.layout.view_spokentext);
 	       
-	       backbutton = (Button)findViewById(R.id.spokentextback);
-	       //backbutton = (ImageButton)findViewById(R.id.spokentextback);
+	       //backbutton = (Button)findViewById(R.id.spokentextback);
+	       backbutton = (ImageButton)findViewById(R.id.spokentextback);
 	       backbutton.setOnClickListener(backListener);
 	       	       
-	       forwardbutton = (Button)findViewById(R.id.spokentextforward);
-	       //forwardbutton = (ImageButton)findViewById(R.id.spokentextforward);
+	       //forwardbutton = (Button)findViewById(R.id.spokentextforward);
+	       forwardbutton = (ImageButton)findViewById(R.id.spokentextforward);
 	       forwardbutton.setOnClickListener(forwardListener);
 	       
-	       pausebutton = (Button)findViewById(R.id.spokentextpause);
-	       //pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
+	       //pausebutton = (Button)findViewById(R.id.spokentextpause);
+	       pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
 	       pausebutton.setOnClickListener(pauseListener);
 	       
-	       stopbutton = (Button)findViewById(R.id.spokentextstop);
+	       // remove stopbutton
+	       //stopbutton = (Button)findViewById(R.id.spokentextstop);
 	       //stopbutton = (ImageButton)findViewById(R.id.spokentextstop);
-	       stopbutton.setOnClickListener(stopListener);
+	       //stopbutton.setOnClickListener(stopListener);
 	       
 	       setState(INACTIVE);
 	       	       
@@ -225,14 +226,22 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	}
 
 	private String lookforValidParagraphString(int direction){
-        String s="";
+		ZLTextParagraphCursor localParaCursor;
+
+                String s="";
 		while(s.equals("") & !(myParaCursor==null)){			
 			switch (direction) {
 			case SEARCHFORWARD:
-				myParaCursor = myParaCursor.next();
+				localParaCursor = myParaCursor.next();           // deal with the null pointer
+				if (localParaCursor != null)  {
+ 				    myParaCursor = localParaCursor;              
+				}
 				break;
 			case SEARCHBACKWARD:
-				myParaCursor = myParaCursor.previous();
+				localParaCursor = myParaCursor.previous();      
+				if (localParaCursor != null)  {
+ 				    myParaCursor = localParaCursor;                  
+				}
   				break;
 			case CURRENTORFORWARD:				
 				direction = SEARCHFORWARD;
