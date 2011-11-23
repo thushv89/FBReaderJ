@@ -56,21 +56,21 @@
 			</intent-filter>
 			<meta-data android:name="android.app.default_searchable" android:value="org.geometerplus.android.fbreader.TextSearchActivity"/>
 		</activity>
-		<activity android:name="org.geometerplus.android.fbreader.TextSearchActivity" android:label="Text Search">
+		<activity android:name="org.geometerplus.android.fbreader.TextSearchActivity" >
 			<intent-filter>
 				<action android:name="android.intent.action.SEARCH" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 			<meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
 		</activity>
-		<activity android:name="org.geometerplus.android.fbreader.BookSearchActivity" android:label="Book Search">
+		<activity android:name="org.geometerplus.android.fbreader.BookSearchActivity" >
 			<intent-filter>
 				<action android:name="android.intent.action.SEARCH" />
 				<category android:name="android.intent.category.DEFAULT" />
 			</intent-filter>
 			<meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
 		</activity>
-		<activity android:name="org.geometerplus.android.fbreader.BookmarkSearchActivity" android:label="Bookmark Search">
+		<activity android:name="org.geometerplus.android.fbreader.BookmarkSearchActivity" >
 			<intent-filter>
 				<action android:name="android.intent.action.SEARCH" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -84,10 +84,10 @@
 		<activity android:name="org.geometerplus.android.fbreader.BookmarksActivity" android:configChanges="orientation|keyboardHidden" android:label="Bookmarks">
 			<meta-data android:name="android.app.default_searchable" android:value="org.geometerplus.android.fbreader.BookmarkSearchActivity" />
 		</activity>
-		<activity android:name="org.geometerplus.android.fbreader.BookmarkEditActivity" android:theme="@android:style/Theme.Dialog" android:configChanges="orientation|keyboardHidden"  android:label="Bookmark Edit"/>
-		<activity android:name="org.geometerplus.android.fbreader.preferences.PreferenceActivity" android:configChanges="orientation|keyboardHidden"  android:label="Preferences"/>
-		<activity android:name="org.geometerplus.android.fbreader.preferences.BookInfoActivity" android:configChanges="orientation|keyboardHidden"  android:label="Book Information"/>
-		<activity android:name="org.geometerplus.android.fbreader.network.BookDownloader" android:process=":bookDownloader" android:theme="@android:style/Theme.NoDisplay" android:label="Book Download">
+		<activity android:name="org.geometerplus.android.fbreader.BookmarkEditActivity" android:theme="@android:style/Theme.Dialog" android:configChanges="orientation|keyboardHidden" />
+		<activity android:name="org.geometerplus.android.fbreader.preferences.PreferenceActivity" android:configChanges="orientation|keyboardHidden"  android:label="Settings"/>
+		<activity android:name="org.geometerplus.android.fbreader.preferences.BookInfoActivity" android:configChanges="orientation|keyboardHidden"  a/>
+		<activity android:name="org.geometerplus.android.fbreader.network.BookDownloader" android:process=":bookDownloader" android:theme="@android:style/Theme.NoDisplay" >
 			<intent-filter>
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
@@ -125,7 +125,7 @@
 			</intent-filter>
 		</activity>
 		<service android:name="org.geometerplus.android.fbreader.network.BookDownloaderService" android:process=":bookDownloader" />
-		<activity android:name="org.geometerplus.zlibrary.ui.android.dialogs.DialogActivity" android:label="" android:configChanges="orientation|keyboardHidden"  android:label="Dialog" />
+		<activity android:name="org.geometerplus.zlibrary.ui.android.dialogs.DialogActivity" android:configChanges="orientation|keyboardHidden" />
 		<activity android:name="org.geometerplus.android.fbreader.network.NetworkSearchActivity" android:process=":networkLibrary" android:theme="@android:style/Theme.NoDisplay">
 			<intent-filter>
 				<action android:name="android.intent.action.SEARCH" />
@@ -136,19 +136,19 @@
 		<activity android:name="org.geometerplus.android.fbreader.network.NetworkLibraryActivity" android:process=":networkLibrary" android:configChanges="orientation|keyboardHidden" android:label="Network Library">
 			<meta-data android:name="android.app.default_searchable" android:value="org.geometerplus.android.fbreader.network.NetworkSearchActivity" />
 		</activity>
-		<activity android:name="org.geometerplus.android.fbreader.network.NetworkCatalogActivity" android:process=":networkLibrary" android:configChanges="orientation|keyboardHidden"  android:label="Network Catalog"/>
+		<activity android:name="org.geometerplus.android.fbreader.network.NetworkCatalogActivity" android:process=":networkLibrary" android:configChanges="orientation|keyboardHidden"  />
 		<service android:name="org.geometerplus.android.fbreader.network.ItemsLoadingService" android:process=":networkLibrary" />
-		<activity android:name="org.geometerplus.android.fbreader.network.NetworkBookInfoActivity" android:process=":networkLibrary" android:configChanges="orientation|keyboardHidden"  android:label="Network Book Info" />
+		<activity android:name="org.geometerplus.android.fbreader.network.NetworkBookInfoActivity" android:process=":networkLibrary" android:configChanges="orientation|keyboardHidden" />
 		<receiver android:name="org.geometerplus.android.fbreader.network.BookDownloaderCallback" android:process=":networkLibrary" />
 		<service android:name="org.geometerplus.android.fbreader.network.LibraryInitializationService" android:process=":networkLibrary" />
 <!--  	<activity android:name="org.geometerplus.android.fbreader.SpeakActivity" android:configChanges="orientation|keyboardHidden" android:theme="@android:style/Theme.Dialog"/> -->  
  	 	<activity android:name="org.geometerplus.android.fbreader.SpeakActivity" android:configChanges="orientation|keyboardHidden"  android:label="Speak" />
 	
-		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Menu"  android:label="Bookshare Menu" />
-		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Books_Listing" android:label="Bookshare Books Listing" />
-		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Book_Details"  android:label="Bookshare Book Details" />
-  		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login"  android:label="Bookshare Webservice Login" />
-		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_OM_List"  android:label="Bookshare OM List" />
+		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Menu"  />
+		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Books_Listing"  />
+		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Book_Details" />
+  		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login" />
+		<activity android:name="org.geometerplus.android.fbreader.network.bookshare.Bookshare_OM_List" />
 		<activity android:name="org.geometerplus.android.fbreader.MenuActivity" android:label="Main Menu" />
 	</application>
 </manifest> 
