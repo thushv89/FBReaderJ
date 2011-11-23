@@ -1,4 +1,3 @@
-
 package org.geometerplus.android.fbreader;
 
 import java.util.HashMap;
@@ -225,14 +224,22 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	}
 
 	private String lookforValidParagraphString(int direction){
-        String s="";
+		ZLTextParagraphCursor localParaCursor;
+
+                String s="";
 		while(s.equals("") & !(myParaCursor==null)){			
 			switch (direction) {
 			case SEARCHFORWARD:
-				myParaCursor = myParaCursor.next();
+				localParaCursor = myParaCursor.next();           // deal with the null pointer
+				if (localParaCursor != null)  {
+ 				    myParaCursor = localParaCursor;              
+				}
 				break;
 			case SEARCHBACKWARD:
-				myParaCursor = myParaCursor.previous();
+				localParaCursor = myParaCursor.previous();      
+				if (localParaCursor != null)  {
+ 				    myParaCursor = localParaCursor;                  
+				}
   				break;
 			case CURRENTORFORWARD:				
 				direction = SEARCHFORWARD;
