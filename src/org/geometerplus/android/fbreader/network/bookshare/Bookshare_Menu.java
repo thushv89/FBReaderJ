@@ -39,10 +39,9 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public class Bookshare_Menu extends ListActivity {
 
-	private final String[] items = {"Title Search","Author Search","ISBN Search","Bookshare ID Search","Latest Books","Popular Books"};
-	private final String[] description = {"Search by title","Search by author","Search by book's ISBN","Search by Bookshare ID","Search the latest catalog","Search popular books "};
+	private final String[] items = {"Title Search","Author Search","ISBN Search","Latest Books","Popular Books"};
+	private final String[] description = {"Search by title","Search by author","Search by book's ISBN","Search the latest catalog","Search popular books "};
 	ArrayList<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
-	TreeMap<Integer,Object> icons_map = new TreeMap<Integer,Object>();
 	private Dialog dialog;
 	private EditText dialog_search_term;
 	private TextView dialog_search_title;
@@ -73,23 +72,21 @@ public class Bookshare_Menu extends ListActivity {
 		if(username == null || password == null){
 			isFree = true;
 		}
-
-		icons_map.put(new Integer(0), R.drawable.titles);
-		icons_map.put(new Integer(1), R.drawable.authors);
-		icons_map.put(new Integer(2), R.drawable.isbn);
-		icons_map.put(new Integer(3), R.drawable.bookshare);
-		icons_map.put(new Integer(4), R.drawable.latest);
-		icons_map.put(new Integer(5), R.drawable.isbn);
-		
+		final int[] drawables = new int[] {
+            R.drawable.titles,
+            R.drawable.authors,
+            R.drawable.isbn,
+            R.drawable.latest,
+            R.drawable.isbn		        
+		};
 		//Create a TreeMap for use in the SimpleAdapter
-		for(int i = 0; i < 6; i++){
+		for(int i = 0; i < drawables.length; i++){
 			TreeMap<String, Object> row_item = new TreeMap<String, Object>();
 			row_item.put("Name", items[i]);
 			row_item.put("description", description[i]);
-			row_item.put("icon", icons_map.get(new Integer(i)));
+			row_item.put("icon", drawables[i]);
 			list.add(row_item);
-		}
-		
+		}		
 		// Construct a SimpleAdapter which will serve as data source for this ListView
 		MySimpleAdapter simpleadapter = new MySimpleAdapter(
 				this,list,
@@ -147,23 +144,6 @@ public class Bookshare_Menu extends ListActivity {
 					else
 						search_term = URI_String+"isbn/"+search_term+"/for/"+username+"?api_key="+developerKey;
 					
-					isMetadataSearch = true;
-				}
-				else if(query_type.equalsIgnoreCase("Bookshare ID Search")){
-					long num = 0;
-					try{
-						num = Long.parseLong(search_term);
-						}
-						catch(NumberFormatException e){
-							Toast toast = Toast.makeText(getApplicationContext(), search_term.trim()+": ID should be a number",Toast.LENGTH_SHORT);
-							toast.show();
-							return;
-						}
-					if(isFree)
-						search_term = URI_String+"id/"+search_term+"?api_key="+developerKey;
-					else
-						search_term = URI_String+"id/"+search_term+"/for/"+username+"?api_key="+developerKey;
-
 					isMetadataSearch = true;
 				}
 				/*else if(query_type.equalsIgnoreCase("Latest Books")){
@@ -251,22 +231,11 @@ public class Bookshare_Menu extends ListActivity {
 					intent.putExtra("REQUEST_TYPE","ISBN Search");
 					dialog.show();
 				}
-				else if(txt_name.getText().equals("Bookshare ID Search")){
-					dialog.setTitle("Search by Bookshare ID");
-					dialog_search_title.setText("Enter bookshare ID for the book");
-					dialog_example_text.setText("E.g. 7323 or 36710");
-					query_type = "Bookshare ID Search";
-					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
-					intent.putExtra("REQUEST_TYPE","Bookshare ID Search");
-					dialog.show();
-				}
-				
-				// Changed the behavior to search for the latest book without having to enter the date range
 				else if(txt_name.getText().equals("Latest Books")){
+	                // Changed the behavior to search for the latest book without having to enter the date range
 					//dialog.setTitle("Search for latest books");
 					//dialog_search_title.setText("Enter \"from\" date in MMDDYYYY format");
-					//dialog_example_text.setText("E.g. 01012001 or 10022005");
-					
+					//dialog_example_text.setText("E.g. 01012001 or 10022005");					
 					if(isFree)
 						search_term = URI_String+"latest?api_key="+developerKey;
 					else
@@ -311,12 +280,11 @@ public class Bookshare_Menu extends ListActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
 		if(item.getTitle().equals("Logout")){
-			Dialog dialog = new AlertDialog.Builder(this)
+			new AlertDialog.Builder(this)
             .setTitle("")
             .setMessage("Log out?")
             .setPositiveButton("YES", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					
+				public void onClick(DialogInterface dialog, int which) {					
 					// Upon logout clear the stored login credentials
 					SharedPreferences login = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 					SharedPreferences.Editor editor = login.edit();
@@ -349,7 +317,8 @@ public class Bookshare_Menu extends ListActivity {
 	
  	// A custom SimpleAdapter class for providing data to the ListView
 	private class MySimpleAdapter extends SimpleAdapter{
-        public MySimpleAdapter(Context context, List<? extends Map<String, ?>> data,
+
+	    public MySimpleAdapter(Context context, List<? extends Map<String, ?>> data,
                 int resource, String[] from, int[] to) {
             super(context, data, resource, from, to);
         }
@@ -363,18 +332,11 @@ public class Bookshare_Menu extends ListActivity {
             if (convertView == null) {
                 convertView = getLayoutInflater().inflate(R.layout.bookshare_menu_item, null);
             }
-
-            TreeMap<String, Object> data = (TreeMap<String, Object>) getItem(position);
-
-            ((TextView) convertView.findViewById(R.id.text1))
-                    .setText((String) data.get("Name"));
-
-            ((TextView) convertView.findViewById(R.id.text2))
-            .setText((String) data.get("description"));
-            
+            final TreeMap<String, Object> data = (TreeMap<String, Object>) getItem(position);
+            ((TextView) convertView.findViewById(R.id.text1)).setText((String) data.get("Name"));
+            ((TextView) convertView.findViewById(R.id.text2)).setText((String) data.get("description"));
             ((ImageView) convertView.findViewById(R.id.row_icon))
                     .setImageResource(((Integer)data.get("icon")).intValue());
-
             return convertView;
         }
 	}

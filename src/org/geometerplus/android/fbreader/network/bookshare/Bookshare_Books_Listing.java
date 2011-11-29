@@ -96,8 +96,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 				){
 			responseType = "Book List Response";
 		}
-		else if(requestType.equalsIgnoreCase("Bookshare ID Search")
-				|| requestType.equalsIgnoreCase("ISBN Search")){
+		else if(requestType.equalsIgnoreCase("ISBN Search")){
 			responseType  = "Book Metadata Response";
 		}
 		getListing(requestURI);
