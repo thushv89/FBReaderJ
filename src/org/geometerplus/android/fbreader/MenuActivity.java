@@ -14,18 +14,17 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
 public class MenuActivity extends Activity {
-	private List<Object> listItems = new ArrayList<Object>(); 
+
+    private List<Object> listItems = new ArrayList<Object>(); 
 	private ListItemsAdapter adapter = null; 
-	static boolean show_day = false;
+	static boolean showDayViewOption = false;
 
     /** Called when the activity is first created. */
     @Override
@@ -33,77 +32,15 @@ public class MenuActivity extends Activity {
         super.onCreate(savedInstanceState);
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog);
-        
         for ( int i = 0; i < 13; i++ ) {
 			Object object = new Object();
 			listItems.add(object);
-        }
-        
+        }        
 		final ListView list = (ListView) findViewById(R.id.list);
 		adapter = new ListItemsAdapter(listItems);
 		list.setAdapter(adapter);
 		System.out.println("****** list.isInTouchMode()"+list.isInTouchMode());
-		//Item click listener for the ListView
-		list.setOnItemClickListener(new OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				System.out.println("*********position = "+position);
-				if(position==0){
-					ZLApplication.Instance().doAction(ActionCode.SPEAK);
-				}
-				else if(position == 1){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_LIBRARY);
-					finish();
-				}
-				else if(position == 2){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_NETWORK_LIBRARY);
-					finish();
-				}
-				else if(position == 3){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
-					finish();
-				}
-				else if(position == 4){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_BOOKMARKS);
-					finish();
-				}
-				else if(position == 5){
-					if(show_day)
-						ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_DAY_PROFILE);
-					else
-						ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_NIGHT_PROFILE);
-					show_day = !show_day;
-					finish();
-				}
-				else if(position == 6){
-					ZLApplication.Instance().doAction(ActionCode.SEARCH);
-					finish();
-				}
-				else if(position == 7){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
-					finish();
-				}
-				else if(position == 8){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_BOOK_INFO);
-					finish();
-				}
-				else if(position == 9){
-					ZLApplication.Instance().doAction(ActionCode.ROTATE);
-					finish();
-				}
-				else if(position == 10){
-					ZLApplication.Instance().doAction(ActionCode.INCREASE_FONT);
-					finish();
-				}
-				else if(position == 11){
-					ZLApplication.Instance().doAction(ActionCode.DECREASE_FONT);
-					finish();
-				}
-				else if(position == 12){
-					ZLApplication.Instance().doAction(ActionCode.SHOW_NAVIGATION);
-					finish();
-				}
-			}
-		});
+		list.setOnItemClickListener(new MainMenuClickListener(this));
     }
     
 	private class ListItemsAdapter extends ArrayAdapter<Object> {
@@ -126,57 +63,8 @@ public class MenuActivity extends Activity {
 			holder.text.setText( "Item: " + (position+1) );
 			final Typeface typeface;
 			//holder.text.setTextSize( 20 );
-
 			holder.text.setTypeface(Typeface.defaultFromStyle (Typeface.NORMAL));
-			
-			switch ( position ) {
-			case 0:
-				holder.text.setText("Speak");
-				break;
-			case 1:
-				holder.text.setText("Library");
-				break;
-			case 2:
-				holder.text.setText("Network Library");	
-				break;
-			case 3:
-				holder.text.setText("Table of Contents");
-				break;
-			case 4:
-				holder.text.setText("Bookmarks");
-				break;
-			case 5:
-				if(show_day)
-					holder.text.setText("Day View");
-				else
-					holder.text.setText("Night View");
-				break;
-			case 6:
-				holder.text.setText("Search");
-				break;
-			case 7:
-				holder.text.setText("Settings");
-				break;
-			case 8:
-				holder.text.setText("Book Info");
-				break;
-			case 9:
-				holder.text.setText("Rotate Screen");
-				break;
-			case 10:
-				holder.text.setText("Zoom In");
-				break;
-			case 11:
-				holder.text.setText("Zoom Out");
-				break;
-			case 12:
-				holder.text.setText("Navigate");
-				break;
-			default:
-				holder.text.setText("Search");
-				break;
-			}
-			
+			holder.text.setText(MenuControl.values()[position].getLabel());
 			return convertView;
 		}
 
@@ -184,7 +72,19 @@ public class MenuActivity extends Activity {
 			TextView text;
 		}
 	}
-    
+
+	private class MainMenuClickListener implements OnItemClickListener {
+	    private final Activity activity;
+
+        private MainMenuClickListener(final Activity activity) {
+            this.activity = activity;
+        }
+
+        public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+            MenuControl.values()[position].click(activity);
+        }
+	}
+
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent msg) {
 		if (keyCode == KeyEvent.KEYCODE_CAMERA) {
@@ -195,8 +95,130 @@ public class MenuActivity extends Activity {
 			finish();
 			return true;
 		}
-
 		return false;
 	}
+
+    private enum MenuControl {
+	    
+	    speak("Speak", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SPEAK);
+	        }
+	    }),
+	    tableOfContents("Table of Contents", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
+                activity.finish();
+	        }
+	    }),
+	    navigate("Navigate to Page", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_NAVIGATION);
+                activity.finish();
+	        }
+	    }),
+	    bookmarks("Bookmarks", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_BOOKMARKS);
+                activity.finish();
+	        }
+	    }),
+	    search("Search", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SEARCH);
+                activity.finish();
+	        }
+	    }),
+	    bookInfo("Book Info", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_BOOK_INFO);
+                activity.finish();
+	        }
+	    }),
+	    library("Library", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_LIBRARY);
+                activity.finish();
+	        }
+	    }),
+	    networkLibrary("Network Library", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_NETWORK_LIBRARY);
+                activity.finish();
+	        }
+	    }),
+	    settings("Settings", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
+                activity.finish();
+	        }
+	    }),
+	    rotateScreen("Rotate Screen", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.ROTATE);
+                activity.finish();
+	        }
+	    }),
+	    dayNightView(
+            new HasLabel() {
+                public String getLabel() {
+                    return MenuActivity.showDayViewOption? "Day View": "Night View";
+                }
+            },
+            new MenuOperation() {
+    	        public void click(final Activity activity) {
+                    if (MenuActivity.showDayViewOption) {
+                        ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_DAY_PROFILE);
+                    } else {
+                        ZLApplication.Instance().doAction(ActionCode.SWITCH_TO_NIGHT_PROFILE);
+                    }
+                    MenuActivity.showDayViewOption = !MenuActivity.showDayViewOption;
+                    activity.finish();
+    	        }
+            }
+	    ),
+	    zoomIn("Zoom In", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.INCREASE_FONT);
+                activity.finish();
+	        }
+	    }),
+	    zoomOut("Zoom Out", new MenuOperation() {
+	        public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.DECREASE_FONT);
+                activity.finish();
+	        }
+	    });
+
+	    private final HasLabel hasLabel;
+	    private final MenuOperation menuOperation;
+
+	    private MenuControl(final String label, final MenuOperation menuOperation) {
+            this.hasLabel = new HasLabel() {
+                public String getLabel() {
+                    return label;
+                }
+            };
+            this.menuOperation = menuOperation;
+        }
+        private MenuControl(final HasLabel hasLabel, final MenuOperation menuOperation) {
+            this.hasLabel = hasLabel;
+            this.menuOperation = menuOperation;
+        }
+        public String getLabel() {
+            return this.hasLabel.getLabel();
+        }
+        public void click(final Activity menuActivity) {
+            this.menuOperation.click(menuActivity);
+        }
+	}
 	
+	private interface MenuOperation {
+	    public void click(Activity activity);
+	}
+
+    private interface HasLabel {
+        public String getLabel();
+    }
+
 }
