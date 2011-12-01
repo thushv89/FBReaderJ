@@ -110,7 +110,6 @@ public class Bookshare_Book_Details extends Activity{
 		isOM = login_preference.getBoolean("isOM", false);
 		
 		final String uri = intent.getStringExtra("ID_SEARCH_URI");
-		isDownloadable = intent.getBooleanExtra("isDownloadable", false);
 
 		progessDialog = ProgressDialog.show(this, null, "Fetching book details. Please wait.", true);
 		new Thread(){
@@ -160,6 +159,7 @@ public class Bookshare_Book_Details extends Activity{
 					txtView_msg.setText("Book not found.");
 				}
 				if(metadata_bean != null){
+					setIsDownloadable(metadata_bean);
 					setContentView(R.layout.bookshare_book_detail);
 					book_detail_view = (View)findViewById(R.id.book_detail_view);
 					bookshare_book_detail_title_text = (TextView)findViewById(R.id.bookshare_book_detail_title_text);
@@ -920,5 +920,10 @@ public class Bookshare_Book_Details extends Activity{
 	@Override
 	public void onConfigurationChanged(Configuration newConfig){
 		super.onConfigurationChanged(newConfig);
+	}
+	
+	//Determine whether the book is downloadable.
+	private void setIsDownloadable(final Bookshare_Metadata_Bean bean) {
+		isDownloadable = (bean.getDownloadFormats() != null && bean.getDownloadFormats().length > 0);
 	}
 }

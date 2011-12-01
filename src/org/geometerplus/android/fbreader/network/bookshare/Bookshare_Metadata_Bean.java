@@ -22,7 +22,7 @@ public class Bookshare_Metadata_Bean {
 
 	
 	public Bookshare_Metadata_Bean(){
-		this.downloadFormats = new String[1];
+		this.downloadFormats = new String[0];
 		this.authors = new String[1];
 		this.title = new String[1];
 		this.briefSynopsis = new String[1];
