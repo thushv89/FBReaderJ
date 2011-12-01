@@ -273,13 +273,13 @@ public class Bookshare_Menu extends ListActivity {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
-		menu.add("Logout");
+		menu.add("Log Out");
 		return true;
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
-		if(item.getTitle().equals("Logout")){
+		if(item.getTitle().equals("Log Out")){
 			new AlertDialog.Builder(this)
             .setTitle("")
             .setMessage("Log out?")
