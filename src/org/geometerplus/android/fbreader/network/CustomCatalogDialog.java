@@ -78,6 +78,8 @@ class CustomCatalogDialog extends NetworkDialog {
 		myUrl = ((TextView) alert.findViewById(R.id.network_catalog_url)).getText().toString().trim();
 		mySummary = ((TextView) alert.findViewById(R.id.network_catalog_summary)).getText().toString().trim();
 
+		myUrl = myUrl.toLowerCase();
+
 		if(myUrl.equalsIgnoreCase("bookshare") ||
 				myUrl.endsWith("bookshare.org")){
 			myUrl = "https://api.bookshare.org";
@@ -106,6 +108,8 @@ class CustomCatalogDialog extends NetworkDialog {
 		if (mySummary.length() == 0) {
 			mySummary = null;
 		}
+		
+
 		if(myUrl.equalsIgnoreCase("https://api.bookshare.org")){
 			
 			String bookshareSiteName = "https://api.bookshare.org";
