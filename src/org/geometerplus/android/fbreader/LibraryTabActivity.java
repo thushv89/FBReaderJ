@@ -75,10 +75,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		final String label = myResource.getResource(tag).getValue();
 		
 		// Add the tab to the TabHost after setting its content
-		host.addTab(host.newTabSpec(tag).setIndicator(label, getResources().getDrawable(iconId)).setContent(viewId));
-		// accessibility addition, setting content description allows tab to be voiced
-		ListView lv = (ListView)findViewById(viewId);
-	        lv.setContentDescription(label);                        
+		host.addTab(host.newTabSpec(tag).setIndicator(label, getResources().getDrawable(iconId)).setContent(viewId));                     
 		
 		return (ListView)findViewById(viewId);
 	}
