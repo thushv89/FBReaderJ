@@ -98,6 +98,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	private OnClickListener forwardListener = new OnClickListener() {
     	    public void onClick(View v) {
     	    	stopTalking();
+    	    	speakString("FORWARD");
     	    	nextParagraphString(true,false,SEARCHFORWARD);
     	    }
     	};
@@ -105,6 +106,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	private OnClickListener backListener = new OnClickListener() {
     	    public void onClick(View v) {
     	    	stopTalking();
+    	    	speakString("BACK");
     	    	nextParagraphString(true,false,SEARCHBACKWARD);
     	    }
     	};
@@ -113,10 +115,12 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	    public void onClick(View v) {
 
      	       if(state==ACTIVE){
-     	    	  stopTalking();  
+     	    	  stopTalking(); 
+     	    	  speakString("PAUSE");
      	    	  setState(INACTIVE);
      	      } else {
      	    	  setState(ACTIVE);
+     	    	  speakString("PLAY");
      	    	  nextParagraphString(true,true,CURRENTORFORWARD);
      	      }
     	    }
@@ -214,7 +218,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		HashMap<String, String> callbackMap = new HashMap<String, String>();
 		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,PARAGRAPHUTTERANCE);
 
-		mTts.speak(s, TextToSpeech.QUEUE_FLUSH, callbackMap);			
+		mTts.speak(s, TextToSpeech.QUEUE_ADD, callbackMap);			
 	}
 	
 	private void showString(String s){
@@ -271,7 +275,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	private void stopTalking(){
 		setState(INACTIVE);
 		if(mTts!=null){
-		    if(mTts.isSpeaking()) mTts.stop();
+		    mTts.stop();
 		}
 	}
 	
