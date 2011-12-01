@@ -56,9 +56,6 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		final TabHost host = getTabHost();
 		final String label = myResource.getResource(tag).getValue();
 		host.addTab(host.newTabSpec(tag).setIndicator(label).setContent(id));
-				
-		ListView lv = (ListView)findViewById(id);
-                lv.setContentDescription(label);            // accessibility addition, voices tab
         
 		return (ListView)findViewById(id);
 	}
