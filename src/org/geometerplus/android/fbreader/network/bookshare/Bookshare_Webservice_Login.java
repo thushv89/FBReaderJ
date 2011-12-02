@@ -238,7 +238,6 @@ public class Bookshare_Webservice_Login extends Activity{
 		protected Void doInBackground(Void... params) {
 
 			String result_HTML = "";
-
 			try{
 				
 				// Get a BookshareWebservice instance for accessing the utility methods
@@ -271,7 +270,8 @@ public class Bookshare_Webservice_Login extends Activity{
 
 			// Authentication failed
 			if(result_HTML.contains("<status-code>401</status-code>") || result_HTML.contains("<status-code>500</status-code>")
-					|| result_HTML.contains("<status-code>403</status-code>") || result_HTML.contains("<status-code>404</status-code>")){
+					|| result_HTML.contains("<status-code>403</status-code>") || result_HTML.contains("<status-code>404</status-code>") 
+					|| result_HTML.contains("<status-code>400</status-code>")) {
 				
 				System.out.println("LOGIN_FAILED");
 				System.out.println(result_HTML);
