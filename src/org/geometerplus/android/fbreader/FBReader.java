@@ -30,15 +30,16 @@ import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.view.ZLView;
 import org.geometerplus.zlibrary.text.model.ZLTextModel;
-import org.geometerplus.zlibrary.text.view.ZLTextFixedPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
 import org.geometerplus.zlibrary.ui.android.R;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
 
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
@@ -50,8 +51,11 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -64,7 +68,10 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
     private final static String SCREENREADER_INTENT_CATEGORY = "android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_SPOKEN";
 
 	private int count = 0;
-
+	private Dialog dialog;
+	private EditText dialog_search_term;
+	private TextView dialog_search_title;
+	private TextView dialog_example_text;
 	
 //	private Speech speech;
 
@@ -176,9 +183,11 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	*/
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		System.out.println("************ Inside onKeyDown");
-		System.out.println("************ isScreenReaderActive() = "+isScreenReaderActive());
-   		Intent i = new Intent(this, MenuActivity.class);
-   		startActivity(i);
+		if(keyCode == KeyEvent.KEYCODE_MENU){
+			System.out.println("****** keyCode == KeyEvent.KEYCODE_MENU:");
+	   		Intent i = new Intent(this, MenuActivity.class);
+	   		startActivity(i);
+		}
 
 		if(isScreenReaderActive()){
 			if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -240,6 +249,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 			}
 		});
 	}
+
 	private PowerManager.WakeLock myWakeLock;
 
 	@Override
@@ -304,17 +314,57 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		startSearch(fbreader.TextSearchPatternOption.getValue(), true, null, false);
 		return true;
 	}
-
-
-	public void navigate() {
+	public void navigate(){
+		dialog = new Dialog(this);
+		dialog.setContentView(R.layout.bookshare_dialog);
+		dialog.setTitle("Navigate to page");
+		dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
+		dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
+		dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
+		Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
+		Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
+		final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
+		final int currentPage = textView.computeCurrentPage();
+		final int pagesNumber = textView.computePageNumber();
+		dialog_search_title.setText("Current page = "+currentPage);
+		dialog_example_text.setText("Total pages = "+pagesNumber);
+		dialog_ok.setOnClickListener(new OnClickListener(){
+			public void onClick(View v){
+				int page = 1;
+				try{
+					page = Integer.parseInt(dialog_search_term.getText().toString().trim());
+				}
+				catch(NumberFormatException nfe){
+					dialog.dismiss();
+					return;
+				}
+				final ZLView view = ZLApplication.Instance().getCurrentView();
+				if (view instanceof ZLTextView) {
+					ZLTextView textView = (ZLTextView) view;
+					if (page == 1) {
+						textView.gotoHome();
+					}
+					else{
+						textView.gotoPage(page);
+					}
+					ZLApplication.Instance().repaintView();
+				}
+				dialog.dismiss();
+			}
+		});
+		dialog_cancel.setOnClickListener(new OnClickListener(){
+			public void onClick(View v){
+				dialog.dismiss();
+			}
+		});
+		dialog.show();
+		/*
 		final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
 		myNavigatePanel.NavigateDragging = false;
 		myNavigatePanel.StartPosition = new ZLTextFixedPosition(textView.getStartCursor());
-		myNavigatePanel.show(true);
+		myNavigatePanel.show(true);*/
 	}
-
-
-
+		
 	public final boolean canNavigate() {
 		final org.geometerplus.fbreader.fbreader.FBReader fbreader =
 			(org.geometerplus.fbreader.fbreader.FBReader)ZLApplication.Instance();
@@ -338,7 +388,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 			private void gotoPage(int page) {
 				final ZLView view = ZLApplication.Instance().getCurrentView();
 				if (view instanceof ZLTextView) {
-					ZLTextView textView = (ZLTextView) view;
+					ZLTextView textView = (ZLTextView) view;					
 					if (page == 1) {
 						textView.gotoHome();
 					} else {
