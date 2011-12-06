@@ -98,6 +98,9 @@ public class MenuActivity extends Activity {
 		return false;
 	}
 
+    /**
+     * Order of FBReader's main menu options. Each enum entry has an associated label and onClick operation.
+     */
     private enum MenuControl {
 	    
 	    speak("Speak", new MenuOperation() {

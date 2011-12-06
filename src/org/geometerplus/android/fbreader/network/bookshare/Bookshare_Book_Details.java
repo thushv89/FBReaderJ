@@ -75,7 +75,6 @@ public class Bookshare_Book_Details extends Activity{
 	private TextView bookshare_book_detail_publish_date_text;
 	private TextView bookshare_book_detail_publisher_text;
 	private TextView bookshare_book_detail_copyright_text;
-	private TextView bookshare_book_detail_bookshare_id_text;
 	private TextView bookshare_book_detail_synopsis_text;
 	private TextView bookshare_download_not_available_text;
 	private Button btn_download;
@@ -170,7 +169,6 @@ public class Bookshare_Book_Details extends Activity{
 					bookshare_book_detail_publish_date_text = (TextView)findViewById(R.id.bookshare_book_detail_publish_date_text);
 					bookshare_book_detail_publisher_text = (TextView)findViewById(R.id.bookshare_book_detail_publisher_text);
 					bookshare_book_detail_copyright_text = (TextView)findViewById(R.id.bookshare_book_detail_copyright_text);
-					bookshare_book_detail_bookshare_id_text = (TextView)findViewById(R.id.bookshare_book_detail_bookshare_id_text);
 					bookshare_book_detail_synopsis_text = (TextView)findViewById(R.id.bookshare_book_detail_synopsis_text);
 					btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
@@ -346,15 +344,6 @@ public class Bookshare_Book_Details extends Activity{
 					}
 					else{
 						bookshare_book_detail_copyright_text.setText("Not available");
-					}
-
-					if(metadata_bean.getBookshareId() != null){
-						temp = metadata_bean.getBookshareId().trim().equals("") ? "Not available" : metadata_bean.getBookshareId();
-						bookshare_book_detail_bookshare_id_text.setText(temp);
-						temp = "";
-					}
-					else{
-						bookshare_book_detail_bookshare_id_text.setText("Not available");
 					}
 
 					if(metadata_bean.getCompleteSynopsis() != null &&
