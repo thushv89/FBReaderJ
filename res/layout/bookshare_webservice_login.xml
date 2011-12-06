@@ -64,7 +64,7 @@
 		
 			<Button 
 				android:id="@+id/btn_bookshare_bookshare_webservice_login"
-				android:text="Login"
+				android:text="Log In"
 				android:layout_weight="1"
 				android:layout_marginTop="30dip"
 				android:textSize="16dip"
@@ -89,11 +89,11 @@
 		android:orientation="vertical">
 			<Button
 				android:id="@+id/btn_bookshare_bookshare_continue_without_login"
-				android:text="Continue without login"
+				android:text="Continue without log in"
 				android:textSize="16dip"
 				android:typeface="sans"
 				android:textStyle="bold"
-				android:layout_marginTop="110dip"
+				android:layout_marginTop="80dip"
 				android:layout_weight="1"
 				android:layout_width="match_parent"
 				android:layout_height="50dip"/>
