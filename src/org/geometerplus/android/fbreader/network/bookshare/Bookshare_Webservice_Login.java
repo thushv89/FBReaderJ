@@ -17,10 +17,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -95,37 +97,23 @@ public class Bookshare_Webservice_Login extends Activity{
 		//editText_username.setText("partnerdemo@bookshare.org");
 		//editText_password.setText("partner");
 		
-
-
+		// Listener for edit text box to handle the enter key
+		editText_password.setOnKeyListener(new OnKeyListener() {
+		    public boolean onKey(View v, int keyCode, KeyEvent event) {
+		        // If the event is a key-down event on the "enter" button
+		        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+		            (keyCode == KeyEvent.KEYCODE_ENTER)) {
+		          // Perform action on key press
+		        	loginAction();
+		          return true;
+		        }
+		        return false;
+		    }
+		});
 		// Listener for login button
 		btn_login.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
-				
-				// Hide the virtual keyboard
-				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-				imm.hideSoftInputFromWindow(editText_username .getWindowToken(), 0);
-
-				username = editText_username.getText().toString().trim();
-				password = editText_password.getText().toString().trim();
-				
-				// Test for conditions where the input might be blank
-				if(username.equals("") && password.equals("")){
-					Toast t = Toast.makeText(getApplicationContext(),"Username/Password field cannot be blank!", Toast.LENGTH_SHORT);
-					t.show();
-				}
-				else if(username.equals("") && !password.equals("")){
-					Toast t = Toast.makeText(getApplicationContext(),"Username field cannot be blank!", Toast.LENGTH_SHORT);
-					t.show();
-				}
-				else if(!username.equals("") && password.equals("")){
-					Toast t = Toast.makeText(getApplicationContext(),"Password field cannot be blank!", Toast.LENGTH_SHORT);
-					t.show();
-				}
-				else{
-					startProgressDialog();
-					// Start a new AsyncTask for background processing
-					new AuthenticationTask().execute();
-				}
+				loginAction();
 			}
 		});
 		
@@ -143,6 +131,34 @@ public class Bookshare_Webservice_Login extends Activity{
 				getFreeContent();
 			}
 		});
+	}
+	private void loginAction(){
+
+		// Hide the virtual keyboard
+		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(editText_username.getWindowToken(), 0);
+
+		username = editText_username.getText().toString().trim();
+		password = editText_password.getText().toString().trim();
+		
+		// Test for conditions where the input might be blank
+		if(username.equals("") && password.equals("")){
+			Toast t = Toast.makeText(getApplicationContext(),"Username/Password field cannot be blank!", Toast.LENGTH_SHORT);
+			t.show();
+		}
+		else if(username.equals("") && !password.equals("")){
+			Toast t = Toast.makeText(getApplicationContext(),"Username field cannot be blank!", Toast.LENGTH_SHORT);
+			t.show();
+		}
+		else if(!username.equals("") && password.equals("")){
+			Toast t = Toast.makeText(getApplicationContext(),"Password field cannot be blank!", Toast.LENGTH_SHORT);
+			t.show();
+		}
+		else{
+			startProgressDialog();
+			// Start a new AsyncTask for background processing
+			new AuthenticationTask().execute();
+		}
 	}
 	
 	private void getFreeContent(){
