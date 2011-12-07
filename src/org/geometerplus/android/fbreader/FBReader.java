@@ -30,6 +30,7 @@ import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.view.ZLView;
 import org.geometerplus.zlibrary.text.model.ZLTextModel;
+import org.geometerplus.zlibrary.text.view.ZLTextFixedPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
 import org.geometerplus.zlibrary.ui.android.R;
@@ -52,8 +53,9 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -314,55 +316,86 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		startSearch(fbreader.TextSearchPatternOption.getValue(), true, null, false);
 		return true;
 	}
+	// Method to navigate to the specified page in the book
+	private void navigateByPage(int page){
+		final ZLView view = ZLApplication.Instance().getCurrentView();
+		if (view instanceof ZLTextView) {
+			ZLTextView textView = (ZLTextView) view;
+			if (page == 1) {
+				textView.gotoHome();
+			}
+			else{
+				textView.gotoPage(page);
+			}
+			ZLApplication.Instance().repaintView();
+		}
+	}
+	
 	public void navigate(){
-		dialog = new Dialog(this);
-		dialog.setContentView(R.layout.bookshare_dialog);
-		dialog.setTitle("Navigate to page");
-		dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
-		dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
-		dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
-		Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
-		Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
-		final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-		final int currentPage = textView.computeCurrentPage();
-		final int pagesNumber = textView.computePageNumber();
-		dialog_search_title.setText("Current page = "+currentPage);
-		dialog_example_text.setText("Total pages = "+pagesNumber);
-		dialog_ok.setOnClickListener(new OnClickListener(){
-			public void onClick(View v){
-				int page = 1;
-				try{
-					page = Integer.parseInt(dialog_search_term.getText().toString().trim());
-				}
-				catch(NumberFormatException nfe){
+		AccessibilityManager accessibilityManager =
+	        (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+		if(accessibilityManager.isEnabled()){
+			dialog = new Dialog(this);
+			dialog.setContentView(R.layout.bookshare_dialog);
+			dialog.setTitle("Navigate to page.");
+			dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
+			dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
+			dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
+			Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
+			Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
+			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
+			final int currentPage = textView.computeCurrentPage();
+			final int pagesNumber = textView.computePageNumber();
+			dialog_search_title.setText("Page number.");
+			dialog_example_text.setText("Current page = "+currentPage+", Total pages = "+pagesNumber);
+			dialog_search_term.setOnKeyListener(new OnKeyListener() {
+			    public boolean onKey(View v, int keyCode, KeyEvent event) {
+			        // If the event is a key-down event on the "enter" button
+			        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+			            (keyCode == KeyEvent.KEYCODE_ENTER)) {
+			          // Perform action on key press
+						int page = 1;
+						try{
+							page = Integer.parseInt(dialog_search_term.getText().toString().trim());
+						}
+						catch(NumberFormatException nfe){
+							dialog.dismiss();
+							return true;
+						}
+						navigateByPage(page);
+						dialog.dismiss();
+			          return true;
+			        }
+			        return false;
+			    }
+			});
+			dialog_ok.setOnClickListener(new OnClickListener(){
+				public void onClick(View v){
+					int page = 1;
+					try{
+						page = Integer.parseInt(dialog_search_term.getText().toString().trim());
+					}
+					catch(NumberFormatException nfe){
+						dialog.dismiss();
+						return;
+					}
+					navigateByPage(page);
 					dialog.dismiss();
-					return;
 				}
-				final ZLView view = ZLApplication.Instance().getCurrentView();
-				if (view instanceof ZLTextView) {
-					ZLTextView textView = (ZLTextView) view;
-					if (page == 1) {
-						textView.gotoHome();
-					}
-					else{
-						textView.gotoPage(page);
-					}
-					ZLApplication.Instance().repaintView();
+			});
+			dialog_cancel.setOnClickListener(new OnClickListener(){
+				public void onClick(View v){
+					dialog.dismiss();
 				}
-				dialog.dismiss();
-			}
-		});
-		dialog_cancel.setOnClickListener(new OnClickListener(){
-			public void onClick(View v){
-				dialog.dismiss();
-			}
-		});
-		dialog.show();
-		/*
-		final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-		myNavigatePanel.NavigateDragging = false;
-		myNavigatePanel.StartPosition = new ZLTextFixedPosition(textView.getStartCursor());
-		myNavigatePanel.show(true);*/
+			});
+			dialog.show();
+		}
+		else{
+			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
+			myNavigatePanel.NavigateDragging = false;
+			myNavigatePanel.StartPosition = new ZLTextFixedPosition(textView.getStartCursor());
+			myNavigatePanel.show(true);
+		}
 	}
 		
 	public final boolean canNavigate() {
