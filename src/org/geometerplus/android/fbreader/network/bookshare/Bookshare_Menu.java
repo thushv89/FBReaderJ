@@ -273,7 +273,12 @@ public class Bookshare_Menu extends ListActivity {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
-		menu.add("Log Out");
+		if(isFree){
+			menu.add("Log In");
+		}
+		else{
+			menu.add("Log Out");
+		}
 		return true;
 	}
 	
@@ -301,6 +306,11 @@ public class Bookshare_Menu extends ListActivity {
 				}
 			})
             .show();
+		}
+		else if(item.getTitle().equals("Log In")){
+			Intent intent = new Intent(getApplicationContext(), Bookshare_Webservice_Login.class);
+			startActivity(intent);
+			finish();
 		}
 		return true;
 	}
