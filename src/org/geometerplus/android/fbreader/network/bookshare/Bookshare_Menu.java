@@ -216,7 +216,7 @@ public class Bookshare_Menu extends ListActivity {
 				else if(txt_name.getText().equals("Author Search")){
 					dialog.setTitle("Search by Author Name");
 					dialog_search_title.setText("Enter author name to be searched");
-					dialog_example_text.setText("E.g. Mark Twain or *King");
+					dialog_example_text.setText("E.g. Mark Twain or Lewis");
 					query_type = "Author Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra("REQUEST_TYPE","Author Search");
