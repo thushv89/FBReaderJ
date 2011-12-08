@@ -26,8 +26,13 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.bookshare.net.BookshareWebservice;
-import org.geometerplus.android.fbreader.LibraryTabActivity;
 import org.geometerplus.fbreader.Paths;
+import org.geometerplus.fbreader.fbreader.FBReader;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.library.BookTree;
+import org.geometerplus.fbreader.library.Library;
+import org.geometerplus.fbreader.library.LibraryTree;
+import org.geometerplus.fbreader.tree.FBTree;
 import org.geometerplus.zlibrary.ui.android.R;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -87,13 +92,17 @@ public class Bookshare_Book_Details extends Activity{
 	private String memberId = null;
 	private String omDownloadPassword;
 	private boolean downloadSucess;
+	private Book downloadedBook;
+	private LibraryTree libraryTreeBeforeDownload;
+	private Vector<Long> bookInstances;
+
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_blank_page);
-		
+
 		// Set full screen
 		//getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -197,11 +206,17 @@ public class Bookshare_Book_Details extends Activity{
 								}
 								
 								// Navigate to the local library
-								else if(btn_download.getText().toString().equalsIgnoreCase("Open local library")){
+								else if(btn_download.getText().toString().equalsIgnoreCase("Read Book")){
 									setResult(BOOKSHARE_BOOK_DETAILS_FINISHED);
-									Intent intent = new Intent(getApplicationContext(), LibraryTabActivity.class);
-									startActivity(intent);
-									finish();
+									if(downloadedBook == null){
+										Toast toast = Toast.makeText(getApplicationContext(),
+												"Error opening book!", Toast.LENGTH_SHORT);
+										toast.show();
+									}
+									else{
+										((FBReader)FBReader.Instance()).openBook(downloadedBook, null);
+										finish();
+									}
 								}
 							}
 						});
@@ -427,7 +442,23 @@ public class Bookshare_Book_Details extends Activity{
 		// Will be called in a separate thread
 		@Override
 		protected Void doInBackground(Void... params) {
-			
+			 
+			libraryTreeBeforeDownload = Library.Instance().byAuthor();
+			if(bookInstances == null){
+				bookInstances = new Vector<Long>();						
+			}
+			else{
+				bookInstances.clear();
+			}
+			for (FBTree tree : libraryTreeBeforeDownload) {
+				if(tree instanceof BookTree){
+					Book book = ((BookTree)tree).Book;
+					// Add the book instance to the Vector
+					bookInstances.add(book.getId());
+				}
+			}
+
+
 			final String id = metadata_bean.getContentId();
 			String download_uri = "";
 			if(isFree)
@@ -595,11 +626,28 @@ public class Bookshare_Book_Details extends Activity{
 		// Will be called in the UI thread
 		@Override
 		protected void onPostExecute(Void param){
+			
+			// Clear the library instance to fetch recently downloaded book
+			Library.Instance().clear();
+
+			// Get the latest set of books
+			LibraryTree libraryTreeAfterDownload = Library.Instance().byAuthor();
+			for (FBTree tree : libraryTreeAfterDownload) {
+				if(tree instanceof BookTree){
+					Book book = ((BookTree)tree).Book;
+					// Locate the recently downloaded book
+					if(!bookInstances.contains(book.getId())){
+						downloadedBook = book;
+						break;
+					}
+				}
+			}
+			
 			if(downloadSucess){
 				Toast toast = Toast.makeText(getApplicationContext(),
 						"Book downloaded to local library!", Toast.LENGTH_SHORT);
 				toast.show();
-				btn_download.setText("Open local library");
+				btn_download.setText("Read Book");
 				btn_download.setEnabled(true);
 			}
 			else{
