@@ -219,7 +219,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			if (myCurrentBook == null) {
 				return null;
 			}
-			
+
 			// Peculiar use of for each loop here. The myLibraryTree is not a collection.
 			// Here tree is just assigned the value of myLibraryTree
 			for (FBTree tree : myLibraryTree) {
