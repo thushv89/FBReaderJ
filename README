@@ -23,6 +23,8 @@ We will be working on a more sophisticated version of that module.
 
 This version also supports other formats namely epub, fb2, palmdoc and tcr.
 
+To build this project, please follow the instructions in the HowToBuild file.
+
 The link for Bookshare developer API is http://developer.bookshare.org/
 
 If you plan to build this project, you need an API key, which can be obtained by registered at http://developer.bookshare.org and acquiring an API key.
