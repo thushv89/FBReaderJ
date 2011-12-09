@@ -42,6 +42,7 @@ public final class Library {
 	private final LibraryTree myLibraryByAuthor = new RootTree();
 	private final LibraryTree myLibraryByTag = new RootTree();
 	private final LibraryTree myRecentBooks = new RootTree();
+	private final LibraryTree myLibraryByTitle = new RootTree();
 	private final LibraryTree mySearchResult = new RootTree();
 
 	private boolean myDoRebuild = true;
@@ -57,6 +58,7 @@ public final class Library {
 		myLibraryByAuthor.clear();
 		myLibraryByTag.clear();
 		myRecentBooks.clear();
+		myLibraryByTitle.clear();
 		mySearchResult.clear();
 	}
 
@@ -281,6 +283,10 @@ public final class Library {
 				myRecentBooks.createBookSubTree(book, true);
 			}
 		}
+		for(Book book : myBooks){
+			myLibraryByTitle.createBookSubTree(book, true);
+		}
+		myLibraryByTitle.sortAllChildren();
 
 		db.executeAsATransaction(new Runnable() {
 			public void run() {
@@ -316,6 +322,11 @@ public final class Library {
 	public LibraryTree recentBooks() {
 		synchronize();
 		return myRecentBooks;
+	}
+	
+	public LibraryTree byTitle(){
+		synchronize();
+		return myLibraryByTitle;
 	}
 
 	public Book getRecentBook() {
@@ -381,6 +392,7 @@ public final class Library {
 		}
 		synchronize();
 		myBooks.remove(book);
+		myLibraryByTitle.removeBook(book);
 		myLibraryByAuthor.removeBook(book);
 		myLibraryByTag.removeBook(book);
 		if (myRecentBooks.removeBook(book)) {
