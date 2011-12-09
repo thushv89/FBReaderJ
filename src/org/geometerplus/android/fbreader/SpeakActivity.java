@@ -239,6 +239,8 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 				localParaCursor = myParaCursor.next();           // deal with the null pointer
 				if (localParaCursor != null)  {
  				    myParaCursor = localParaCursor;              
+				} else {
+				    state = INACTIVE;
 				}
 				break;
 			case SEARCHBACKWARD:
