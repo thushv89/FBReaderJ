@@ -49,7 +49,7 @@ public class BugReportActivity extends Activity {
 		reportTextView.setLongClickable(false);
 
 		final String versionName = getVersionName();
-		reportTextView.append("FBReader " + versionName + " has been crached, sorry. You can help to fix this bug by sending the report below to FBReader developers. The report will be sent by e-mail. Thank you in advance!\n\n");
+		reportTextView.append("Sorry, but FBReader " + versionName + " has crashed.  You can help to fix this bug by pressing the button below which will send the following report to customer service.\n\nReport:\n");
 		reportTextView.append(stackTrace);
 
 		findViewById(R.id.send_report).setOnClickListener(

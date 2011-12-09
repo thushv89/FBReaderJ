@@ -35,9 +35,9 @@
 		<node name="signOut" value="Sign out (%s)"/>
 		<node name="refillAccount" value="Refill account (currently: %s)"/>
 		<node name="refillTitle" value="Refill account"/>
-		<node name="refillSummary" value="Currently: %s"/>
-		<node name="alreadyDownloading" value="Book is being downloaded" />
-		<node name="alreadyDownloadingDemo" value="Sample is being downloaded" />
+		<node name="refillSummary" value="Current balance: %s"/>
+		<node name="alreadyDownloading" value="Book is being downloaded." />
+		<node name="alreadyDownloadingDemo" value="Sample is being downloaded." />
 		<node name="stoppingCatalogLoading" value="Stopping loading" />
 		<node name="stoppingNetworkSearch" value="Stopping search" />
 		<node name="search" value="Search" />
@@ -49,15 +49,15 @@
 		<node name="addCustomCatalogSummary" value="Add custom OPDS catalog manually"/>
 		<node name="addNonOpdsCatalog" value="Add non-OPDS catalog manually" />
 		<node name="confirmQuestions">
-			<node name="read" value="Do you want to read local copy?"/>
+			<node name="read" value="Do you want to read the local copy?"/>
 			<node name="download" value="Do you want to download this book?"/>
-			<node name="readDemo" value="Do you want to read sample?"/>
-			<node name="downloadDemo" value="Do you want to download sample?"/>
+			<node name="readDemo" value="Do you want to read the sample?"/>
+			<node name="downloadDemo" value="Do you want to download the sample?"/>
 			<node name="buy" value="Do you want to buy this book? (%s)"/>
-			<node name="openInBrowser" value="Do you want to open this catalog in browser?" />
+			<node name="openInBrowser" value="Do you want to open this catalog in a browser?" />
 		</node>
 		<node name="downloadingCatalogs" value="Downloading catalogs"/> <!-- used as notification title -->
-		<node name="searchingNetwork" value="Searching for books in network"/> <!-- used as notification title -->
+		<node name="searchingNetwork" value="Searching for books on network"/> <!-- used as notification title -->
 		<node name="menu">
 			<node name="networkSearch" value="Network search"/>
 			<node name="reload" value="Reload"/>
@@ -79,12 +79,12 @@
 		<node name="tags" value="Tags:" />
 	</node>
 	<node name="bookDownloader">
-		<node name="tickerSuccess" value="Book has been downloaded" />
+		<node name="tickerSuccess" value="Book has been downloaded." />
 		<node name="tickerError" value="Book download error" />
-		<node name="contentSuccess" value="Download complete" />
-		<node name="contentError" value="Download failed" />
-		<node name="downloadingStarted" value="Book downloading has been started" />
-		<node name="alreadyDownloading" value="Book is already being downloaded" />
+		<node name="contentSuccess" value="Download complete." />
+		<node name="contentError" value="Download failed." />
+		<node name="downloadingStarted" value="Book downloading has started." />
+		<node name="alreadyDownloading" value="Book is already being downloaded." />
 	</node>
 	<node name="tocView">
 		<node name="expandTree" value="Expand tree"/>
@@ -266,59 +266,59 @@
 			</node>
 		</node>
 		<node name="deleteBookBox">
-			<node name="message" value="The book file will be removed irreversibly. Are you sure?"/>
+			<node name="message" value="The book file will be removed irreversibly.  Are you sure?"/>
 		</node>
 		<node name="redownloadFileBox">
-			<node name="message" value="File already exists. Redownload?"/>
+			<node name="message" value="File already exists.  Download again?"/>
 		</node>
 		<node name="waitMessage">
 			<node name="downloadingFile" value="Downloading book %s"/>
-			<node name="search" value="Searching. Please, wait..."/>
-			<node name="loadingBook" value="Opening book. Please, wait..."/>
-			<node name="loadingBookList" value="Opening library. Please, wait..."/>
-			<node name="creatingBooksDatabase" value="Creating books database. Please, wait..."/>
-			<node name="updatingBooksDatabase" value="Updating books database. Please, wait..."/>
-			<node name="loadingNetworkLibrary" value="Opening library. Please, wait..." />
-			<node name="authentication" value="Authentication. Please, wait..." />
-			<node name="signOut" value="Signing out. Please, wait..." />
-			<node name="purchaseBook" value="Purchase book. Please, wait..." />
-			<node name="registerUser" value="Registering new account. Please, wait..." />
-			<node name="loadingCatalogInfo" value="Loading catalog information. Please, wait..." />
-			<node name="updatingCatalogsList" value="Updating catalogs list. Please, wait..."/>
+			<node name="search" value="Searching.  Please wait..."/>
+			<node name="loadingBook" value="Opening book.  Please wait..."/>
+			<node name="loadingBookList" value="Opening library.  Please wait..."/>
+			<node name="creatingBooksDatabase" value="Creating books database.  Please wait..."/>
+			<node name="updatingBooksDatabase" value="Updating books database.  Please wait..."/>
+			<node name="loadingNetworkLibrary" value="Opening library.  Please wait..." />
+			<node name="authentication" value="Authenticating.  Please wait..." />
+			<node name="signOut" value="Signing out.  Please wait..." />
+			<node name="purchaseBook" value="Purchasing book.  Please wait..." />
+			<node name="registerUser" value="Registering new account.  Please wait..." />
+			<node name="loadingCatalogInfo" value="Loading catalog information.  Please wait..." />
+			<node name="updatingCatalogsList" value="Updating catalog listing.  Please wait..."/>
 		</node>
 		<node name="networkError">
-			<node name="internalError" value="Internal server error" />
-			<node name="purchaseNotEnoughMoney" value="Not enough money" />
-			<node name="purchaseMissingBook" value="Missing book" />
-			<node name="purchaseAlreadyPurchased" value="Already purchased" />
-			<node name="bookNotPurchased" value="Book was not purchased" />
-			<node name="downloadLimitExceeded" value="Download limit exceeded" />
-			<node name="loginAlreadyTaken" value="Username is already in use" />
-			<node name="loginNotSpecified" value="Please, enter a username" />
-			<node name="passwordNotSpecified" value="Please, enter a non-empty password" />
-			<node name="emailNotSpecified" value="Please, enter an e-mail address" />
-			<node name="invalidEMail" value="Invalid e-mail address" />
-			<node name="tooManyRegistrations" value="Too many registrations from your IP;&#10;try again in a few minutes" />
-			<node name="noUserEmail" value="No user was registered&#10;with specified e-mail address" />
-			<node name="unsupportedOperation" value="Unsupported operation" />
-			<node name="notAnOPDS" value="This is not an OPDS catalog" />
-			<node name="noRequiredInformation" value="Required information is not specified in the catalog" />
-			<node name="cacheDirectoryError" value="Unable to create cache directory" />
+			<node name="internalError" value="Internal server error." />
+			<node name="purchaseNotEnoughMoney" value="Insufficient funds." />
+			<node name="purchaseMissingBook" value="Missing book." />
+			<node name="purchaseAlreadyPurchased" value="Book was already purchased." />
+			<node name="bookNotPurchased" value="Book was not purchased." />
+			<node name="downloadLimitExceeded" value="Download limit has been exceeded." />
+			<node name="loginAlreadyTaken" value="Username is already in use." />
+			<node name="loginNotSpecified" value="Please enter a username." />
+			<node name="passwordNotSpecified" value="Please enter a non-empty password." />
+			<node name="emailNotSpecified" value="Please enter an e-mail address." />
+			<node name="invalidEMail" value="Invalid e-mail address." />
+			<node name="tooManyRegistrations" value="Too many registrations from your IP.&#10;Please try again in a few minutes." />
+			<node name="noUserEmail" value="No user found with&#10;specified e-mail address." />
+			<node name="unsupportedOperation" value="Unsupported operation." />
+			<node name="notAnOPDS" value="This is not an OPDS catalog." />
+			<node name="noRequiredInformation" value="Required information is not specified in the catalog." />
+			<node name="cacheDirectoryError" value="Unable to create cache directory." />
 		</node>
 		<node name="emptyCatalogBox">
 			<node name="title" value="Information" />
-			<node name="message" value="Catalog is empty" />
+			<node name="message" value="Catalog is empty." />
 		</node>
 		<node name="emptySearchResults">
 			<node name="title" value="Search results" />
-			<node name="message" value="There are no suitable books found" />
+			<node name="message" value="No suitable books were found." />
 		</node>
 		<node name="AuthenticationDialog">
 			<node name="title" value="Authentication" />
 			<node name="login" value="Username" />
 			<node name="password" value="Password" />
-			<node name="skipIP" value="Don't bound to ip-address" />
-			<node name="loginIsEmpty" value="Username should be non-empty" />
+			<node name="skipIP" value="Don't bind to IP address." />
+			<node name="loginIsEmpty" value="Username should be non-empty." />
 			<node name="register" value="Sign up" />
 		</node>
 		<node name="RegisterUserDialog">
@@ -337,26 +337,26 @@
 			<node name="catalogTitleExample" value="E.g.: Project Gutenberg catalog" />
 			<node name="catalogUrlExample" value="E.g.: http://m.gutenberg.org/" />
 			<node name="catalogSummaryExample" value="E.g.: Public domain books" />
-			<node name="titleIsEmpty" value="Title should be non-empty" />
-			<node name="urlIsEmpty" value="URL should be non-empty" />
-			<node name="invalidUrl" value="Invalid URL" />
-			<node name="titleAlreadyExists" value="Specified title is already in use" />
-			<node name="siteAlreadyExists" value="Specified site is already in use" />
+			<node name="titleIsEmpty" value="Title should be non-empty." />
+			<node name="urlIsEmpty" value="URL should be non-empty." />
+			<node name="invalidUrl" value="Invalid URL." />
+			<node name="titleAlreadyExists" value="Specified title is already in use." />
+			<node name="siteAlreadyExists" value="Specified site is already in use." />
 		</node>
 		<node name="purchaseConfirmBox">
 			<node name="title" value="Purchase book" />
-			<node name="message" value="Are you sure you want to buy&#10;&#8220;%s&#8221;&#10;book?" />
+			<node name="message" value="Are you sure you want to&#10;purchase the book&#10;&#8220;%s&#8221;?" />
 		</node>
 		<node name="alreadyPurchasedBox">
 			<node name="title" value="Purchase book" />
-			<node name="message" value="Book is already bought" />
+			<node name="message" value="Book already purchased." />
 		</node>
 	</node>
 	<node name="errorMessage">
-		<node name="textNotFound" value="There is no suitable text in the book, sorry"/>
-		<node name="bookNotFound" value="There are no suitable books in the library, sorry"/>
-		<node name="bookmarkNotFound" value="There are no suitable bookmarks, sorry"/>
-		<node name="cannotOpenBook" value="Cannot open this book at the moment, sorry"/>
+		<node name="textNotFound" value="No text was found in the book."/>
+		<node name="bookNotFound" value="No books were found in the library."/>
+		<node name="bookmarkNotFound" value="No bookmarks set."/>
+		<node name="cannotOpenBook" value="Unable to open book."/>
 	</node>
 	<node name="style">
 		<node name="Base" value="Base"/>
