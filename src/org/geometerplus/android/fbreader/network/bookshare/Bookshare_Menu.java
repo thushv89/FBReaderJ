@@ -207,7 +207,8 @@ public class Bookshare_Menu extends ListActivity {
 				if(txt_name.getText().equals("Title Search")){
 					dialog.setTitle("Search by Book Title");
 					dialog_search_title.setText("Enter Book title to be searched");
-					dialog_example_text.setText("E.g. Moby Dick or *Potter*");
+					dialog_example_text.setText("E.g. Moby Dick or Potter");
+                    dialog_search_term.setContentDescription("Enter title");
 					query_type = "Title Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra("REQUEST_TYPE", "Title Search");
@@ -217,6 +218,7 @@ public class Bookshare_Menu extends ListActivity {
 					dialog.setTitle("Search by Author Name");
 					dialog_search_title.setText("Enter author name to be searched");
 					dialog_example_text.setText("E.g. Mark Twain or Lewis");
+                    dialog_search_term.setContentDescription("Enter author name");
 					query_type = "Author Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra("REQUEST_TYPE","Author Search");
@@ -226,6 +228,7 @@ public class Bookshare_Menu extends ListActivity {
 					dialog.setTitle("Search by ISBN");
 					dialog_search_title.setText("Enter 10 or 13 digit ISBN");
 					dialog_example_text.setText("E.g. 9780670059218 or 9781416503064");
+                    dialog_search_term.setContentDescription("Enter ISBN");
 					query_type = "ISBN Search";
 					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 					intent.putExtra("REQUEST_TYPE","ISBN Search");
