@@ -32,12 +32,12 @@ import android.widget.ImageButton;
 public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener{
     	static final int ACTIVE = 1;
     	static final int INACTIVE = 0;
-		private static final int CHECK_TTS_INSTALLED = 0;
-		private static final String PARAGRAPHUTTERANCE="PARAGRAPHUTTERANCE";
+	private static final int CHECK_TTS_INSTALLED = 0;
+	private static final String PARAGRAPHUTTERANCE="PARAGRAPHUTTERANCE";
 
-		static final int CURRENTORFORWARD = 0;
-		static final int SEARCHFORWARD = 1;
-		static final int SEARCHBACKWARD = 2;
+	static final int CURRENTORFORWARD = 0;
+	static final int SEARCHFORWARD = 1;
+	static final int SEARCHBACKWARD = 2;
 		
     	private TextToSpeech mTts=null;
     	private FBView theView;
@@ -58,15 +58,16 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     		private int state;
     		static final int PAUSE = 0;
     		static final int PLAY = 1;
-			public void run() { 
-				if(state==PLAY) { 
-					pausebutton.setImageResource(R.drawable.speak_play);
+			
+		public void run() { 
+			if(state==PLAY) { 
+				pausebutton.setImageResource(R.drawable.speak_play);
 					//pausebutton.setText("Play");
-				} else if (state==PAUSE){
-					pausebutton.setImageResource(R.drawable.speak_pause);
+			} else if (state==PAUSE){
+				pausebutton.setImageResource(R.drawable.speak_pause);
 					//pausebutton.setText("Pause");
-				}
 			}
+		}
     		public UpdateControls(int value) { this.state = value; }
     	} 
     	
@@ -146,10 +147,10 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 	       tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
 	       
- 		   theView = ((FBReader)FBReader.Instance()).getTextView();
+ 		theView = ((FBReader)FBReader.Instance()).getTextView();
  		   
-		   ZLTextWordCursor cursor = theView.getStartCursor();
-		   myParaCursor = cursor.getParagraphCursor(); 
+		ZLTextWordCursor cursor = theView.getStartCursor();
+		myParaCursor = cursor.getParagraphCursor(); 
 	       
 	       Intent checkIntent = new Intent();
 	       checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
@@ -180,7 +181,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 // Look for . at end of word
 	private void getParagraphText(ZLTextParagraphCursor paraCursor) {
 		StringBuilder sb = new StringBuilder();
-	    boolean inSentence = true;
+	    	boolean inSentence = true;
 
 		sentenceList = new ArrayList();                      // clears out list, old list gets GCed
 
@@ -243,9 +244,9 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		
 	private void nextParagraph(int direction){
 		ZLTextParagraphCursor localParaCursor;
-        boolean atLimit = false;
+       		boolean atLimit = false;
 
-        if (!(myParaCursor==null) && !atLimit){			
+ 		if (!(myParaCursor==null) && !atLimit){			
 			switch (direction) {
 			case SEARCHFORWARD:
 				localParaCursor = myParaCursor.next();           // deal with the null pointer
@@ -268,7 +269,9 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 				direction = SEARCHFORWARD;
   				break;
 			}
-			if (!atLimit)			getParagraphText(myParaCursor);
+			if (!atLimit)  {			
+				getParagraphText(myParaCursor);
+			}
 		}	
 	}
 	
@@ -315,15 +318,15 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	
 	public void onUtteranceCompleted(String uttId) {
 		String spkString = "";
-		if(	state == ACTIVE && uttId.equals(this.PARAGRAPHUTTERANCE)) {
+		if(state == ACTIVE && uttId.equals(this.PARAGRAPHUTTERANCE)) {
 			if (!sentenceListIterator.hasNext())  {
 			    nextParagraph(SEARCHFORWARD);                        // nextParagraph can change sentenceListIterator
 			}
-            if (sentenceListIterator.hasNext())  { 			          // if there are sentences in the sentence queue
-                spkString = sentenceListIterator.next().toString();
-            	speakString(spkString);
-            }
-        } else {
+            		if (sentenceListIterator.hasNext())  { 			 // if there are sentences in the sentence queue
+                		spkString = sentenceListIterator.next().toString();
+            			speakString(spkString);
+            		}
+        	} else {
 			setState(INACTIVE);
 		}		
 	}
