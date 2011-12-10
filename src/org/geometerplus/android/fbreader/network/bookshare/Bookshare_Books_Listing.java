@@ -34,7 +34,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
@@ -71,7 +70,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 	private boolean total_pages_count_known = false;
 	private boolean isFree = false;
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -110,7 +109,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 		vectorResults = new Vector<Bookshare_Result_Bean>();
 
 		// Show a Progress Dialog before the book opens
-		pd_spinning = ProgressDialog.show(this, null, "Fetching books data. Please wait.", Boolean.TRUE);
+		pd_spinning = ProgressDialog.show(this, null, "Fetching books. Please wait.", Boolean.TRUE);
 		
 		new Thread(){
 			public void run(){
@@ -254,6 +253,18 @@ public class Bookshare_Books_Listing extends ListActivity{
 
 				ListView lv = getListView();
 				lv.setTextFilterEnabled(true);
+
+                View decorView = getWindow().getDecorView();
+                if (null != decorView) {
+                    String resultsMessage;
+                    if (vectorResults.isEmpty()) {
+                        resultsMessage = "Search complete. No books found.";
+                    } else {
+                        resultsMessage = "Search complete. Books listing.";
+                    }
+                    decorView.setContentDescription(resultsMessage);
+                }
+
 				lv.setOnItemClickListener(new OnItemClickListener(){
 
 					public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
