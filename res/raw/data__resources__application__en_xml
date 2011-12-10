@@ -6,6 +6,7 @@
 		<node name="demo" value="sample"/>
 	</node>
 	<node name="libraryView">
+		<node name="byTitle" value="By title"/>	
 		<node name="byAuthor" value="By author"/>
 		<node name="byTag" value="By tag"/>
 		<node name="recent" value="Recent"/>

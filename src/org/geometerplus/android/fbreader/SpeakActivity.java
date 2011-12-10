@@ -1,38 +1,30 @@
 package org.geometerplus.android.fbreader;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
+import java.util.Iterator;
+import java.util.List;
 
-import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.fbreader.FBReader;
 import org.geometerplus.fbreader.fbreader.FBView;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
-import org.geometerplus.zlibrary.core.dialogs.ZLDialogManager;
-import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.text.view.ZLTextElement;
 import org.geometerplus.zlibrary.text.view.ZLTextParagraphCursor;
 import org.geometerplus.zlibrary.text.view.ZLTextWord;
 import org.geometerplus.zlibrary.text.view.ZLTextWordCursor;
 import org.geometerplus.zlibrary.ui.android.R;
-import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.TextView;
 
 
 // This class is used to compile for the non TTS version (regular). It contains the ImageButtons for TTS player controls
@@ -40,12 +32,12 @@ import android.widget.TextView;
 public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener{
     	static final int ACTIVE = 1;
     	static final int INACTIVE = 0;
-		private static final int CHECK_TTS_INSTALLED = 0;
-		private static final String PARAGRAPHUTTERANCE="PARAGRAPHUTTERANCE";
+	private static final int CHECK_TTS_INSTALLED = 0;
+	private static final String PARAGRAPHUTTERANCE="PARAGRAPHUTTERANCE";
 
-		static final int CURRENTORFORWARD = 0;
-		static final int SEARCHFORWARD = 1;
-		static final int SEARCHBACKWARD = 2;
+	static final int CURRENTORFORWARD = 0;
+	static final int SEARCHFORWARD = 1;
+	static final int SEARCHBACKWARD = 2;
 		
     	private TextToSpeech mTts=null;
     	private FBView theView;
@@ -56,14 +48,9 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	private ImageButton forwardbutton;
     	private ImageButton backbutton;
     	private ImageButton stopbutton;
-    	private TextView spokentext;
-    	
-    	/*
-    	private Button pausebutton;
-    	private Button forwardbutton;
-    	private Button backbutton;
-    	private Button stopbutton;
-    	*/
+    	private ArrayList sentenceList;
+	private Iterator sentenceListIterator;
+
     	private int state = INACTIVE;
 		
 
@@ -71,15 +58,16 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     		private int state;
     		static final int PAUSE = 0;
     		static final int PLAY = 1;
-			public void run() { 
-				if(state==PLAY) { 
-					pausebutton.setImageResource(R.drawable.speak_play);
+			
+		public void run() { 
+			if(state==PLAY) { 
+				pausebutton.setImageResource(R.drawable.speak_play);
 					//pausebutton.setText("Play");
-				} else if (state==PAUSE){
-					pausebutton.setImageResource(R.drawable.speak_pause);
+			} else if (state==PAUSE){
+				pausebutton.setImageResource(R.drawable.speak_pause);
 					//pausebutton.setText("Pause");
-				}
 			}
+		}
     		public UpdateControls(int value) { this.state = value; }
     	} 
     	
@@ -99,7 +87,8 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	    public void onClick(View v) {
     	    	stopTalking();
     	    	speakString("FORWARD");
-    	    	nextParagraphString(true,false,SEARCHFORWARD);
+    	    	setState(INACTIVE);
+  	      	    nextParagraph(SEARCHFORWARD);
     	    }
     	};
 
@@ -107,7 +96,8 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	    public void onClick(View v) {
     	    	stopTalking();
     	    	speakString("BACK");
-    	    	nextParagraphString(true,false,SEARCHBACKWARD);
+    	    	setState(INACTIVE);
+    	    	nextParagraph(SEARCHBACKWARD);
     	    }
     	};
     	
@@ -121,7 +111,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
      	      } else {
      	    	  setState(ACTIVE);
      	    	  speakString("PLAY");
-     	    	  nextParagraphString(true,true,CURRENTORFORWARD);
+     	    	  nextParagraph(CURRENTORFORWARD);
      	      }
     	    }
     	};
@@ -143,36 +133,30 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       //requestWindowFeature(Window.FEATURE_NO_TITLE);
 	       setContentView(R.layout.view_spokentext);
 	       
-	       //backbutton = (Button)findViewById(R.id.spokentextback);
 	       backbutton = (ImageButton)findViewById(R.id.spokentextback);
 	       backbutton.setOnClickListener(backListener);
 	       	       
-	       //forwardbutton = (Button)findViewById(R.id.spokentextforward);
 	       forwardbutton = (ImageButton)findViewById(R.id.spokentextforward);
 	       forwardbutton.setOnClickListener(forwardListener);
 	       
-	       //pausebutton = (Button)findViewById(R.id.spokentextpause);
 	       pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
 	       pausebutton.setOnClickListener(pauseListener);
-	       
-	       // remove stopbutton
-	       //stopbutton = (Button)findViewById(R.id.spokentextstop);
-	       //stopbutton = (ImageButton)findViewById(R.id.spokentextstop);
-	       //stopbutton.setOnClickListener(stopListener);
 	       
 	       setState(INACTIVE);
 	       	       
 	       TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 	       tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
 	       
- 		   theView = ((FBReader)FBReader.Instance()).getTextView();
+ 		theView = ((FBReader)FBReader.Instance()).getTextView();
  		   
-		   ZLTextWordCursor cursor = theView.getStartCursor();
-		   myParaCursor = cursor.getParagraphCursor(); 
+		ZLTextWordCursor cursor = theView.getStartCursor();
+		myParaCursor = cursor.getParagraphCursor(); 
 	       
 	       Intent checkIntent = new Intent();
 	       checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 	       startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
+
+
 	   }
 	   
 	   protected void onActivityResult(
@@ -191,17 +175,45 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       }
 	   }
 	   
-	private String getParagraphText(ZLTextParagraphCursor paraCursor) {
-		StringBuffer sb = new StringBuffer();
+	   
+// ZLTextWord cursor will navigate on a per-paragraph basis. 
+// We have to split the paragraph into sentences. 
+// Look for . at end of word
+	private void getParagraphText(ZLTextParagraphCursor paraCursor) {
+		StringBuilder sb = new StringBuilder();
+	    	boolean inSentence = true;
+
+		sentenceList = new ArrayList();                      // clears out list, old list gets GCed
+
 		ZLTextWordCursor cursor = new ZLTextWordCursor(paraCursor);
+
 		while(!cursor.isEndOfParagraph()) { 
 			ZLTextElement element = cursor.getElement();
-			if(element instanceof ZLTextWord) sb.append(element.toString()+" ");				
-			cursor.nextWord();				
+			while (inSentence == true)  {                         
+  			    if(element instanceof ZLTextWord) {
+  			    	if (element.toString().indexOf(".") == (element.toString().length() -1) ) {           // detects period at end of element
+   			    	   sb.append(element.toString().substring(0,element.toString().indexOf(".")));        // remove period	
+  			    	   inSentence = false;
+   			        } else {   
+  			    	   sb.append(element.toString()+" ");
+   			        }
+  			    }
+			    cursor.nextWord();	
+			    if (cursor.isEndOfParagraph())
+			    	break;
+			    element = cursor.getElement();
+			}
+
+			sentenceList.add(sb.toString());              // arrayList of sentences
+
+			sb.setLength(0);                             // reset stringbuilder
+			inSentence = true;
 		} 				
-		return(sb.toString());
+	    sentenceListIterator = sentenceList.iterator();     // set the iterator
+
 	}
 	
+
 	private void setState(int value){
 		state = value;
 		
@@ -229,40 +241,40 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		//theView.getModel().Book.storePosition(BookTextView.getStartCursor());
 	}
 
-	private String lookforValidParagraphString(int direction){
+		
+	private void nextParagraph(int direction){
 		ZLTextParagraphCursor localParaCursor;
+       		boolean atLimit = false;
 
-                String s="";
-		while(s.equals("") & !(myParaCursor==null)){			
+ 		if (!(myParaCursor==null) && !atLimit){			
 			switch (direction) {
 			case SEARCHFORWARD:
 				localParaCursor = myParaCursor.next();           // deal with the null pointer
 				if (localParaCursor != null)  {
  				    myParaCursor = localParaCursor;              
+				} else {
+					atLimit = true;
+					setState(INACTIVE);
 				}
 				break;
 			case SEARCHBACKWARD:
 				localParaCursor = myParaCursor.previous();      
 				if (localParaCursor != null)  {
  				    myParaCursor = localParaCursor;                  
+				} else {
+					atLimit = true;
 				}
   				break;
 			case CURRENTORFORWARD:				
 				direction = SEARCHFORWARD;
   				break;
 			}
-			s = getParagraphText(myParaCursor);
+			if (!atLimit)  {			
+				getParagraphText(myParaCursor);
+			}
 		}	
-        return s;
 	}
 	
-	private String nextParagraphString(boolean show,boolean speak, int direction){
-		String s = lookforValidParagraphString(direction);
-		show = true;
-		if(show) showString(s);
-		if(speak) speakString(s);
-        return s;
-	}
 	
 	@Override
 	protected void  onDestroy(){	
@@ -301,14 +313,20 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	public void onInit(int status) {
 		mTts.setOnUtteranceCompletedListener(this);
 		setState(INACTIVE);
-		//Don't start speaking rightaway.Hence commented
-		//nextParagraphString(true,true,CURRENTORFORWARD);
+//		nextParagraphString(SEARCHFORWARD);
 	}
 	
 	public void onUtteranceCompleted(String uttId) {
-		if(	state == ACTIVE & uttId.equals(this.PARAGRAPHUTTERANCE)) {
-			nextParagraphString(true,true,SEARCHFORWARD);
-		} else {
+		String spkString = "";
+		if(state == ACTIVE && uttId.equals(this.PARAGRAPHUTTERANCE)) {
+			if (!sentenceListIterator.hasNext())  {
+			    nextParagraph(SEARCHFORWARD);                        // nextParagraph can change sentenceListIterator
+			}
+            		if (sentenceListIterator.hasNext())  { 			 // if there are sentences in the sentence queue
+                		spkString = sentenceListIterator.next().toString();
+            			speakString(spkString);
+            		}
+        	} else {
 			setState(INACTIVE);
 		}		
 	}
