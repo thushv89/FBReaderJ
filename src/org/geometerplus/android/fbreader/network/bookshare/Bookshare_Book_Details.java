@@ -637,7 +637,9 @@ public class Bookshare_Book_Details extends Activity{
 					Book book = ((BookTree)tree).Book;
 					// Locate the recently downloaded book
 					if(!bookInstances.contains(book.getId())){
-						downloadedBook = book;
+						downloadedBook = book;						
+						// Add the downloaded book to recents list. The book will now appear under recent tab in local library.
+						Library.Instance().addBookToRecentList(book);
 						break;
 					}
 				}
