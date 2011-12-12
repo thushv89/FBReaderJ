@@ -18,6 +18,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import android.app.Dialog;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
@@ -642,26 +643,39 @@ public class Bookshare_Book_Details extends Activity{
 					}
 				}
 			}
+
+            final Dialog finishedDialog = new Dialog(btn_download.getContext());
 			
 			if(downloadSucess){
-				Toast toast = Toast.makeText(getApplicationContext(),
-						"Book downloaded to local library!", Toast.LENGTH_SHORT);
-				toast.show();
+                String message =  "Book downloaded!";
+                showAndCloseDialog(finishedDialog, message, 1500);
 				btn_download.setText("Read Book");
 				btn_download.setEnabled(true);
 			}
 			else{
-				System.out.println("In else");
-				final String errorMessage = error != null ? error.getMessagesFormatted() : "";
-				Toast toast = Toast.makeText(getApplicationContext(),
-						errorMessage != "" ? errorMessage : "Download Failed!", Toast.LENGTH_LONG);
-				toast.show();
+				final String message = error != null ? error.getMessagesFormatted() : "Download Failed!";
+
+                showAndCloseDialog(finishedDialog, message, 1500);
+
 				btn_download.setText("Download");
 				btn_download.setEnabled(true);
 				//finish();
 			}
 		}
-	}
+
+        private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
+            finishedDialog.setTitle(message);
+            finishedDialog.show();
+
+            // Close the dialog after a short wait
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                 public void run() {
+                      finishedDialog.cancel();
+                 }
+            }, wait);
+        }
+    }
 
 	/**
 	 * Uses a SAX parser to parse the response
