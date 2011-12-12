@@ -19,8 +19,8 @@
 
 package org.geometerplus.android.fbreader;
 
-
-
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.fbreader.FBReader;
@@ -36,6 +36,7 @@ import org.geometerplus.zlibrary.ui.android.R;
 
 import android.app.AlertDialog;
 import android.app.TabActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -44,7 +45,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TabHost;
@@ -56,7 +60,10 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 	final ZLStringOption mySelectedTabOption = new ZLStringOption("TabActivity", "SelectedTab", "");
 	private final ZLResource myResource = ZLResource.resource("libraryView");
 	private Book myCurrentBook;
-
+	private boolean accessibilityCustomTabsOn = false;
+	private AccessibilityLibraryAdapter adapter;
+	private ListView authorView;
+	
 	/**
 	 * This method will return the ListView created for each tab present at the top of the screen
 	 * viz. "By author", "By tab" and "Recent"  
@@ -84,11 +91,47 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		myCurrentBook = (model != null) ? model.Book : null;
 	}
 
-	private void createDefaultTabs() {
+	private void createDefaultTabs() {		
+		AccessibilityManager accessibilityManager =
+	        (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+
+		// Add tabs in the order "By title", "By author", "Recent", "By tag"
 		new LibraryAdapter(createTab("byTitle", R.id.by_title, R.drawable.ic_tab_library_tag), Library.Instance().byTitle(), Type.FLAT);
-		new LibraryAdapter(createTab("byAuthor", R.id.by_author, R.drawable.ic_tab_library_author), Library.Instance().byAuthor(), Type.TREE);
-		new LibraryAdapter(createTab("byTag", R.id.by_tag, R.drawable.ic_tab_library_tag), Library.Instance().byTag(), Type.TREE);
+
+		// Depending on accessibility status, turn on the hierarchical nature of the "By author" list
+		if(accessibilityManager.isEnabled()){
+			LibraryTree libraryByAuthor = Library.Instance().byAuthor();			
+			ArrayList<AccessibilityLibraryTreeBean> objects = new ArrayList<AccessibilityLibraryTreeBean>();
+			// Create a custom data source for the author tab to be shown in flat (non-hierarchical) view
+			for(FBTree treeItem : libraryByAuthor){
+				if(treeItem instanceof BookTree){
+					Book book = ((BookTree)treeItem).Book;
+					FBTree Parent = treeItem.Parent;
+					String Name = treeItem.getName();
+					String secondString = treeItem.getSecondString();
+					AccessibilityLibraryTreeBean bean = new AccessibilityLibraryTreeBean(book, Parent, Name, secondString);
+					objects.add(bean);
+				}
+			}
+			authorView = createTab("byAuthor", R.id.by_author, R.drawable.ic_tab_library_author);
+			adapter = new AccessibilityLibraryAdapter(getApplicationContext(), R.layout.library_tree_item, objects);
+			authorView.setAdapter(adapter);
+			authorView.setOnItemClickListener(adapter);
+			authorView.setOnCreateContextMenuListener(adapter);
+		}
+		else{
+			new LibraryAdapter(createTab("byAuthor", R.id.by_author, R.drawable.ic_tab_library_author), Library.Instance().byAuthor(), Type.TREE);
+		}
+
 		new LibraryAdapter(createTab("recent", R.id.recent, R.drawable.ic_tab_library_recent), Library.Instance().recentBooks(), Type.FLAT);
+		
+		// Depending on accessibility status, turn on the hierarchical nature of the "By tag" list
+		if(accessibilityManager.isEnabled()){
+			new LibraryAdapter(createTab("byTag", R.id.by_tag, R.drawable.ic_tab_library_tag), Library.Instance().byTag(), Type.FLAT);
+		}
+		else{
+			new LibraryAdapter(createTab("byTag", R.id.by_tag, R.drawable.ic_tab_library_tag), Library.Instance().byTag(), Type.TREE);
+		}
 		findViewById(R.id.search_results).setVisibility(View.GONE);
 	}
 
@@ -183,7 +226,55 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		int FLAT = 1;
 		int NETWORK = 2;
 	}
+	
+	// An Adapter to show for the By Authors and By Tag ListView when accessibility is on
+	private final class AccessibilityLibraryAdapter extends ArrayAdapter<AccessibilityLibraryTreeBean> implements AdapterView.OnItemClickListener, View.OnCreateContextMenuListener{
+		private final Context context;
+		private ArrayList<AccessibilityLibraryTreeBean> objects;
+		
+		public AccessibilityLibraryAdapter(Context context, int textViewResourceId, ArrayList<AccessibilityLibraryTreeBean> objects) {
+			super(context, textViewResourceId, objects);			
+			this.context = context;
+			this.objects = objects;
+		}
 
+		public View getView(int position, View convertView, ViewGroup parent) {
+			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			View rowView = inflater.inflate(R.layout.library_tree_item, parent, false);
+			final AccessibilityLibraryTreeBean tree = (AccessibilityLibraryTreeBean)getItem(position);
+			if (tree.book.equals(myCurrentBook)) {
+				rowView.setBackgroundColor(0xff808080);
+			} else {
+				rowView.setBackgroundColor(0);
+			}
+			((TextView)rowView.findViewById(R.id.library_tree_item_name)).setText(tree.Parent.getName());
+			((TextView)rowView.findViewById(R.id.library_tree_item_childrenlist)).setText(tree.Name);
+			return rowView;
+		}
+
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+			final AccessibilityLibraryTreeBean tree = (AccessibilityLibraryTreeBean)getItem(position);
+			finish();
+			if (!tree.book.equals(myCurrentBook)) {
+				((FBReader)FBReader.Instance()).openBook(tree.book, null);
+			}
+		}
+
+		@Override
+		public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+			final int position = ((AdapterView.AdapterContextMenuInfo)menuInfo).position;
+			final AccessibilityLibraryTreeBean tree = (AccessibilityLibraryTreeBean)getItem(position);
+			menu.setHeaderTitle(tree.Name);
+			final ZLResource resource = ZLResource.resource("libraryView");
+			menu.add(0, OPEN_BOOK_ITEM_ID, 0, resource.getResource("openBook").getValue());
+			if ((Library.Instance().getRemoveBookMode(tree.book)
+					& Library.REMOVE_FROM_DISK) != 0) {
+				menu.add(0, DELETE_BOOK_ITEM_ID, 0, resource.getResource("deleteBook").getValue());
+			}
+		}
+	}
+	
 	private final class LibraryAdapter extends ZLTreeAdapter {
 		private final LibraryTree myLibraryTree;
 			
@@ -194,6 +285,12 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			myLibraryTree = tree;
 			myType = type;
 			selectItem(findFirstSelectedItem());
+			for(FBTree row : tree){
+				if(row instanceof BookTree){
+					//System.out.println("********* row instanceof BookTree");
+					this.openTree(row.Parent);
+				}
+			}
 		}
 
 		@Override
@@ -230,7 +327,9 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			return null;
 		}
 
+		// This method is used to paint each row in the ListView
 		public View getView(int position, View convertView, ViewGroup parent) {
+			
 			final View view = (convertView != null) ? convertView :
 				LayoutInflater.from(parent.getContext()).inflate(R.layout.library_tree_item, parent, false);
 			final LibraryTree tree = (LibraryTree)getItem(position);
@@ -285,21 +384,55 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		final LibraryAdapter adapter =
-			(LibraryAdapter)((ListView)getTabHost().getCurrentView()).getAdapter();
+		final BaseAdapter adapter =
+			(BaseAdapter)((ListView)getTabHost().getCurrentView()).getAdapter();
+		
 		final int position = ((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position;
-		final BookTree tree = (BookTree)adapter.getItem(position);
-		switch (item.getItemId()) {
+		if(adapter instanceof AccessibilityLibraryAdapter){
+			AccessibilityLibraryTreeBean tree = ((AccessibilityLibraryAdapter)adapter).getItem(position);
+			switch (item.getItemId()) {
 			case OPEN_BOOK_ITEM_ID:
-				adapter.runTreeItem(tree);
+				finish();
+				if (!tree.book.equals(myCurrentBook)) {
+					((FBReader)FBReader.Instance()).openBook(tree.book, null);
+				}
+				return true;
+			case DELETE_BOOK_ITEM_ID:
+				tryToDeleteBook(tree.book);
+				return true;
+		}
+
+		}
+		else if(adapter instanceof ZLTreeAdapter){
+			BookTree tree = (BookTree)adapter.getItem(position);
+			switch (item.getItemId()) {
+			case OPEN_BOOK_ITEM_ID:
+				((ZLTreeAdapter)adapter).runTreeItem(tree);
 				return true;
 			case DELETE_BOOK_ITEM_ID:
 				tryToDeleteBook(tree.Book);
 				return true;
 		}
+
+		}
 		return super.onContextItemSelected(item);
 	}
+	
+	// Class to be used in the Adapter when accessibility is on
+	private class AccessibilityLibraryTreeBean {
+		private Book book;
+		private FBTree Parent;
+		private String Name;
+		private String secondString;
 
+		AccessibilityLibraryTreeBean(Book book, FBTree Parent, String Name, String secondString){
+			this.book = book;
+			this.Parent = Parent;
+			this.Name = Name;
+			this.secondString = secondString;
+		}
+	}
+	
 	private class BookDeleter implements DialogInterface.OnClickListener {
 		private final Book myBook;
 		private final int myMode;
@@ -310,15 +443,30 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		}
 
 		private void invalidateView(View v) {
-			ZLTreeAdapter adapter = (ZLTreeAdapter)((ListView)v).getAdapter();
-			if (adapter != null) {
-				adapter.resetTree();
+			// Obtain the adapter
+			BaseAdapter adapter = (BaseAdapter)((ListView)v).getAdapter();
+			if(adapter instanceof AccessibilityLibraryAdapter){
+				AccessibilityLibraryAdapter accessAdapter = ((AccessibilityLibraryAdapter)adapter);
+				Iterator<AccessibilityLibraryTreeBean> iter  = accessAdapter.objects.iterator();
+				
+				while(iter.hasNext()){
+					if(iter.next().book.equals(myBook)){
+						iter.remove();
+					}
+				}
+				adapter.notifyDataSetChanged();
+			}
+			else if(adapter instanceof ZLTreeAdapter){
+				if (adapter != null) {
+					((ZLTreeAdapter)adapter).resetTree();
+				}
 			}
 		}
 
 		public void onClick(DialogInterface dialog, int which) {
 			Library.Instance().removeBook(myBook, myMode);
 
+			invalidateView(findViewById(R.id.by_title));
 			invalidateView(findViewById(R.id.by_author));
 			invalidateView(findViewById(R.id.by_tag));
 			invalidateView(findViewById(R.id.recent));

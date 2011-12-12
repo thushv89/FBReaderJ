@@ -20,12 +20,21 @@
 package org.geometerplus.fbreader.library;
 
 import java.io.File;
-import java.util.*;
-
-import org.geometerplus.zlibrary.core.filesystem.*;
-import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Queue;
 
 import org.geometerplus.fbreader.Paths;
+import org.geometerplus.zlibrary.core.filesystem.ZLArchiveEntryFile;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.filesystem.ZLPhysicalFile;
+import org.geometerplus.zlibrary.core.filesystem.ZLResourceFile;
+import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
 
 public final class Library {
 	private static Library ourInstance;
