@@ -103,6 +103,27 @@ public class Bookshare_Webservice_Login extends Activity{
 		editText_password = (EditText)findViewById(R.id.bookshare_login_password_edit_text);
 		//editText_username.setText("partnerdemo@bookshare.org");
 		//editText_password.setText("partner");
+
+		editText_username.setOnEditorActionListener(new OnEditorActionListener() {
+		    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+		        if (actionId == EditorInfo.IME_ACTION_SEND) {
+		            editText_password.requestFocus();
+		            return true;
+		        }
+		        return false;
+		    }
+		});
+		
+		editText_password.setOnEditorActionListener(new OnEditorActionListener() {
+		    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+		        if (actionId == EditorInfo.IME_ACTION_SEND) {
+		            loginAction();
+		            return true;
+		        }
+		        return false;
+		    }
+		});
+		
 		
 		// Listener for edit text box to handle the enter key
 		editText_password.setOnKeyListener(new OnKeyListener() {
