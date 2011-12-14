@@ -52,6 +52,8 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 
     	private int state = INACTIVE;
 	private int lastSentence = 0;
+	private int lastSpoken = 0;
+	private boolean fromPause = false;
 
     	class UpdateControls implements Runnable { 
     		private int buttonstate;
@@ -106,6 +108,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
      	       if(state==ACTIVE){
      	    	  stopTalking(); 
      	    	  speakStringQueueFlush("PAUSE");
+     	    	  fromPause = true;
      	    	  setState(INACTIVE);
      	      } else {
      	    	  setState(ACTIVE);
@@ -238,8 +241,15 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	}
 	
 	private void loadSpeechEngine(){
-        String spkString;
-        int sentenceNumber = 0;
+        	String spkString;
+        	int sentenceNumber = 0;
+
+		if (fromPause) {                    // on returning from pause, iterate to the last sentence spoken
+        		fromPause = false;
+        		for (int i=1; i< lastSpoken; i++) {
+    				sentenceListIterator.next();
+        		}
+        	}
 		while (sentenceListIterator.hasNext())  { 	// if there are sentences in the sentence queue
             		sentenceNumber++;
 			spkString = sentenceListIterator.next().toString();
@@ -340,6 +350,8 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		String lastSentenceID = Integer.toString(lastSentence);
 		if(state == ACTIVE && uttId.equals(lastSentenceID)) {
 			 nextParagraph(SEARCHFORWARD);                        // nextParagraph can change sentenceListIterator
-         }	
+         	} else {
+        		lastSpoken = Integer.parseInt(uttId);                // get last spoken id
+         	}
 	}
 }
