@@ -54,6 +54,7 @@ public class Bookshare_Webservice_Login extends Activity{
 	private EditText editText_password;
 	private Intent intent;
 	private final static int LOGIN_SUCCESSFUL = 1;
+	private final static int STATUS_NOT_SET = 0;
 	private final static int LOGIN_FAILED = -1;
 	private final static int NETWORK_ERROR = -2;
 
@@ -273,8 +274,11 @@ public class Bookshare_Webservice_Login extends Activity{
 		protected Void doInBackground(Void... params) {
 
 			String result_HTML = "";
+			boolean inTry = false;
+			status = STATUS_NOT_SET;
+
 			try{
-				
+				inTry = true;	
 				// Get a BookshareWebservice instance for accessing the utility methods
 
 				final BookshareWebservice bws = new BookshareWebservice();
@@ -299,9 +303,10 @@ public class Bookshare_Webservice_Login extends Activity{
 				status = NETWORK_ERROR;
 			}
 			finally {
-				status = NETWORK_ERROR;
-
-            }
+				if (!inTry) {                      // uncaught exception
+					status = NETWORK_ERROR;
+				}
+            		}
 			// Authentication failed
 			if(result_HTML.contains("<status-code>401</status-code>") || result_HTML.contains("<status-code>500</status-code>")
 					|| result_HTML.contains("<status-code>403</status-code>") || result_HTML.contains("<status-code>404</status-code>") 
