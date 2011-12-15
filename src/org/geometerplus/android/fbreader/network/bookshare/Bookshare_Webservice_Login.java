@@ -31,6 +31,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
+
 
 /**
  * Login page for the webservice account of Bookshare.
