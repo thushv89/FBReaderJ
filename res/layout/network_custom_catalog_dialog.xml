@@ -41,6 +41,8 @@
 				android:layout_alignParentLeft="true"
 				android:layout_toLeftOf="@id/network_catalog_title_star"
 				android:layout_below="@id/network_catalog_title_text"
+				android:inputType="text"
+				android:imeOptions="actionSend"
 			/>
 			<TextView
 				android:id="@+id/network_catalog_title_example"
@@ -85,6 +87,7 @@
 				android:layout_alignParentLeft="true"
 				android:layout_toLeftOf="@id/network_catalog_url_star"
 				android:layout_below="@id/network_catalog_url_text"
+				android:imeOptions="actionSend"
 			/>
 			<TextView
 				android:id="@+id/network_catalog_url_example"
@@ -116,6 +119,8 @@
 				android:layout_height="wrap_content"
 				android:singleLine="true"
 				android:layout_below="@id/network_catalog_summary_text"
+				android:inputType="text"
+				android:imeOptions="actionSend"
 			/>
 			<TextView
 				android:id="@+id/network_catalog_summary_example"
