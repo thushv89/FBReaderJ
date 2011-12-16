@@ -25,6 +25,7 @@ import android.os.*;
 import android.view.*;
 import android.widget.*;
 import android.content.*;
+import android.app.Dialog;
 import android.app.TabActivity;
 
 import org.geometerplus.zlibrary.core.resources.ZLResource;
