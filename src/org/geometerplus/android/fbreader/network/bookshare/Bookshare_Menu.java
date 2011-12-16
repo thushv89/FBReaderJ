@@ -31,7 +31,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 /**
@@ -119,8 +118,9 @@ public class Bookshare_Menu extends ListActivity {
 				String search_term = ZLNetworkUtil.htmlEncode(dialog_search_term.getText().toString().trim());
 				
 				if(search_term.equals("")){
-					Toast toast = Toast.makeText(getApplicationContext(), "Search term cannot be blank", Toast.LENGTH_SHORT);
-					toast.show();
+					final Dialog finishedDialog = new Dialog(dialog_ok.getContext());
+					String message =  "Search Term cannot be blank!";
+					showAndCloseDialog(finishedDialog, message, 5000);
 					return;
 				}
 				
@@ -152,8 +152,8 @@ public class Bookshare_Menu extends ListActivity {
 						num = Integer.parseInt(search_term);
 					}
 					catch(NumberFormatException e){
-						Toast toast = Toast.makeText(getApplicationContext(), search_term.trim()+": Enter date in MMDDYYYY format",Toast.LENGTH_SHORT);
-						toast.show();
+						String msg = search_term.trim()+": Enter date in MMDDYYYY format";
+						// display msg
 					}
 					if(search_term.length()==8){
 						if(isFree)
@@ -162,8 +162,8 @@ public class Bookshare_Menu extends ListActivity {
 							search_term = URI_String+"search/since/"+search_term+"/for/"+username+"?api_key="+developerKey;
 					}
 					else{
-						Toast toast = Toast.makeText(getApplicationContext(), search_term.trim()+": Enter date in MMDDYYYY format",Toast.LENGTH_SHORT);
-						toast.show();
+						String msg = search_term.trim()+": Enter date in MMDDYYYY format";
+						// display msg
 						return;
 					}
 				}*/
@@ -183,6 +183,20 @@ public class Bookshare_Menu extends ListActivity {
 				
 				startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
 			}
+		
+		
+			private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
+		        	finishedDialog.setTitle(message);
+		        	finishedDialog.show();
+
+			        // Close the dialog after a short wait
+			        Handler handler = new Handler();
+			        handler.postDelayed(new Runnable() {
+		        		public void run() {
+		                  		finishedDialog.cancel();
+		             		}
+		        	}, wait);
+		     	}
 		});
 		
 		dialog_cancel.setOnClickListener(new OnClickListener(){
