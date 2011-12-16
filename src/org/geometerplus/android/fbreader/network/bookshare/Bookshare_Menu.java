@@ -15,6 +15,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -45,6 +46,8 @@ public class Bookshare_Menu extends ListActivity {
 	private EditText dialog_search_term;
 	private TextView dialog_search_title;
 	private TextView dialog_example_text;
+	private Button dialog_ok;
+	private Button dialog_cancel;
 	private String search_term = "";
 	private String URI_String = "https://api.bookshare.org/book/";
 	private String query_type;
@@ -104,8 +107,8 @@ public class Bookshare_Menu extends ListActivity {
 		dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
 		dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
 		dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
-		Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
-		Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
+		dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
+		dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
 		
 		dialog_ok.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
