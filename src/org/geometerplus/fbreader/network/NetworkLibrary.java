@@ -34,6 +34,7 @@ import org.geometerplus.fbreader.network.opds.OPDSLinkReader;
 
 public class NetworkLibrary {
 	private static NetworkLibrary ourInstance;
+	private boolean bookshareLinkAdded = false;
 
 	public static NetworkLibrary Instance() {
 		if (ourInstance == null) {
@@ -467,6 +468,27 @@ public class NetworkLibrary {
 	}
 
 	public void synchronize() {
+		if(!bookshareLinkAdded){
+			// Add bookshare link
+			String myUrl = "https://api.bookshare.org";
+			String myTitle = "Bookshare";
+			String mySummary = "DAISY 3 Books Collection";
+			String bookshareSiteName = "https://api.bookshare.org";
+	
+			INetworkLink myLink = OPDSLinkReader.createCustomLinkWithoutInfo(bookshareSiteName, myUrl);
+			final ICustomNetworkLink custom_link = (ICustomNetworkLink) myLink;
+			custom_link.setSiteName(bookshareSiteName);
+			custom_link.setTitle(myTitle);
+			custom_link.setSummary(mySummary);
+			custom_link.setLink(INetworkLink.URL_MAIN, myUrl);
+			//NetworkLibrary.Instance().addCustomLink(custom_link);
+	
+			addLinkInternal(myCustomLinks, custom_link, new LinksComparator());
+			custom_link.setSaveLinkListener(myChangesListener);
+			custom_link.saveLink();
+			bookshareLinkAdded = true;
+		}
+
 		if (myUpdateChildren || myInvalidateChildren) {
 			if (myInvalidateChildren) {
 				final LinksComparator cmp = new LinksComparator();
