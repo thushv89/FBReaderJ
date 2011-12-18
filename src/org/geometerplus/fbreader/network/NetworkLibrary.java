@@ -481,11 +481,14 @@ public class NetworkLibrary {
 			custom_link.setTitle(myTitle);
 			custom_link.setSummary(mySummary);
 			custom_link.setLink(INetworkLink.URL_MAIN, myUrl);
-			//NetworkLibrary.Instance().addCustomLink(custom_link);
-	
-			addLinkInternal(myCustomLinks, custom_link, new LinksComparator());
-			custom_link.setSaveLinkListener(myChangesListener);
-			custom_link.saveLink();
+
+			final int index = Collections.binarySearch(myCustomLinks, custom_link, new LinksComparator());
+			// Add the link only if it does not exist in myCustomLinks
+			if(index < 0){
+				addLinkInternal(myCustomLinks, custom_link, new LinksComparator());
+				custom_link.setSaveLinkListener(myChangesListener);
+				custom_link.saveLink();
+			}
 			bookshareLinkAdded = true;
 		}
 
