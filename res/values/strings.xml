@@ -5,4 +5,17 @@
 	<string name="stop">stop</string>
 	<string name="next">next</string>
 	<string name="previous">previous</string>
+	
+	<!--  strings for Bookshare_Webservice_login class-->
+
+	<string name="BOOKSHARE_URL">https://api.bookshare.org/book/searchFTS/title/*potter*</string>
+	<string name="FORGOT_PW_URL">http://www.bookshare.org/forgotPassword</string>
+	<string name="SIGNUP_URL">https://www.bookshare.org/signUpType</string>
+	<string name="user_pw_error">Username/Password field cannot be blank!</string>
+	<string name="user_error">Username field cannot be blank!</string>
+	<string name="pw_error">Password field cannot be blank!</string>
+	<string name="fetch_book_data">Fetching free books data.</string>
+	<string name="authenticating">Authenticating</string>
+	<string name="forgot_pw">Forgot Password</string>
+	<string name="signup">Signup</string>
 </resources>

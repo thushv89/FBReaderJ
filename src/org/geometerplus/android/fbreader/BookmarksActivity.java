@@ -25,6 +25,7 @@ import android.os.*;
 import android.view.*;
 import android.widget.*;
 import android.content.*;
+import android.app.Dialog;
 import android.app.TabActivity;
 
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -311,11 +312,9 @@ mainLoop:
 				finish();
 				fbreader.openBook(book, bookmark);
 			} else {
-				Toast.makeText(
-					this,
-					ZLResource.resource("errorMessage").getResource("cannotOpenBook").getValue(),
-					Toast.LENGTH_SHORT
-				).show();
+				final Dialog finishedDialog = new Dialog(this);
+				String message = ZLResource.resource("errorMessage").getResource("cannotOpenBook").getValue();
+ 				showAndCloseDialog(finishedDialog, message, 5000);
 			}
 		} else {
 			finish();
@@ -323,6 +322,19 @@ mainLoop:
 		}
 	}
 
+	private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
+        	finishedDialog.setTitle(message);
+        	finishedDialog.show();
+
+	        // Close the dialog after a short wait
+        	Handler handler = new Handler();
+        	handler.postDelayed(new Runnable() {
+             		public void run() {
+                  		finishedDialog.cancel();
+             		}
+        	}, wait);
+     	}
+     	
 	private final class BookmarksAdapter extends BaseAdapter implements AdapterView.OnItemClickListener, View.OnCreateContextMenuListener {
 		private final List<Bookmark> myBookmarks;
 		private final boolean myCurrentBook;

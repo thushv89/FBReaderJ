@@ -22,6 +22,8 @@
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
 			android:singleLine="true"
+			android:inputType="text"
+			android:imeOptions="actionSend"
 		/>
 		<TextView
 			android:id="@+id/network_register_password_text"
@@ -36,6 +38,8 @@
 			android:layout_height="wrap_content"
 			android:singleLine="true"
 			android:password="true"
+			android:inputType="text"
+			android:imeOptions="actionSend"
 		/>
 		<TextView
 			android:id="@+id/network_register_confirm_password_text"
@@ -50,6 +54,8 @@
 			android:layout_height="wrap_content"
 			android:singleLine="true"
 			android:password="true"
+			android:inputType="text"
+			android:imeOptions="actionSend"
 		/>
 		<TextView
 			android:id="@+id/network_register_email_text"
@@ -78,6 +84,7 @@
 				android:layout_toLeftOf="@id/network_register_email_button"
 				android:layout_alignWithParentIfMissing="true"
 				android:layout_alignParentLeft="true"
+				android:imeOptions="actionSend"
 			/>
 		</RelativeLayout>
 		<TextView

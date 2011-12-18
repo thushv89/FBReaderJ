@@ -26,6 +26,7 @@ import java.net.URLConnection;
 import android.os.IBinder;
 import android.os.Handler;
 import android.os.Message;
+import android.app.Dialog;
 import android.app.Service;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -33,7 +34,6 @@ import android.app.PendingIntent;
 import android.net.Uri;
 import android.content.Intent;
 import android.widget.RemoteViews;
-import android.widget.Toast;
 
 import org.geometerplus.zlibrary.ui.android.R;
 
@@ -123,11 +123,9 @@ public class BookDownloaderService extends Service {
 
 		if (myDownloadingURLs.contains(url)) {
 			if ((notifications & Notifications.ALREADY_DOWNLOADING) != 0) {
-				Toast.makeText(
-					getApplicationContext(),
-					getResource().getResource("alreadyDownloading").getValue(),
-					Toast.LENGTH_SHORT
-				).show();
+				final Dialog finishedDialog = new Dialog(this);
+				String msg = getResource().getResource("alreadyDownloading").getValue();
+				showAndCloseDialog(finishedDialog, msg, 5000);
 			}
 			doStop();
 			return;
@@ -180,15 +178,27 @@ public class BookDownloaderService extends Service {
 			title = fileFile.getName();
 		}
 		if ((notifications & Notifications.DOWNLOADING_STARTED) != 0) {
-			Toast.makeText(
-				getApplicationContext(),
-				getResource().getResource("downloadingStarted").getValue(),
-				Toast.LENGTH_SHORT
-			).show();
+			final Dialog finishedDialog = new Dialog(this);
+			String msg = getResource().getResource("downloadingStarted").getValue();
+            		showAndCloseDialog(finishedDialog, msg, 5000);
 		}
 		final String sslCertificate = intent.getStringExtra(SSL_CERTIFICATE_KEY);
 		startFileDownload(url, sslCertificate, fileFile, title);
 	}
+
+	private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
+        	finishedDialog.setTitle(message);
+		finishedDialog.show();
+
+	        // Close the dialog after a short wait
+        	Handler handler = new Handler();
+        	handler.postDelayed(new Runnable() {
+            	 	public void run() {
+     			  finishedDialog.cancel();
+             		}
+        	}, wait);
+     	}
+
 
 	private Intent getFBReaderIntent(final File file) {
 		final Intent intent = new Intent(getApplicationContext(), org.geometerplus.android.fbreader.FBReader.class);
