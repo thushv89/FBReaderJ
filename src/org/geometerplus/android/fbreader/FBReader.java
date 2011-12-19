@@ -488,57 +488,48 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		return "" + page + " / " + pagesNumber;
 	}
 
-	@Override
 	public boolean onDoubleTap(MotionEvent arg0) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	@Override
-	public boolean onDoubleTapEvent(MotionEvent e) 
+	public boolean onDoubleTapEvent(MotionEvent e)
 	{
 	//	speech.speak("tap tap");
 		return false;
 	}
 
-	@Override
-	public boolean onSingleTapConfirmed(MotionEvent e) 
+	public boolean onSingleTapConfirmed(MotionEvent e)
 	{
 	//	speech.speak("tap");
 		return false;
 	}
 
-	@Override
-	public boolean onDown(MotionEvent arg0) 
+	public boolean onDown(MotionEvent arg0)
 	{
 		return false;
 	}
 
-	@Override
-	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3) 
+	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3)
 	{
 		return false;
 	}
 
-	@Override
-	public void onLongPress(MotionEvent arg0) 
+	public void onLongPress(MotionEvent arg0)
 	{
 	}
 
-	@Override
-	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3) 
+	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3)
 	{
 		return false;
 	}
 
-	@Override
-	public void onShowPress(MotionEvent arg0) 
+	public void onShowPress(MotionEvent arg0)
 	{
 		
 	}
 
-	@Override
-	public boolean onSingleTapUp(MotionEvent arg0) 
+	public boolean onSingleTapUp(MotionEvent arg0)
 	{
 		return false;
 	}
