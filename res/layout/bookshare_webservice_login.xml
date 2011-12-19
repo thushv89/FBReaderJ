@@ -36,6 +36,7 @@
 			android:textColor="#000"
 			android:layout_height="50dip"
 			android:inputType="text"
+            android:contentDescription="username"
 			android:imeOptions="actionSend"/>
 			
 		<TextView
@@ -58,6 +59,7 @@
 			android:textColor="#000"
 			android:layout_height="50dip"
 			android:focusable="true"
+            android:contentDescription="password"
 			android:imeOptions="actionSend"/>
 	</LinearLayout>
 
