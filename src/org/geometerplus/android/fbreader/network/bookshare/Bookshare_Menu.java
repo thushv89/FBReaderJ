@@ -308,7 +308,7 @@ public class Bookshare_Menu extends ListActivity {
 			new AlertDialog.Builder(this)
             .setTitle("")
             .setMessage("Log out?")
-            .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {					
 					// Upon logout clear the stored login credentials
 					SharedPreferences login = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -320,7 +320,7 @@ public class Bookshare_Menu extends ListActivity {
 					finish();
 				}
 			})
-			.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+			.setNegativeButton("No", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					dialog.dismiss();
 				}
