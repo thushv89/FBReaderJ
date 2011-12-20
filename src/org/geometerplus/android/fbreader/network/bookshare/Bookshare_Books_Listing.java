@@ -517,8 +517,15 @@ public class Bookshare_Books_Listing extends ListActivity{
 			((TextView) convertView.findViewById(R.id.text1))
 			.setText((String) data.get("title"));
 
+            StringBuilder authorsBuilder = new StringBuilder("by ");
+            authorsBuilder.append((String) data.get("authors"));
+            if((Integer)data.get("download_icon") == R.drawable.black_icon) {
+                authorsBuilder.append(" ( not downloadable )");
+            }
+
+            // would have preferred to set this as setContentDescription, but that didn't voice
 			((TextView) convertView.findViewById(R.id.text2))
-			.setText((String) data.get("authors"));
+			.setText(authorsBuilder.toString());
 
 			((ImageView) convertView.findViewById(R.id.row_icon))
 			.setImageResource(((Integer)data.get("icon")).intValue());
@@ -526,7 +533,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 			if(data.get("download_icon") != null){
 				((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
 				.setImageResource(((Integer)data.get("download_icon")).intValue());
-				
+
 				((TextView) convertView.findViewById(R.id.bookId))
 				.setText((String) data.get("book_id"));
 			}
