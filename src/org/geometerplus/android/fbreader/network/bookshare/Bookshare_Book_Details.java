@@ -164,7 +164,13 @@ public class Bookshare_Book_Details extends Activity{
 
 				if(metadata_bean == null){
 					TextView txtView_msg = (TextView)findViewById(R.id.bookshare_blank_txtView_msg);
-					txtView_msg.setText("Book not found.");
+                    String noBookFoundMsg = "Book not found.";
+					txtView_msg.setText(noBookFoundMsg);
+
+                    View decorView = getWindow().getDecorView();
+                    if (null != decorView) {
+                        decorView.setContentDescription(noBookFoundMsg);
+                    }
 				}
 				if(metadata_bean != null){
 					setIsDownloadable(metadata_bean);
