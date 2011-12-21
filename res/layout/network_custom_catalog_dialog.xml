@@ -88,6 +88,7 @@
 				android:layout_toLeftOf="@id/network_catalog_url_star"
 				android:layout_below="@id/network_catalog_url_text"
 				android:imeOptions="actionSend"
+                android:contentDescription="URL of catalog"
 			/>
 			<TextView
 				android:id="@+id/network_catalog_url_example"
