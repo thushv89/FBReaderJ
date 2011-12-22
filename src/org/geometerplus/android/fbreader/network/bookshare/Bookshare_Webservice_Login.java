@@ -43,7 +43,7 @@ import android.widget.TextView.OnEditorActionListener;
  */
 public class Bookshare_Webservice_Login extends Activity{
 
-	private String BOOKSHARE_URL = "https://api.bookshare.org/book/searchFTS/title/*potter*";
+	private String BOOKSHARE_URL = "https://api.bookshare.org/book/search/title/potter";
 	private String FORGOT_PW_URL = "http://www.bookshare.org/forgotPassword";
 	private String SIGNUP_URL = "https://www.bookshare.org/signUpType";
 
