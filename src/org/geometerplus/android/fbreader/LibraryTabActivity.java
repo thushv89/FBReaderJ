@@ -96,7 +96,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 	        (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 
 		// Add tabs in the order "By title", "By author", "Recent", "By tag"
-		new LibraryAdapter(createTab("byTitle", R.id.by_title, R.drawable.ic_tab_library_tag), Library.Instance().byTitle(), Type.FLAT);
+		new LibraryAdapter(createTab("byTitle", R.id.by_title, R.drawable.ic_tab_library_title), Library.Instance().byTitle(), Type.FLAT);
 
 		// Depending on accessibility status, turn on the hierarchical nature of the "By author" list
 		if(accessibilityManager.isEnabled()){
