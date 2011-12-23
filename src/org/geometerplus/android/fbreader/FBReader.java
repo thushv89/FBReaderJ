@@ -391,6 +391,16 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 			dialog.show();
 		}
 		else{
+			if (!myNavigatePanel.hasControlPanel()) {
+				// Adding this block to set the control panel to a non-null value. This is necessary in showing the navigation slider
+				final RelativeLayout root = (RelativeLayout)FBReader.this.findViewById(R.id.root_view);
+				final ControlPanel panel = new ControlPanel(this);
+				final View layout = getLayoutInflater().inflate(R.layout.navigate, panel, false);
+				createNavigation(layout);
+				panel.setExtension(layout);
+				myNavigatePanel.setControlPanel(panel, root, true);
+			}
+
 			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
 			myNavigatePanel.NavigateDragging = false;
 			myNavigatePanel.StartPosition = new ZLTextFixedPosition(textView.getStartCursor());
