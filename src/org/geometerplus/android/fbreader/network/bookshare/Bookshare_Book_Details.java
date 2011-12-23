@@ -449,19 +449,10 @@ public class Bookshare_Book_Details extends Activity{
 		
 		private Bookshare_Error_Bean error;
 		
-		// Will be called n the UI thread
+		// Will be called in the UI thread
 		@Override
 		protected void onPreExecute(){
 			btn_download.setText("Downloading Book...");
-			
-			// Disable the download button while the download is in progress
-			btn_download.setEnabled(false);
-		}
-		
-		// Will be called in a separate thread
-		@Override
-		protected Void doInBackground(Void... params) {
-			 
 			libraryTreeBeforeDownload = Library.Instance().byAuthor();
 			if(bookInstances == null){
 				bookInstances = new Vector<Long>();						
@@ -476,8 +467,14 @@ public class Bookshare_Book_Details extends Activity{
 					bookInstances.add(book.getId());
 				}
 			}
-
-
+			
+			// Disable the download button while the download is in progress
+			btn_download.setEnabled(false);
+		}
+		
+		// Will be called in a separate thread
+		@Override
+		protected Void doInBackground(Void... params) {			 
 			final String id = metadata_bean.getContentId();
 			String download_uri = "";
 			if(isFree)
