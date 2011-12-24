@@ -15,16 +15,17 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Handler;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -32,7 +33,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
 
 /**
  * This ListActivity shows options for retrieving data from Bookshare.
@@ -100,7 +100,6 @@ public class Bookshare_Menu extends ListActivity {
 		setListAdapter(simpleadapter);
 		
 		ListView lv = getListView();
-		lv.setTextFilterEnabled(true);
 
 		dialog = new Dialog(this);
 		dialog.setContentView(R.layout.bookshare_dialog);
@@ -185,8 +184,7 @@ public class Bookshare_Menu extends ListActivity {
 				}
 				
 				startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
-			}
-		
+			}					
 		
 			private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
 		        	finishedDialog.setTitle(message);
@@ -344,7 +342,6 @@ public class Bookshare_Menu extends ListActivity {
 			}
 		}
 	}
-	
  	// A custom SimpleAdapter class for providing data to the ListView
 	private class MySimpleAdapter extends SimpleAdapter{
 
@@ -352,7 +349,7 @@ public class Bookshare_Menu extends ListActivity {
                 int resource, String[] from, int[] to) {
             super(context, data, resource, from, to);
         }
-
+		
         /**
          * Retrieves view for the item in the adapter, at the
          * specified position and populates it with data.
@@ -365,8 +362,7 @@ public class Bookshare_Menu extends ListActivity {
             final TreeMap<String, Object> data = (TreeMap<String, Object>) getItem(position);
             ((TextView) convertView.findViewById(R.id.text1)).setText((String) data.get("Name"));
             ((TextView) convertView.findViewById(R.id.text2)).setText((String) data.get("description"));
-            ((ImageView) convertView.findViewById(R.id.row_icon))
-                    .setImageResource(((Integer)data.get("icon")).intValue());
+            ((ImageView) convertView.findViewById(R.id.row_icon)).setImageResource(((Integer)data.get("icon")).intValue());
             return convertView;
         }
 	}
