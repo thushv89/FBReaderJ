@@ -252,7 +252,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 				setListAdapter(simpleadapter);
 
 				ListView lv = getListView();
-				lv.setTextFilterEnabled(true);
+				//lv.setTextFilterEnabled(true);
 
                 View decorView = getWindow().getDecorView();
                 if (null != decorView) {
