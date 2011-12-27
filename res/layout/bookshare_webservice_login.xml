@@ -37,7 +37,7 @@
 			android:layout_height="50dip"
 			android:inputType="text"
             android:contentDescription="username"
-			android:imeOptions="actionSend"/>
+			android:imeOptions="actionNext"/>
 			
 		<TextView
 			android:id="@+id/bookshare_login_password_text"
