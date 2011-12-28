@@ -18,11 +18,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -108,96 +110,21 @@ public class Bookshare_Menu extends ListActivity {
 		dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
 		dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
 		dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
+
+        dialog_search_term.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+		    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+		        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+		            doSearch();
+		            return true;
+		        }
+		        return false;
+		    }
+		});
 		
 		dialog_ok.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
-				
-				// Hide the virtual keyboard
-				InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-				imm.hideSoftInputFromWindow(dialog_search_term.getWindowToken(), 0);
-				
-				// Remove the leading and trailing spaces
-				String search_term = ZLNetworkUtil.htmlEncode(dialog_search_term.getText().toString().trim());
-				
-				if(search_term.equals("")){
-					final Dialog finishedDialog = new Dialog(dialog_ok.getContext());
-					String message =  "Search Term cannot be blank!";
-					showAndCloseDialog(finishedDialog, message, 5000);
-					return;
-				}
-				
-				boolean isMetadataSearch = false;
-
-				if(query_type.equalsIgnoreCase("Title Search")){
-					if(isFree)
-						search_term = URI_String+"search/title/"+search_term+"?api_key="+developerKey;
-					else
-						search_term = URI_String+"search/title/"+search_term+"/for/"+username+"?api_key="+developerKey;
-				}
-				else if(query_type.equalsIgnoreCase("Author Search")){
-					if(isFree)
-						search_term = URI_String+"search/author/"+search_term+"?api_key="+developerKey;
-					else
-						search_term = URI_String+"search/author/"+search_term+"/for/"+username+"?api_key="+developerKey;
-				}
-				else if(query_type.equalsIgnoreCase("ISBN Search")){
-					if(isFree)
-						search_term = URI_String+"isbn/"+search_term+"?api_key="+developerKey;
-					else
-						search_term = URI_String+"isbn/"+search_term+"/for/"+username+"?api_key="+developerKey;
-					
-					isMetadataSearch = true;
-				}
-				/*else if(query_type.equalsIgnoreCase("Latest Books")){
-					int num = 0;
-					try{
-						num = Integer.parseInt(search_term);
-					}
-					catch(NumberFormatException e){
-						String msg = search_term.trim()+": Enter date in MMDDYYYY format";
-						// display msg
-					}
-					if(search_term.length()==8){
-						if(isFree)
-							search_term = URI_String+"search/since/"+search_term+"?api_key="+developerKey;
-						else
-							search_term = URI_String+"search/since/"+search_term+"/for/"+username+"?api_key="+developerKey;
-					}
-					else{
-						String msg = search_term.trim()+": Enter date in MMDDYYYY format";
-						// display msg
-						return;
-					}
-				}*/
-
-				if(isMetadataSearch){
-					intent.putExtra("ID_SEARCH_URI", search_term);
-					isMetadataSearch = false;
-				}
-				else{
-					intent.putExtra("REQUEST_URI", search_term);
-				}
-				dialog.dismiss();
-				if(!isFree){
-					intent.putExtra("username", username);
-					intent.putExtra("password", password);
-				}
-				
-				startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
-			}					
-		
-			private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-		        	finishedDialog.setTitle(message);
-		        	finishedDialog.show();
-
-			        // Close the dialog after a short wait
-			        Handler handler = new Handler();
-			        handler.postDelayed(new Runnable() {
-		        		public void run() {
-		                  		finishedDialog.cancel();
-		             		}
-		        	}, wait);
-		     	}
+                doSearch();
+            }
 		});
 		
 		dialog_cancel.setOnClickListener(new OnClickListener(){
@@ -288,6 +215,73 @@ public class Bookshare_Menu extends ListActivity {
 			}
 		});
 	}
+
+    private void doSearch() {
+        // Hide the virtual keyboard
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(dialog_search_term.getWindowToken(), 0);
+
+        // Remove the leading and trailing spaces
+        String search_term = ZLNetworkUtil.htmlEncode(dialog_search_term.getText().toString().trim());
+
+        if(search_term.equals("")){
+            final Dialog finishedDialog = new Dialog(dialog_ok.getContext());
+            String message =  "Search Term cannot be blank!";
+            showAndCloseDialog(finishedDialog, message, 5000);
+            return;
+        }
+
+        boolean isMetadataSearch = false;
+
+        if(query_type.equalsIgnoreCase("Title Search")){
+            if(isFree)
+                search_term = URI_String+"search/title/"+search_term+"?api_key="+developerKey;
+            else
+                search_term = URI_String+"search/title/"+search_term+"/for/"+username+"?api_key="+developerKey;
+        }
+        else if(query_type.equalsIgnoreCase("Author Search")){
+            if(isFree)
+                search_term = URI_String+"search/author/"+search_term+"?api_key="+developerKey;
+            else
+                search_term = URI_String+"search/author/"+search_term+"/for/"+username+"?api_key="+developerKey;
+        }
+        else if(query_type.equalsIgnoreCase("ISBN Search")){
+            if(isFree)
+                search_term = URI_String+"isbn/"+search_term+"?api_key="+developerKey;
+            else
+                search_term = URI_String+"isbn/"+search_term+"/for/"+username+"?api_key="+developerKey;
+
+            isMetadataSearch = true;
+        }
+
+        if(isMetadataSearch){
+            intent.putExtra("ID_SEARCH_URI", search_term);
+            isMetadataSearch = false;
+        }
+        else{
+            intent.putExtra("REQUEST_URI", search_term);
+        }
+        dialog.dismiss();
+        if(!isFree){
+            intent.putExtra("username", username);
+            intent.putExtra("password", password);
+        }
+
+        startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
+    }
+
+    private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
+        finishedDialog.setTitle(message);
+        finishedDialog.show();
+
+        // Close the dialog after a short wait
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                    finishedDialog.cancel();
+                }
+        }, wait);
+    }
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){

@@ -28,7 +28,7 @@
 			android:layout_height="wrap_content"
 			android:layout_below="@id/bookshare_dialog_search_txt"
 			android:inputType="text"
-			android:imeOptions="actionSend"/>
+			android:imeOptions="actionSearch"/>
 
 		<TextView
 			android:id="@+id/bookshare_dialog_search_example"
