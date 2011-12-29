@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Menu;
 import org.geometerplus.fbreader.fbreader.FBReader;
 import org.geometerplus.fbreader.fbreader.FBView;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
@@ -15,12 +16,16 @@ import org.geometerplus.zlibrary.ui.android.R;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
@@ -157,7 +162,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       Intent checkIntent = new Intent();
 	       checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 	       startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
-
+           pausebutton.requestFocus();
 
 	   }
 	   
@@ -197,13 +202,13 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 
 		while(!cursor.isEndOfParagraph()) { 
 			ZLTextElement element = cursor.getElement();
-			while (inSentence == true)  {                         
+			while (inSentence)  {
   			    if(element instanceof ZLTextWord) {
   			    	if (element.toString().indexOf(".") == (element.toString().length() -1) ) {           // detects period at end of element
    			    	   sb.append(element.toString().substring(0,element.toString().indexOf(".")));        // remove period	
   			    	   inSentence = false;
-   			        } else {   
-  			    	   sb.append(element.toString() +" ");
+   			        } else {
+                          sb.append(element.toString()).append(" ");
    			        }
   			    }
 			    cursor.nextWord();	
@@ -252,7 +257,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         	}
 		while (sentenceListIterator.hasNext())  { 	// if there are sentences in the sentence queue
             		sentenceNumber++;
-			spkString = sentenceListIterator.next().toString();
+			spkString = sentenceListIterator.next();
 
 	     		HashMap<String, String> callbackMap = new HashMap<String, String>();
 			callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,Integer.toString(sentenceNumber));
@@ -261,17 +266,9 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		
 		lastSentence = sentenceNumber;
 	}
-	
-	private void showString(String s){
-		theView.gotoPosition(myParaCursor.Index,0,0);
-		
-		Reader.repaintView(); 
-		Reader.showBookTextView();
-		//theView.getModel().Book.storePosition(BookTextView.getStartCursor());
-	}
 
-		
-	private void nextParagraph(int direction){
+
+    private void nextParagraph(int direction){
 		ZLTextParagraphCursor localParaCursor;
        		boolean atLimit = false;
 
@@ -354,4 +351,19 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         		lastSpoken = Integer.parseInt(uttId);                // get last spoken id
          	}
 	}
+
+    @Override
+	public boolean onCreateOptionsMenu(Menu menu){
+        menu.add("Main menu");
+		return true;
+	}
+
+    @Override
+	public boolean onOptionsItemSelected(MenuItem item){
+
+        Intent i = new Intent(this, MenuActivity.class);
+        startActivity(i);
+
+        return true;
+    }
 }
