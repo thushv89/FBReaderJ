@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Menu;
+import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.fbreader.fbreader.FBReader;
 import org.geometerplus.fbreader.fbreader.FBView;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
@@ -28,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ImageButton;
 
 
@@ -43,22 +45,25 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	static final int SEARCHFORWARD = 1;
 	static final int SEARCHBACKWARD = 2;
 		
-    	private TextToSpeech mTts=null;
-    	private FBView theView;
-    	private FBReader Reader; 
-    	private ZLTextParagraphCursor myParaCursor;
-    	
-    	private ImageButton pausebutton;
-    	private ImageButton forwardbutton;
-    	private ImageButton backbutton;
+    private TextToSpeech mTts=null;
+    private FBView theView;
+    private FBReader Reader; 
+    private ZLTextParagraphCursor myParaCursor;
+    
+    private ImageButton pausebutton;
+    private ImageButton forwardbutton;
+    private ImageButton backbutton;
+    
+    private Button contentsButton;
 
-    	private ArrayList<String> sentenceList;
+    private ArrayList<String> sentenceList;
 	private Iterator<String> sentenceListIterator;
 
-    	private int state = INACTIVE;
+    private int state = INACTIVE;
 	private int lastSentence = 0;
 	private int lastSpoken = 0;
 	private boolean fromPause = false;
+    private Activity activity;
 
     	class UpdateControls implements Runnable { 
     		private int buttonstate;
@@ -106,6 +111,16 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	    	nextParagraph(SEARCHBACKWARD);
     	    }
     	};
+    
+        private OnClickListener contentsListener = new OnClickListener() {
+            public void onClick(View view) {
+                stopTalking();
+                speakStringQueueFlush("TABLE OF CONTENTS");
+                setState(INACTIVE);
+                ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
+                activity.finish();
+            }
+        };
     	
     	private OnClickListener pauseListener = new OnClickListener() {
     	    public void onClick(View v) {
@@ -148,6 +163,9 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       
 	       pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
 	       pausebutton.setOnClickListener(pauseListener);
+           
+           contentsButton = (Button)findViewById(R.id.spokentextcontents);
+           contentsButton.setOnClickListener(contentsListener);
 	       
 	       setState(INACTIVE);
 	       	       
@@ -163,7 +181,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	       checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 	       startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
            pausebutton.requestFocus();
-
+           activity = this;
 	   }
 	   
 	   protected void onActivityResult(
