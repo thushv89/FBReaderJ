@@ -250,6 +250,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 				return false;
 			}
 		});
+		setApplicationTitle();
 	}
 
 	private PowerManager.WakeLock myWakeLock;
@@ -267,6 +268,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		} else {
 			myWakeLock = null;
 		}
+		setApplicationTitle();
 	}
 
 	@Override
@@ -408,6 +410,14 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		}
 	}
 		
+	private final void setApplicationTitle() {
+		final org.geometerplus.fbreader.fbreader.FBReader fbreader =
+				(org.geometerplus.fbreader.fbreader.FBReader)ZLApplication.Instance();
+		if (fbreader.Model != null && fbreader.Model.Book != null) {
+			setTitle("FBReader - " + fbreader.Model.Book.getTitle());
+		}
+	}
+	
 	public final boolean canNavigate() {
 		final org.geometerplus.fbreader.fbreader.FBReader fbreader =
 			(org.geometerplus.fbreader.fbreader.FBReader)ZLApplication.Instance();
