@@ -410,6 +410,9 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		}
 	}
 		
+	/** 
+	 * If book is available, add it to application title.
+	 */
 	private final void setApplicationTitle() {
 		final org.geometerplus.fbreader.fbreader.FBReader fbreader =
 				(org.geometerplus.fbreader.fbreader.FBReader)ZLApplication.Instance();
