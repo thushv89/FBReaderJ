@@ -127,7 +127,8 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		
 		// Depending on accessibility status, turn on the hierarchical nature of the "By tag" list
 		if(accessibilityManager.isEnabled()){
-			new LibraryAdapter(createTab("byTag", R.id.by_tag, R.drawable.ic_tab_library_tag), Library.Instance().byTag(), Type.FLAT);
+			// Do not show the "By tag" tab
+			//new LibraryAdapter(createTab("byTag", R.id.by_tag, R.drawable.ic_tab_library_tag), Library.Instance().byTag(), Type.FLAT);
 		}
 		else{
 			new LibraryAdapter(createTab("byTag", R.id.by_tag, R.drawable.ic_tab_library_tag), Library.Instance().byTag(), Type.TREE);
