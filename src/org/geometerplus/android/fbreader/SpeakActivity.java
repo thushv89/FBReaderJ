@@ -25,6 +25,7 @@ import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -370,18 +371,19 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
          	}
 	}
 
-    @Override
-	public boolean onCreateOptionsMenu(Menu menu){
-        menu.add("Main menu");
-		return true;
-	}
+    /*
+     * Process Menu key event
+     * @see org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity#onKeyDown(int, android.view.KeyEvent)
+     * This method has been overridden to show a full screen menu when the menu button on the device is clicked
+     * instead of the menu shown at the bottom of the screen. Comment this method to show the regular menu.
+    */
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_MENU){
+            Intent i = new Intent(this, MenuActivity.class);
+            startActivity(i);
+        }
 
-    @Override
-	public boolean onOptionsItemSelected(MenuItem item){
-
-        Intent i = new Intent(this, MenuActivity.class);
-        startActivity(i);
-
-        return true;
+        return super.onKeyDown(keyCode, event);
     }
+
 }
