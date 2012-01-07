@@ -5,7 +5,13 @@
 	android:layout_height="wrap_content"
 
 	>
-	<LinearLayout 
+	<!-- This LinearLayout added to prevent the Edit Text box to get focus when dialog is shown.
+	  	If edit text box has focus it prevents talkback of other text on the dialog-->
+	<LinearLayout
+    	android:focusable="true" android:focusableInTouchMode="true"
+	    android:layout_width="0px" android:layout_height="0px"/>
+
+		<LinearLayout 
 		android:id="@+id/bookshare_dialog_title_group"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
