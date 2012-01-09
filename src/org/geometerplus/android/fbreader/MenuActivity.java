@@ -25,6 +25,7 @@ public class MenuActivity extends Activity {
     private List<Object> listItems = new ArrayList<Object>(); 
 	private ListItemsAdapter adapter = null; 
 	static boolean showDayViewOption = false;
+    private ListView list;
 
     /** Called when the activity is first created. */
     @Override
@@ -36,13 +37,18 @@ public class MenuActivity extends Activity {
 			Object object = new Object();
 			listItems.add(object);
         }        
-		final ListView list = (ListView) findViewById(R.id.list);
+		list = (ListView) findViewById(R.id.list);
 		adapter = new ListItemsAdapter(listItems);
 		list.setAdapter(adapter);
 		System.out.println("****** list.isInTouchMode()"+list.isInTouchMode());
 		list.setOnItemClickListener(new MainMenuClickListener(this));
     }
     
+    protected void onStart() {
+        super.onResume();
+        list.setSelection(0);
+    }
+
 	private class ListItemsAdapter extends ArrayAdapter<Object> {
 		public ListItemsAdapter(List<Object> items) {
 			super(MenuActivity.this, android.R.layout.simple_list_item_1, items);
