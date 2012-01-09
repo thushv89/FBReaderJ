@@ -341,6 +341,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 			dialog.setContentView(R.layout.bookshare_dialog);
 			dialog.setTitle("Navigate to page.");
 			dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
+			dialog_search_term.setContentDescription("Enter page number");
 			dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
 			dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
 			Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
@@ -348,8 +349,8 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
 			final int currentPage = textView.computeCurrentPage();
 			final int pagesNumber = textView.computePageNumber();
-			dialog_search_title.setText("Page number.");
-			dialog_example_text.setText("Current page = "+currentPage+", Total pages = "+pagesNumber);
+			dialog_search_title.setText("Enter page number.");
+			dialog_example_text.setText("Current page = "+currentPage+", Total pages = "+pagesNumber+".");
 			dialog_search_term.setOnKeyListener(new OnKeyListener() {
 			    public boolean onKey(View v, int keyCode, KeyEvent event) {
 			        // If the event is a key-down event on the "enter" button
