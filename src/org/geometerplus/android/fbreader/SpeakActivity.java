@@ -120,6 +120,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
                 setState(INACTIVE);
                 ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
                 activity.finish();
+                pausebutton.requestFocus();
             }
         };
     	
