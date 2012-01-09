@@ -120,7 +120,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
                 setState(INACTIVE);
                 ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
                 activity.finish();
-                pausebutton.requestFocus();
             }
         };
     	
@@ -185,8 +184,14 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
            pausebutton.requestFocus();
            activity = this;
 	   }
-	   
-	   protected void onActivityResult(
+
+        @Override
+        protected void onStart() {
+            super.onStart();
+            pausebutton.requestFocus();
+    }
+
+    protected void onActivityResult(
 	           int requestCode, int resultCode, Intent data) {
 	       if (requestCode == CHECK_TTS_INSTALLED) {
 	    	    
