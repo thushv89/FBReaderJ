@@ -166,7 +166,7 @@
 					<TableRow>
 							<TextView
 								android:id="@+id/bookshare_book_detail_publish_date"
-								android:text="Publish Date: "
+								android:text="@string/bookshare_book_detail_publish_date"
 								android:textColor="#ffffff"
 								android:textSize="16dip"
 								android:typeface="serif"

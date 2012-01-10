@@ -18,4 +18,5 @@
 	<string name="authenticating">Authenticating</string>
 	<string name="forgot_pw">Forgot Password</string>
 	<string name="signup">Signup</string>
+    <string name="bookshare_book_detail_publish_date">Date Added:\u0020</string>
 </resources>
