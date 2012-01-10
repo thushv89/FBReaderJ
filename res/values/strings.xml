@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="empty_string"></string>
-        <string name="play">play</string>
+        <string name="play">play pause</string>
 	<string name="stop">stop</string>
-	<string name="next">next</string>
-	<string name="previous">previous</string>
+	<string name="next">next sentence</string>
+	<string name="previous">previous sentence</string>
 	
 	<!--  strings for Bookshare_Webservice_login class-->
 
