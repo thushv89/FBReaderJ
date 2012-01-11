@@ -185,10 +185,10 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
            activity = this;
 	   }
 
-        @Override
-        protected void onStart() {
-            super.onStart();
-            pausebutton.requestFocus();
+    @Override
+    protected void onStart() {
+        super.onStart();
+        pausebutton.requestFocus();
     }
 
     protected void onActivityResult(
@@ -358,6 +358,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	@Override
 	protected void  onResume(){			
 		super.onResume();
+        pausebutton.requestFocus();
 	}
 
 	
