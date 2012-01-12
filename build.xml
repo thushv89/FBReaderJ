@@ -12,6 +12,8 @@
 		<pathelement path="${sdk.dir}/tools/lib/jarutils.jar" />
 	</path>
 
+	<property name="jar.libs.dir" value="lib" />
+
 	<taskdef name="setup"
 		classname="com.android.ant.SetupTask"
 		classpathref="android.antlibs" />
@@ -35,4 +37,6 @@
 		<delete dir="libs/armeabi" />
 		<delete dir="obj" />
   </target>
+
+  <import file="${sdk.dir}/tools/ant/build.xml" />
 </project>
