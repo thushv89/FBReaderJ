@@ -13,7 +13,7 @@ import org.geometerplus.zlibrary.text.view.ZLTextElement;
 import org.geometerplus.zlibrary.text.view.ZLTextParagraphCursor;
 import org.geometerplus.zlibrary.text.view.ZLTextWord;
 import org.geometerplus.zlibrary.text.view.ZLTextWordCursor;
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import android.app.Activity;
 import android.content.Intent;

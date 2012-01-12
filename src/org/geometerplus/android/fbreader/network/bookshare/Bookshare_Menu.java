@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import android.app.AlertDialog;
 import android.app.Dialog;

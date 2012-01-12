@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import android.app.Activity;
 import android.graphics.Typeface;

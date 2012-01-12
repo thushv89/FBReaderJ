@@ -31,7 +31,7 @@ import android.widget.TextView;
 import android.content.Context;
 import android.content.DialogInterface;
 
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import org.geometerplus.zlibrary.ui.android.dialogs.ZLAndroidDialogManager;
 

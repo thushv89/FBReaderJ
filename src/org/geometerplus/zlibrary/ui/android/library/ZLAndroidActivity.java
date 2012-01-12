@@ -32,7 +32,7 @@ import android.view.*;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.filesystem.ZLPhysicalFile;
 
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 import org.geometerplus.zlibrary.ui.android.application.ZLAndroidApplicationWindow;
 
 public abstract class ZLAndroidActivity extends Activity {

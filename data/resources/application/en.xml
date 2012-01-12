@@ -203,7 +203,7 @@
 			</node>
 		</node>
 		<node name="OptionsDialog">
-			<node name="title" value="FBReader - Options"/>
+			<node name="title" value="BookshareReader - Options"/>
 			<node name="tab">
 				<node name="Library" value="Library">
 					<node name="bookPath" value="Book Path"/>

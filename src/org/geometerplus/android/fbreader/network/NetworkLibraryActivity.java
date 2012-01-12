@@ -23,7 +23,7 @@ import org.geometerplus.fbreader.network.NetworkLibrary;
 import org.geometerplus.fbreader.network.NetworkTree;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 import org.geometerplus.zlibrary.ui.android.dialogs.ZLAndroidDialogManager;
 
 import android.app.AlertDialog;

@@ -34,7 +34,7 @@ import android.content.Intent;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.filesystem.ZLResourceFile;

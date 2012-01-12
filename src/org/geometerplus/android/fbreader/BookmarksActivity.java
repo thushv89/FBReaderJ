@@ -31,7 +31,7 @@ import android.app.TabActivity;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.text.view.*;
 
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import org.geometerplus.fbreader.fbreader.FBReader;
 import org.geometerplus.fbreader.library.*;

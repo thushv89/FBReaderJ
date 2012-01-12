@@ -34,7 +34,7 @@ import org.geometerplus.fbreader.library.BookTree;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.fbreader.library.LibraryTree;
 import org.geometerplus.fbreader.tree.FBTree;
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;

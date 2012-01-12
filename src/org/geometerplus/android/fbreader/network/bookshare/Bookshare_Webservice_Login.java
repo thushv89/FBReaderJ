@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 
 import org.bookshare.net.BookshareWebservice;
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import android.app.Activity;
 import android.app.Dialog;

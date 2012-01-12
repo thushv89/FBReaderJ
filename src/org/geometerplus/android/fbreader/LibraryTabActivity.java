@@ -32,7 +32,7 @@ import org.geometerplus.fbreader.tree.FBTree;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.tree.ZLTree;
-import org.geometerplus.zlibrary.ui.android.R;
+import org.benetech.android.R;
 
 import android.app.AlertDialog;
 import android.app.TabActivity;

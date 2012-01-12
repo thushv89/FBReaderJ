@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.geometerplus.zlibrary.ui.android" android:versionCode="169" android:versionName="1.6.9" android:installLocation="auto">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.benetech.android" android:versionCode="1" android:versionName="3.7.0" android:installLocation="auto">
 	<uses-sdk android:minSdkVersion="3" />
 	<supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:anyDensity="true" />
 	<uses-permission android:name="android.permission.INTERNET" />
@@ -8,9 +8,9 @@
 	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
 	
-	<application android:name="org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication" android:icon="@drawable/fbreader" android:label="FBReader" >
-		<activity android:name=".library.BugReportActivity" android:label="FBReader crash" android:configChanges="orientation|keyboardHidden" />
-		<activity android:name="org.geometerplus.android.fbreader.FBReader" android:launchMode="singleTask" android:icon="@drawable/fbreader" android:label="FBReader" android:configChanges="orientation|keyboardHidden"
+	<application android:name="org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication" android:icon="@drawable/fbreader" android:label="Bookshare Reader" >
+		<activity android:name="org.geometerplus.zlibrary.ui.android.library.BugReportActivity" android:label="BookshareReader crash" android:configChanges="orientation|keyboardHidden" />
+		<activity android:name="org.geometerplus.android.fbreader.FBReader" android:launchMode="singleTask" android:icon="@drawable/fbreader" android:label="Bookshare Reader" android:configChanges="orientation|keyboardHidden"
 		    android:windowSoftInputMode="stateUnspecified|adjustPan">
 		    <intent-filter>
 				<action android:name="android.intent.action.MAIN" />
