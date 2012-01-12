@@ -8,9 +8,9 @@
 	<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 	<uses-permission android:name="android.permission.GET_ACCOUNTS" />
 	
-	<application android:name="org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication" android:icon="@drawable/fbreader" android:label="Bookshare Reader" >
+	<application android:name="org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication" android:icon="@drawable/fbreader" android:label="@string/app_name" >
 		<activity android:name="org.geometerplus.zlibrary.ui.android.library.BugReportActivity" android:label="BookshareReader crash" android:configChanges="orientation|keyboardHidden" />
-		<activity android:name="org.geometerplus.android.fbreader.FBReader" android:launchMode="singleTask" android:icon="@drawable/fbreader" android:label="Bookshare Reader" android:configChanges="orientation|keyboardHidden"
+		<activity android:name="org.geometerplus.android.fbreader.FBReader" android:launchMode="singleTask" android:icon="@drawable/fbreader" android:label="@string/app_name" android:configChanges="orientation|keyboardHidden"
 		    android:windowSoftInputMode="stateUnspecified|adjustPan">
 		    <intent-filter>
 				<action android:name="android.intent.action.MAIN" />

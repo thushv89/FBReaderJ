@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Bookshare Reader</string>
+    
 	<string name="empty_string"></string>
         <string name="play">play pause</string>
 	<string name="stop">stop</string>
