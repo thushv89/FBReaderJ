@@ -40,6 +40,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	static final int ACTIVE = 1;
     	static final int INACTIVE = 0;
 	private static final int CHECK_TTS_INSTALLED = 0;
+    private static final int PLAY_AFTER_TOC = 1;
 	private static final String PARAGRAPHUTTERANCE="PARAGRAPHUTTERANCE";
 
 	static final int CURRENTORFORWARD = 0;
@@ -65,11 +66,12 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	private int lastSpoken = 0;
 	private boolean fromPause = false;
     private Activity activity;
+    private boolean resumePlaying = false;
 
-    	class UpdateControls implements Runnable { 
-    		private int buttonstate;
-    		static final int PAUSE = 0;
-    		static final int PLAY = 1;
+    class UpdateControls implements Runnable {
+        private int buttonstate;
+        static final int PAUSE = 0;
+        static final int PLAY = 1;
 			
 		public void run() { 
 			if(buttonstate==PLAY) { 
@@ -80,114 +82,117 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 					//pausebutton.setText("Pause");
 			}
 		}
-    		public UpdateControls(int value) { this.buttonstate = value; }
-    	} 
-    	
-    	
-    	private PhoneStateListener mPhoneListener = new PhoneStateListener()
-    	{
-    	        public void onCallStateChanged(int callState, String incomingNumber)
-    	        {
-    	        	if(callState == TelephonyManager.CALL_STATE_RINGING) {
-    	        		stopTalking();
-    	        		finish();
-    	        	}
-    	        }
-    	};
-    	
-    	private OnClickListener forwardListener = new OnClickListener() {
-    	    public void onClick(View v) {
-    	    	stopTalking();
-    	    	speakStringQueueFlush("FORWARD");
-     	    	setState(INACTIVE);
-  	      	    nextParagraph(SEARCHFORWARD);
-    	    }
-    	};
 
-    	private OnClickListener backListener = new OnClickListener() {
-    	    public void onClick(View v) {
-    	    	stopTalking();
-    	    	speakStringQueueFlush("BACK");
-   	     	    setState(INACTIVE);
-    	    	nextParagraph(SEARCHBACKWARD);
-    	    }
-    	};
-    
-        private OnClickListener contentsListener = new OnClickListener() {
-            public void onClick(View view) {
-                stopTalking();
-                speakStringQueueFlush("TABLE OF CONTENTS");
-                setState(INACTIVE);
-                ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
-                activity.finish();
+        public UpdateControls(int value) { this.buttonstate = value; }
+    }
+    	
+    	
+    private PhoneStateListener mPhoneListener = new PhoneStateListener()
+    {
+            public void onCallStateChanged(int callState, String incomingNumber)
+            {
+                if(callState == TelephonyManager.CALL_STATE_RINGING) {
+                    stopTalking();
+                    finish();
+                }
             }
-        };
+    };
     	
-    	private OnClickListener pauseListener = new OnClickListener() {
-    	    public void onClick(View v) {
+    private OnClickListener forwardListener = new OnClickListener() {
+        public void onClick(View v) {
+            stopTalking();
+            speakStringQueueFlush("FORWARD");
+            setState(INACTIVE);
+            nextParagraph(SEARCHFORWARD);
+        }
+    };
 
-     	       if(state==ACTIVE){
-     	    	  stopTalking(); 
-     	    	  speakStringQueueFlush("PAUSE");
-     	    	  fromPause = true;
-     	    	  setState(INACTIVE);
-     	      } else {
-     	    	  setState(ACTIVE);
-     	    	  speakStringQueueFlush("PLAY");
-     	    	  nextParagraph(CURRENTORFORWARD);
-     	      }
-    	    }
-    	};
- 
-    	private OnClickListener stopListener = new OnClickListener() {
-    	    public void onClick(View v) {
-    	    	stopTalking();
-    	    	finish();
-    	    }
-    	};
+    private OnClickListener backListener = new OnClickListener() {
+        public void onClick(View v) {
+            stopTalking();
+            speakStringQueueFlush("BACK");
+            setState(INACTIVE);
+            nextParagraph(SEARCHBACKWARD);
+        }
+    };
+    
+    private OnClickListener contentsListener = new OnClickListener() {
+        public void onClick(View view) {
+            stopTalking();
+            speakStringQueueFlush("TABLE OF CONTENTS");
+            setState(INACTIVE);
+            Intent tocIntent = new Intent(activity, TOCActivity.class);
+            activity.startActivityForResult(tocIntent, PLAY_AFTER_TOC);
+        }
+    };
     	
-	   @Override
-	   public void onCreate(Bundle savedInstanceState) {
-	       super.onCreate(savedInstanceState);     
-	       
-    		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
-    		Reader = (FBReader)ZLApplication.Instance();
-	       
-	       //requestWindowFeature(Window.FEATURE_NO_TITLE);
-	       setContentView(R.layout.view_spokentext);
-	       
-	       backbutton = (ImageButton)findViewById(R.id.spokentextback);
-	       backbutton.setOnClickListener(backListener);
-	       	       
-	       forwardbutton = (ImageButton)findViewById(R.id.spokentextforward);
-	       forwardbutton.setOnClickListener(forwardListener);
-	       
-	       pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
-	       pausebutton.setOnClickListener(pauseListener);
-           
-           contentsButton = (Button)findViewById(R.id.spokentextcontents);
-           contentsButton.setOnClickListener(contentsListener);
-	       
-	       setState(INACTIVE);
-	       	       
-	       TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-	       tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
-	       
- 	       theView = ((FBReader)FBReader.Instance()).getTextView();
- 		   
-		   ZLTextWordCursor cursor = theView.getStartCursor();
-		   myParaCursor = cursor.getParagraphCursor(); 
-	       
-	       Intent checkIntent = new Intent();
-	       checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-	       startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
-           pausebutton.requestFocus();
-           activity = this;
-	   }
+    private OnClickListener pauseListener = new OnClickListener() {
+        public void onClick(View v) {
+
+           if(state==ACTIVE){
+              stopTalking();
+              speakStringQueueFlush("PAUSE");
+              fromPause = true;
+              setState(INACTIVE);
+          } else {
+                speakBook();
+          }
+        }
+    };
+
+    private void speakBook() {
+        setState(ACTIVE);
+        speakStringQueueFlush("PLAY");
+        nextParagraph(CURRENTORFORWARD);
+    }
+
+    private OnClickListener stopListener = new OnClickListener() {
+        public void onClick(View v) {
+            stopTalking();
+            finish();
+        }
+    };
+    	
+   @Override
+   public void onCreate(Bundle savedInstanceState) {
+       super.onCreate(savedInstanceState);
+
+        Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
+        Reader = (FBReader)ZLApplication.Instance();
+
+       //requestWindowFeature(Window.FEATURE_NO_TITLE);
+       setContentView(R.layout.view_spokentext);
+
+       backbutton = (ImageButton)findViewById(R.id.spokentextback);
+       backbutton.setOnClickListener(backListener);
+
+       forwardbutton = (ImageButton)findViewById(R.id.spokentextforward);
+       forwardbutton.setOnClickListener(forwardListener);
+
+       pausebutton = (ImageButton)findViewById(R.id.spokentextpause);
+       pausebutton.setOnClickListener(pauseListener);
+
+       contentsButton = (Button)findViewById(R.id.spokentextcontents);
+       contentsButton.setOnClickListener(contentsListener);
+
+       setState(INACTIVE);
+
+       TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+       tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
+
+
+
+       Intent checkIntent = new Intent();
+       checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
+       startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
+       pausebutton.requestFocus();
+       activity = this;
+   }
 
     @Override
     protected void onStart() {
         super.onStart();
+
         pausebutton.requestFocus();
     }
 
@@ -210,7 +215,13 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	    	     case TextToSpeech.Engine.CHECK_VOICE_DATA_FAIL:
 	    	     default:
 	    	     }
-	       }
+	       } else if (requestCode == PLAY_AFTER_TOC) {
+               if (resultCode != TOCActivity.BACK_PRESSED) {
+                    resumePlaying = true;
+               } else {
+                   fromPause = true;
+               }
+           }
 	   }
 	   
 	   
@@ -358,7 +369,18 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	@Override
 	protected void  onResume(){			
 		super.onResume();
+
+        if (! fromPause) {
+            theView = ((FBReader)FBReader.Instance()).getTextView();
+            ZLTextWordCursor cursor = theView.getStartCursor();
+            myParaCursor = cursor.getParagraphCursor();
+        }
+        
         pausebutton.requestFocus();
+        if (resumePlaying || fromPause) {
+            resumePlaying = false;
+            speakBook();
+        }
 	}
 
 	

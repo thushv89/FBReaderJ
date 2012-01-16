@@ -38,6 +38,8 @@ public class TOCActivity extends ListActivity {
 	private TOCAdapter myAdapter;
 	private ZLTree<?> mySelectedItem;
 
+    public static final int BACK_PRESSED = 10;
+
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
@@ -88,7 +90,13 @@ public class TOCActivity extends ListActivity {
 		return super.onContextItemSelected(item);
 	}
 
-	private final class TOCAdapter extends ZLTreeAdapter {
+    @Override
+    public void onBackPressed() {
+        setResult(BACK_PRESSED);
+        super.onBackPressed();
+    }
+
+    private final class TOCAdapter extends ZLTreeAdapter {
 
 		TOCAdapter(TOCTree root) {
 			super(getListView(), root);
