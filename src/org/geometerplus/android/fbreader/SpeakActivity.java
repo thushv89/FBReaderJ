@@ -37,8 +37,8 @@ import android.widget.ImageButton;
 // This class is used to compile for the non TTS version (regular). It contains the ImageButtons for TTS player controls
 //public class SpeakActivity_nonTTS extends Activity implements OnInitListener, OnUtteranceCompletedListener {
 public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener{
-    	static final int ACTIVE = 1;
-    	static final int INACTIVE = 0;
+    static final int ACTIVE = 1;
+    static final int INACTIVE = 0;
 	private static final int CHECK_TTS_INSTALLED = 0;
     private static final int PLAY_AFTER_TOC = 1;
 	private static final String PARAGRAPHUTTERANCE="PARAGRAPHUTTERANCE";
@@ -89,13 +89,13 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	
     private PhoneStateListener mPhoneListener = new PhoneStateListener()
     {
-            public void onCallStateChanged(int callState, String incomingNumber)
-            {
-                if(callState == TelephonyManager.CALL_STATE_RINGING) {
-                    stopTalking();
-                    finish();
-                }
+        public void onCallStateChanged(int callState, String incomingNumber)
+        {
+            if(callState == TelephonyManager.CALL_STATE_RINGING) {
+                stopTalking();
+                finish();
             }
+        }
     };
     	
     private OnClickListener forwardListener = new OnClickListener() {
@@ -104,6 +104,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
             speakStringQueueFlush("FORWARD");
             setState(INACTIVE);
             nextParagraph(SEARCHFORWARD);
+            speakBook();
         }
     };
 
@@ -113,6 +114,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
             speakStringQueueFlush("BACK");
             setState(INACTIVE);
             nextParagraph(SEARCHBACKWARD);
+            speakBook();
         }
     };
     
@@ -129,20 +131,21 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     private OnClickListener pauseListener = new OnClickListener() {
         public void onClick(View v) {
 
-           if(state==ACTIVE){
-              stopTalking();
-              speakStringQueueFlush("PAUSE");
-              fromPause = true;
-              setState(INACTIVE);
-          } else {
+            if(state==ACTIVE){
+                stopTalking();
+                speakStringQueueFlush("PAUSE");
+                fromPause = true;
+                setState(INACTIVE);
+            } else {
+                speakStringQueueFlush("PLAY");
                 speakBook();
-          }
+            }
         }
     };
 
     private void speakBook() {
         setState(ACTIVE);
-        speakStringQueueFlush("PLAY");
+
         nextParagraph(CURRENTORFORWARD);
     }
 
