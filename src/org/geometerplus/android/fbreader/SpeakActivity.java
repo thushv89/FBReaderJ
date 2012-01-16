@@ -408,8 +408,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if(keyCode == KeyEvent.KEYCODE_MENU){
-            Intent i = new Intent(this, MenuActivity.class);
-            startActivity(i);
+            activity.finish();
         }
 
         return super.onKeyDown(keyCode, event);
