@@ -84,7 +84,7 @@ class CustomCatalogDialog extends NetworkDialog {
 				myUrl.endsWith("bookshare.org")){
 			myUrl = "https://api.bookshare.org";
 			myTitle = "Bookshare";
-			mySummary = "DAISY 3 Books Collection";
+			mySummary = "Daisy 3 Books Collection";
 		}
 
 		System.out.println("myTitle: "+myTitle);
