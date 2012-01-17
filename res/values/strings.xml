@@ -3,13 +3,16 @@
     <string name="app_name">Bookshare Reader</string>
     
 	<string name="empty_string"></string>
-        <string name="play">play pause</string>
-	<string name="stop">stop</string>
-	<string name="next">next sentence</string>
-	<string name="previous">previous sentence</string>
-	
-	<!--  strings for Bookshare_Webservice_login class-->
 
+    <!-- SpeakActivity -->
+    <string name="play">Play/Pause</string>
+	<string name="next">Next sentence</string>
+	<string name="previous">Previous sentence</string>
+    <string name="toc">Table of Contents</string>
+    <string name="on_press_play">Play</string>
+    <string name="on_press_pause">Pause</string>
+
+	<!--  strings for Bookshare_Webservice_login class-->
 	<string name="BOOKSHARE_URL">https://api.bookshare.org/book/searchFTS/title/*potter*</string>
 	<string name="FORGOT_PW_URL">http://www.bookshare.org/forgotPassword</string>
 	<string name="SIGNUP_URL">https://www.bookshare.org/signUpType</string>
