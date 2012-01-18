@@ -472,7 +472,7 @@ public class NetworkLibrary {
 			// Add bookshare link
 			String myUrl = "https://api.bookshare.org";
 			String myTitle = "Bookshare";
-			String mySummary = "DAISY 3 Books Collection";
+			String mySummary = "Daisy 3 Books Collection";
 			String bookshareSiteName = "https://api.bookshare.org";
 	
 			INetworkLink myLink = OPDSLinkReader.createCustomLinkWithoutInfo(bookshareSiteName, myUrl);

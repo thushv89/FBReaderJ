@@ -3,13 +3,16 @@
     <string name="app_name">Bookshare Reader</string>
     
 	<string name="empty_string"></string>
-        <string name="play">play pause</string>
-	<string name="stop">stop</string>
-	<string name="next">next sentence</string>
-	<string name="previous">previous sentence</string>
-	
-	<!--  strings for Bookshare_Webservice_login class-->
 
+    <!-- SpeakActivity -->
+    <string name="play">Play/Pause</string>
+	<string name="next">Next sentence</string>
+	<string name="previous">Previous sentence</string>
+    <string name="toc">Table of Contents</string>
+    <string name="on_press_play">Play</string>
+    <string name="on_press_pause">Pause</string>
+
+	<!--  strings for Bookshare_Webservice_login class-->
 	<string name="BOOKSHARE_URL">https://api.bookshare.org/book/searchFTS/title/*potter*</string>
 	<string name="FORGOT_PW_URL">http://www.bookshare.org/forgotPassword</string>
 	<string name="SIGNUP_URL">https://www.bookshare.org/signUpType</string>
@@ -21,4 +24,44 @@
 	<string name="forgot_pw">Forgot Password</string>
 	<string name="signup">Signup</string>
     <string name="bookshare_book_detail_publish_date">Date Added:\u0020</string>
+    
+    <!-- MenuActivity -->
+    <string name="menu_speak">Read to Me</string>
+    <string name="menu_toc">Table of Contents</string>
+    <string name="menu_navigate">Navigate to Page</string>
+    <string name="menu_bookmarks">Bookmarks</string>
+    <string name="menu_search">Search Book</string>
+    <string name="menu_book_info">Book Info</string>
+    <string name="menu_library">Downloaded Books</string>
+    <string name="menu_network_library">Online Book Catalogs</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_rotate_screen">Rotate Screen</string>
+    <string name="menu_night_view">Night View</string>
+    <string name="menu_day_view">Day View</string>
+    <string name="menu_zoom_in">Zoom In</string>
+    <string name="menu_zoom_out">Zoom Out</string>
+
+    <!-- Bookshare_Menu -->
+    <string name="search_dialog_title_title">Search by Book Title</string>
+    <string name="search_dialog_label_title">Enter Book title to be searched</string>
+    <string name="search_dialog_example_title">E.g. Moby Dick or Potter</string>
+    <string name="search_dialog_description_title">Enter title</string>
+    <string name="search_dialog_title_author">Author Search</string>
+    <string name="search_dialog_label_author">Enter author name to be searched</string>
+    <string name="search_dialog_example_author">E.g. Mark Twain or Lewis</string>
+    <string name="search_dialog_description_author">Enter author name</string>
+    <string name="search_dialog_title_isbn">ISBN Search</string>
+    <string name="search_dialog_label_isbn">Enter 10 or 13 digit ISBN</string>
+    <string name="search_dialog_example_isbn">E.g. 9780670059218 or 9781416503064</string>
+    <string name="search_dialog_description_isbn">Enter ISBN</string>
+    <string name="bks_menu_title_label">Title Search</string>
+    <string name="bks_menu_title_description">Search by title</string>
+    <string name="bks_menu_author_label">Author Search</string>
+    <string name="bks_menu_author_description">Search by author</string>
+    <string name="bks_menu_isbn_label">ISBN Search</string>
+    <string name="bks_menu_isbn_description">Search by book\'s ISBN</string>
+    <string name="bks_menu_latest_label">Latest Books</string>
+    <string name="bks_menu_latest_description">List latest in the catalog</string>
+    <string name="bks_menu_popular_label">Popular Books</string>
+    <string name="bks_menu_popular_description">List popular books</string>
 </resources>

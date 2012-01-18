@@ -11,68 +11,43 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_horizontal">
-  
 
-     <ImageButton android:id="@+id/spokentextpause"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_play"
-            android:focusable="true"
+     <Button android:id="@+id/spokentextpause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:nextFocusRight="@+id/spokentextback"
-            android:nextFocusLeft="@+id/spokentextforward"
+            android:nextFocusLeft="@+id/spokentextcontents"
+            android:layout_weight="1"
             android:contentDescription="@string/play"
-            />
+            android:text="@string/play" />
 
-     <ImageButton android:id="@+id/spokentextback"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_previous"
+    <Button android:id="@+id/spokentextback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:nextFocusRight="@+id/spokentextforward"
             android:nextFocusLeft="@+id/spokentextpause"
+            android:layout_weight="2"
             android:contentDescription="@string/previous"
-            />
+            android:text="@string/previous"/>
 
-    <ImageButton android:id="@+id/spokentextforward"
-            android:layout_width="70dip"
-            android:layout_height="50dip"
-            android:src="@drawable/speak_next"
+    <Button android:id="@+id/spokentextforward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:nextFocusRight="@+id/spokentextcontents"
             android:nextFocusLeft="@+id/spokentextback"
+            android:layout_weight="1"
             android:contentDescription="@string/next"
-            />
+            android:text="@string/next" />
 
     <Button android:id="@+id/spokentextcontents"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:nextFocusRight="@+id/spokentextpause"
             android:nextFocusLeft="@+id/spokentextforward"
-            android:contentDescription="table of contents"
-            android:text="Table of Contents"
-    />
-<!--  old text based buttons
-     <Button android:id="@+id/spokentextpause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Play/Pause"
-            />
-    <Button android:id="@+id/spokentextstop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Stop"
-            />
+            android:layout_weight="2"
+            android:contentDescription="@string/toc"
+            android:text="@string/toc" />
 
-    <Button android:id="@+id/spokentextforward"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Next Paragraph"
-            />
-
-    <Button android:id="@+id/spokentextback"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Previous Paragraph"/>
- -->   
-         
     </LinearLayout>
  <TextView
   android:id="@+id/spokentextdisplay"

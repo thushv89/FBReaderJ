@@ -8,6 +8,7 @@ import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.benetech.android.R;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -26,6 +27,7 @@ public class MenuActivity extends Activity {
 	private ListItemsAdapter adapter = null; 
 	static boolean showDayViewOption = false;
     private ListView list;
+    private static Resources resources;
 
     /** Called when the activity is first created. */
     @Override
@@ -33,6 +35,8 @@ public class MenuActivity extends Activity {
         super.onCreate(savedInstanceState);
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog);
+        resources = getApplicationContext().getResources();
+
         for ( int i = 0; i < 13; i++ ) {
 			Object object = new Object();
 			listItems.add(object);
@@ -109,60 +113,60 @@ public class MenuActivity extends Activity {
      */
     private enum MenuControl {
 	    
-	    speak("Speak", new MenuOperation() {
+	    speak(resources.getString(R.string.menu_speak), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SPEAK);
 	        }
 	    }),
-	    tableOfContents("Table of Contents", new MenuOperation() {
+	    tableOfContents(resources.getString(R.string.menu_toc), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
                 activity.finish();
 	        }
 	    }),
-	    navigate("Navigate to Page", new MenuOperation() {
+	    navigate(resources.getString(R.string.menu_navigate), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_NAVIGATION);
                 activity.finish();
 	        }
 	    }),
-	    bookmarks("Bookmarks", new MenuOperation() {
+	    bookmarks(resources.getString(R.string.menu_bookmarks), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_BOOKMARKS);
                 activity.finish();
 	        }
 	    }),
-	    search("Search", new MenuOperation() {
+	    search(resources.getString(R.string.menu_search), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SEARCH);
                 activity.finish();
 	        }
 	    }),
-	    bookInfo("Book Info", new MenuOperation() {
+	    bookInfo(resources.getString(R.string.menu_book_info), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_BOOK_INFO);
                 activity.finish();
 	        }
 	    }),
-	    library("Library", new MenuOperation() {
+	    library(resources.getString(R.string.menu_library), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_LIBRARY);
                 activity.finish();
 	        }
 	    }),
-	    networkLibrary("Network Library", new MenuOperation() {
+	    networkLibrary(resources.getString(R.string.menu_network_library), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_NETWORK_LIBRARY);
                 activity.finish();
 	        }
 	    }),
-	    settings("Settings", new MenuOperation() {
+	    settings(resources.getString(R.string.menu_settings), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
                 activity.finish();
 	        }
 	    }),
-	    rotateScreen("Rotate Screen", new MenuOperation() {
+	    rotateScreen(resources.getString(R.string.menu_rotate_screen), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.ROTATE);
                 activity.finish();
@@ -171,7 +175,7 @@ public class MenuActivity extends Activity {
 	    dayNightView(
             new HasLabel() {
                 public String getLabel() {
-                    return MenuActivity.showDayViewOption? "Day View": "Night View";
+                    return MenuActivity.showDayViewOption? resources.getString(R.string.menu_day_view): resources.getString(R.string.menu_night_view);
                 }
             },
             new MenuOperation() {
@@ -186,13 +190,13 @@ public class MenuActivity extends Activity {
     	        }
             }
 	    ),
-	    zoomIn("Zoom In", new MenuOperation() {
+	    zoomIn(resources.getString(R.string.menu_zoom_in), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.INCREASE_FONT);
                 activity.finish();
 	        }
 	    }),
-	    zoomOut("Zoom Out", new MenuOperation() {
+	    zoomOut(resources.getString(R.string.menu_zoom_out), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.DECREASE_FONT);
                 activity.finish();
