@@ -49,13 +49,16 @@ import android.widget.TextView;
  *
  */
 public class Bookshare_Books_Listing extends ListActivity{
+    
+    private final static int LIST_RESPONSE = 1;
+    private final static int METADATA_RESPONSE = 2;
 
 	private String URI_BOOKSHARE_ID_SEARCH ="https://api.bookshare.org/book/id/";
 	private String username;
 	private String password;
 	private String requestURI;
 	private int requestType;
-	private String responseType;
+	private int responseType;
 	private final int DATA_FETCHED = 99;
 	private Vector<Bookshare_Result_Bean> vectorResults;
 	private ProgressDialog pd_spinning;
@@ -96,10 +99,10 @@ public class Bookshare_Books_Listing extends ListActivity{
 				|| requestType == Bookshare_Menu.LATEST_REQUEST
 				|| requestType == Bookshare_Menu.POPULAR_REQUEST
 				){
-			responseType = "Book List Response";
+			responseType = LIST_RESPONSE;
 		}
 		else if(requestType == Bookshare_Menu.ISBN_SEARCH_REQUEST){
-			responseType  = "Book Metadata Response";
+			responseType  = METADATA_RESPONSE;
 		}
 		getListing(requestURI);
 	}
@@ -199,12 +202,12 @@ public class Bookshare_Books_Listing extends ListActivity{
 				// Parse the response of search result
 				parseResponse(response);
 
-				if(responseType.equalsIgnoreCase("Book Metadata Response")){
+				if(responseType == METADATA_RESPONSE){
 					//Do nothing
 				}
 
 				// Returned response is of our use. Process it
-				if(responseType.equalsIgnoreCase("Book List Response")){
+				if(responseType == LIST_RESPONSE){
 					list.clear();
 					
 					// For each bean object stored in the vector, create a row in the list
