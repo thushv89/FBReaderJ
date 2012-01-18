@@ -26,6 +26,8 @@ import java.util.List;
 
 import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.fbreader.ActionCode;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.view.ZLView;
@@ -415,11 +417,12 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	 * If book is available, add it to application title.
 	 */
 	private final void setApplicationTitle() {
-		final org.geometerplus.fbreader.fbreader.FBReader fbreader =
-				(org.geometerplus.fbreader.fbreader.FBReader)ZLApplication.Instance();
-
-		if (fbreader.Model != null && fbreader.Model.Book != null) {
-			setTitle(getApplicationContext().getResources().getString(R.string.app_name) + " - " + fbreader.Model.Book.getTitle());
+		Library library = Library.Instance();
+		final Book currentBook = library.getRecentBook();
+		
+		//if (fbreader.Model != null && fbreader.Model.Book != null) {
+		if (currentBook != null) {
+			setTitle(getApplicationContext().getResources().getString(R.string.app_name) + " - " + currentBook.getTitle());
 		}
 	}
 	

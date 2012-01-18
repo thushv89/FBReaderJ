@@ -258,6 +258,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			final AccessibilityLibraryTreeBean tree = (AccessibilityLibraryTreeBean)getItem(position);
 			finish();
 			if (!tree.book.equals(myCurrentBook)) {
+				Library.Instance().addBookToRecentList(tree.book);
 				((FBReader)FBReader.Instance()).openBook(tree.book, null);
 			}
 		}
@@ -374,6 +375,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			finish();
 			final Book book = ((BookTree)tree).Book;
 			if (!book.equals(myCurrentBook)) {
+				Library.Instance().addBookToRecentList(book);
 				((FBReader)FBReader.Instance()).openBook(book, null);
 			}
 			return true;
@@ -395,6 +397,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			case OPEN_BOOK_ITEM_ID:
 				finish();
 				if (!tree.book.equals(myCurrentBook)) {
+					Library.Instance().addBookToRecentList(tree.book);
 					((FBReader)FBReader.Instance()).openBook(tree.book, null);
 				}
 				return true;

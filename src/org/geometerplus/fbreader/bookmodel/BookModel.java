@@ -31,6 +31,7 @@ import org.geometerplus.fbreader.Paths;
 
 public final class BookModel {
 	public static BookModel createModel(Book book) {
+		BookModel result = null;
 		FormatPlugin plugin = PluginCollection.instance().getPlugin(book.File);
 		if (plugin == null) {
 			return null;
@@ -41,9 +42,9 @@ public final class BookModel {
 		//android.os.Debug.stopMethodTracing();
 		//if (code) {
 		if (plugin.readModel(model)) {
-			return model;
+			result = model;
 		}
-		return null;
+		return result;
 	}
 
 	private final ZLImageMap myImageMap = new ZLImageMap(); 

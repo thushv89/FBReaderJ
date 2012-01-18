@@ -220,6 +220,7 @@ public class Bookshare_Book_Details extends Activity{
 							            		showAndCloseDialog(finishedDialog, message, 2000);
 									}
 									else{
+										Library.Instance().addBookToRecentList(downloadedBook);
 										((FBReader)FBReader.Instance()).openBook(downloadedBook, null);
 										finish();
 									}

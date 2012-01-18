@@ -310,6 +310,7 @@ mainLoop:
 			final Book book = Book.getById(bookId);
 			if (book != null) {
 				finish();
+				Library.Instance().addBookToRecentList(book);
 				fbreader.openBook(book, bookmark);
 			} else {
 				final Dialog finishedDialog = new Dialog(this);
