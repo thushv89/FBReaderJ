@@ -27,6 +27,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -53,7 +54,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 	private String username;
 	private String password;
 	private String requestURI;
-	private String requestType;
+	private int requestType;
 	private String responseType;
 	private final int DATA_FETCHED = 99;
 	private Vector<Bookshare_Result_Bean> vectorResults;
@@ -70,11 +71,13 @@ public class Bookshare_Books_Listing extends ListActivity{
 	private boolean total_pages_count_known = false;
 	private boolean isFree = false;
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
+    private Resources resources;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
+        resources = getApplicationContext().getResources();
 
 		Intent intent  = getIntent();
 		username = intent.getStringExtra("username");
@@ -84,18 +87,18 @@ public class Bookshare_Books_Listing extends ListActivity{
 			isFree = true;
 		}
 		
-		requestURI = intent.getStringExtra("REQUEST_URI");
+		requestURI = intent.getStringExtra(Bookshare_Menu.REQUEST_URI);
 		System.out.println("requestURI = "+requestURI);
-		requestType = intent.getStringExtra("REQUEST_TYPE");
+		requestType = intent.getIntExtra(Bookshare_Menu.REQUEST_TYPE, Bookshare_Menu.TITLE_SEARCH_REQUEST);
 		
-		if(requestType.equalsIgnoreCase("Title Search")
-				|| requestType.equalsIgnoreCase("Author Search")
-				|| requestType.equalsIgnoreCase("Latest Books")
-				|| requestType.equalsIgnoreCase("Popular Books")
+		if(requestType == Bookshare_Menu.TITLE_SEARCH_REQUEST
+				|| requestType == Bookshare_Menu.AUTHOR_SEARCH_REQUEST
+				|| requestType == Bookshare_Menu.LATEST_REQUEST
+				|| requestType == Bookshare_Menu.POPULAR_REQUEST
 				){
 			responseType = "Book List Response";
 		}
-		else if(requestType.equalsIgnoreCase("ISBN Search")){
+		else if(requestType == Bookshare_Menu.ISBN_SEARCH_REQUEST){
 			responseType  = "Book Metadata Response";
 		}
 		getListing(requestURI);
@@ -109,7 +112,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 		vectorResults = new Vector<Bookshare_Result_Bean>();
 
 		// Show a Progress Dialog before the book opens
-		pd_spinning = ProgressDialog.show(this, null, "Fetching books. Please wait.", Boolean.TRUE);
+		pd_spinning = ProgressDialog.show(this, null, resources.getString(R.string.fetching_books), Boolean.TRUE);
 		
 		new Thread(){
 			public void run(){
@@ -257,9 +260,9 @@ public class Bookshare_Books_Listing extends ListActivity{
                 if (null != decorView) {
                     String resultsMessage;
                     if (vectorResults.isEmpty()) {
-                        resultsMessage = "Search complete. No books found.";
+                        resultsMessage = resources.getString(R.string.search_complete_no_books);
                     } else {
-                        resultsMessage = "Search complete. Books listing.";
+                        resultsMessage = resources.getString(R.string.search_complete_with_books);
                     }
                     decorView.setContentDescription(resultsMessage);
                 }

@@ -64,4 +64,13 @@
     <string name="bks_menu_latest_description">List latest in the catalog</string>
     <string name="bks_menu_popular_label">Popular Books</string>
     <string name="bks_menu_popular_description">List popular books</string>
+    <string name="bks_menu_log_in">Log In</string>
+    <string name="bks_menu_log_out">Log Out</string>
+    <string name="empty_search_term_error">Search Term cannot be blank!</string>
+    
+    <!-- Bookshare_Books_Listing -->
+    <string name="fetching_books">Fetching books. Please wait.</string>
+    <string name="search_complete_with_books">Search complete. No books found.</string>
+    <string name="search_complete_no_books">Search complete. Books listing.</string>
+
 </resources>

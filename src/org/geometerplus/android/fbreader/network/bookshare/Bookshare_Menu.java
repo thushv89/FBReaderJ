@@ -41,6 +41,15 @@ import android.widget.TextView;
  * This ListActivity shows options for retrieving data from Bookshare.
  */
 public class Bookshare_Menu extends ListActivity {
+    
+    protected final static String REQUEST_TYPE = "requestType";
+    protected final static String REQUEST_URI = "requestUri";
+
+    protected final static int TITLE_SEARCH_REQUEST = 1;
+    protected final static int AUTHOR_SEARCH_REQUEST = 2;
+    protected final static int ISBN_SEARCH_REQUEST = 3;
+    protected final static int LATEST_REQUEST = 4;
+    protected final static int POPULAR_REQUEST = 5;
 
 	ArrayList<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
 	private Dialog dialog;
@@ -51,7 +60,7 @@ public class Bookshare_Menu extends ListActivity {
 	private Button dialog_cancel;
 	private String search_term = "";
 	private String URI_String = "https://api.bookshare.org/book/";
-	private String query_type;
+	private int query_type;
 	private Intent intent;
 	private final int START_BOOKSHARE_BOOKS_LISTING_ACTIVITY = 0;
 	private final int BOOKSHARE_BOOKS_LISTING_FINISHED = 2;
@@ -158,9 +167,9 @@ public class Bookshare_Menu extends ListActivity {
 					dialog_search_title.setText(resources.getString(R.string.search_dialog_label_title));
 					dialog_example_text.setText(resources.getString(R.string.search_dialog_example_title));
                     dialog_search_term.setContentDescription(resources.getString(R.string.search_dialog_description_title));
-					query_type = "Title Search";
+					query_type = TITLE_SEARCH_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
-					intent.putExtra("REQUEST_TYPE", "Title Search");
+					intent.putExtra(REQUEST_TYPE, TITLE_SEARCH_REQUEST);
                     dialog_search_term.requestFocus();
 					dialog.show();
 				}
@@ -169,9 +178,9 @@ public class Bookshare_Menu extends ListActivity {
 					dialog_search_title.setText(resources.getString(R.string.search_dialog_label_author));
 					dialog_example_text.setText(resources.getString(R.string.search_dialog_example_author));
                     dialog_search_term.setContentDescription(resources.getString(R.string.search_dialog_description_author));
-					query_type = "Author Search";
+					query_type = AUTHOR_SEARCH_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
-					intent.putExtra("REQUEST_TYPE","Author Search");
+					intent.putExtra(REQUEST_TYPE, AUTHOR_SEARCH_REQUEST);
                     dialog_search_term.requestFocus();
 					dialog.show();
 				}
@@ -180,9 +189,9 @@ public class Bookshare_Menu extends ListActivity {
 					dialog_search_title.setText(resources.getString(R.string.search_dialog_label_isbn));
 					dialog_example_text.setText(resources.getString(R.string.search_dialog_example_isbn));
                     dialog_search_term.setContentDescription(resources.getString(R.string.search_dialog_description_isbn));
-					query_type = "ISBN Search";
+					query_type = ISBN_SEARCH_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
-					intent.putExtra("REQUEST_TYPE","ISBN Search");
+					intent.putExtra(REQUEST_TYPE, ISBN_SEARCH_REQUEST);
                     dialog_search_term.requestFocus();
 					dialog.show();
 				}
@@ -195,10 +204,10 @@ public class Bookshare_Menu extends ListActivity {
 						search_term = URI_String+"latest?api_key="+developerKey;
 					else
 						search_term = URI_String+"latest/for/"+username+"?api_key="+developerKey;
-					query_type = "Latest Books";
+					query_type = LATEST_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
-					intent.putExtra("REQUEST_TYPE","Latest Books");
-					intent.putExtra("REQUEST_URI", search_term);
+					intent.putExtra(REQUEST_TYPE, LATEST_REQUEST);
+					intent.putExtra(REQUEST_URI, search_term);
 					if(!isFree){
 						intent.putExtra("username", username);
 						intent.putExtra("password", password);
@@ -212,10 +221,10 @@ public class Bookshare_Menu extends ListActivity {
 						search_term = URI_String+"popular?api_key="+developerKey;
 					else
 						search_term = URI_String+"popular/for/"+username+"?api_key="+developerKey;
-					query_type = "Popular Books";
+					query_type = POPULAR_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
-					intent.putExtra("REQUEST_TYPE","Popular Books");
-					intent.putExtra("REQUEST_URI", search_term);
+					intent.putExtra(REQUEST_TYPE, POPULAR_REQUEST);
+					intent.putExtra(REQUEST_URI, search_term);
 					if(!isFree){
 						intent.putExtra("username", username);
 						intent.putExtra("password", password);
@@ -236,26 +245,26 @@ public class Bookshare_Menu extends ListActivity {
 
         if(search_term.equals("")){
             final Dialog finishedDialog = new Dialog(dialog_ok.getContext());
-            String message =  "Search Term cannot be blank!";
+            String message = resources.getString(R.string.empty_search_term_error);
             showAndCloseDialog(finishedDialog, message, 5000);
             return;
         }
 
         boolean isMetadataSearch = false;
 
-        if(query_type.equalsIgnoreCase("Title Search")){
+        if(query_type == TITLE_SEARCH_REQUEST){
             if(isFree)
                 search_term = URI_String+"search/title/"+search_term+"?api_key="+developerKey;
             else
                 search_term = URI_String+"search/title/"+search_term+"/for/"+username+"?api_key="+developerKey;
         }
-        else if(query_type.equalsIgnoreCase("Author Search")){
+        else if(query_type == AUTHOR_SEARCH_REQUEST){
             if(isFree)
                 search_term = URI_String+"search/author/"+search_term+"?api_key="+developerKey;
             else
                 search_term = URI_String+"search/author/"+search_term+"/for/"+username+"?api_key="+developerKey;
         }
-        else if(query_type.equalsIgnoreCase("ISBN Search")){
+        else if(query_type == ISBN_SEARCH_REQUEST){
             if(isFree)
                 search_term = URI_String+"isbn/"+search_term+"?api_key="+developerKey;
             else
@@ -269,7 +278,7 @@ public class Bookshare_Menu extends ListActivity {
             isMetadataSearch = false;
         }
         else{
-            intent.putExtra("REQUEST_URI", search_term);
+            intent.putExtra(REQUEST_URI, search_term);
         }
         dialog.dismiss();
         if(!isFree){
@@ -296,17 +305,17 @@ public class Bookshare_Menu extends ListActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
 		if(isFree){
-			menu.add("Log In");
+			menu.add(resources.getString(R.string.bks_menu_log_in));
 		}
 		else{
-			menu.add("Log Out");
+			menu.add(resources.getString(R.string.bks_menu_log_out));
 		}
 		return true;
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
-		if(item.getTitle().equals("Log Out")){
+		if(item.getTitle().equals(resources.getString(R.string.bks_menu_log_out))){
 			new AlertDialog.Builder(this)
             .setTitle("")
             .setMessage("Log out?")
@@ -329,7 +338,7 @@ public class Bookshare_Menu extends ListActivity {
 			})
             .show();
 		}
-		else if(item.getTitle().equals("Log In")){
+		else if(item.getTitle().equals(resources.getString(R.string.bks_menu_log_in))){
 			Intent intent = new Intent(getApplicationContext(), Bookshare_Webservice_Login.class);
 			startActivity(intent);
 			finish();
