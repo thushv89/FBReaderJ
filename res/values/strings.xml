@@ -9,8 +9,8 @@
 	<string name="next">Next sentence</string>
 	<string name="previous">Previous sentence</string>
     <string name="toc">Table of Contents</string>
-    <string name="on_press_play">Play</string>
-    <string name="on_press_pause">Pause</string>
+    <string name="on_press_play">Play/Pause</string>
+    <string name="on_press_pause">Pause/Play</string>
 
 	<!--  strings for Bookshare_Webservice_login class-->
 	<string name="BOOKSHARE_URL">https://api.bookshare.org/book/searchFTS/title/*potter*</string>
