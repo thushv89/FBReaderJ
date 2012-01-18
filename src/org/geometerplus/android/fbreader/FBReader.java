@@ -420,7 +420,6 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		Library library = Library.Instance();
 		final Book currentBook = library.getRecentBook();
 		
-		//if (fbreader.Model != null && fbreader.Model.Book != null) {
 		if (currentBook != null) {
 			setTitle(getApplicationContext().getResources().getString(R.string.app_name) + " - " + currentBook.getTitle());
 		}
