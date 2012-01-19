@@ -19,6 +19,7 @@
 
 package org.geometerplus.android.fbreader;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
@@ -39,10 +40,12 @@ public class TOCActivity extends ListActivity {
 	private ZLTree<?> mySelectedItem;
 
     public static final int BACK_PRESSED = 10;
+    private Resources resources;
 
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
+        resources = getApplicationContext().getResources();
 
 		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
 
@@ -107,7 +110,7 @@ public class TOCActivity extends ListActivity {
 			final int position = ((AdapterView.AdapterContextMenuInfo)menuInfo).position;
 			final TOCTree tree = (TOCTree)getItem(position);
 			if (tree.hasChildren()) {
-				menu.setHeaderTitle(tree.getText());
+				menu.setHeaderTitle(tree.getText() + "(has " + tree.subTrees().size() + "children)");
 				final ZLResource resource = ZLResource.resource("tocView");
 				menu.add(0, PROCESS_TREE_ITEM_ID, 0, resource.getResource(isOpen(tree) ? "collapseTree" : "expandTree").getValue());
 				menu.add(0, READ_BOOK_ITEM_ID, 0, resource.getResource("readText").getValue());
@@ -120,8 +123,12 @@ public class TOCActivity extends ListActivity {
 				LayoutInflater.from(parent.getContext()).inflate(R.layout.toc_tree_item, parent, false);
 			final TOCTree tree = (TOCTree)getItem(position);
 			view.setBackgroundColor((tree == mySelectedItem) ? 0xff808080 : 0);
+            StringBuilder subHeadings = new StringBuilder("");
+            if (tree.hasChildren()) {
+                subHeadings = subHeadings.append(resources.getString(R.string.subheading, tree.subTrees().size()));
+            }
 			setIcon((ImageView)view.findViewById(R.id.toc_tree_item_icon), tree);
-			((TextView)view.findViewById(R.id.toc_tree_item_text)).setText(tree.getText());
+			((TextView)view.findViewById(R.id.toc_tree_item_text)).setText(tree.getText() + subHeadings);
 			return view;
 		}
 
