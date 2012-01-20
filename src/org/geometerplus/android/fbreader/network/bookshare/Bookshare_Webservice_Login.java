@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 
+import org.accessibility.VoiceableDialog;
 import org.bookshare.net.BookshareWebservice;
 import org.benetech.android.R;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -17,7 +17,6 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -25,8 +24,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -69,7 +66,6 @@ public class Bookshare_Webservice_Login extends Activity{
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	private boolean isOM = false;
 	private String response;
-	
 
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -166,23 +162,23 @@ public class Bookshare_Webservice_Login extends Activity{
 		// Hide the virtual keyboard
 		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 		imm.hideSoftInputFromWindow(editText_username.getWindowToken(), 0);
-	        final Dialog finishedDialog = new Dialog(btn_login.getContext());
+        final VoiceableDialog finishedDialog = new VoiceableDialog(btn_login.getContext());
 
 		username = editText_username.getText().toString().trim();
 		password = editText_password.getText().toString().trim();
 		
 		// Test for conditions where the input might be blank
 		if(username.equals("") && password.equals("")) {
-        	    String message =  "Username/Password field cannot be blank!";
-	            showAndCloseDialog(finishedDialog, message, 5000);
+            String message = getResources().getString(R.string.login_error_non_blank_password_and_username);
+            finishedDialog.popup(message, 5000);
 		}
 		else if(username.equals("") && !password.equals("")) {
-            	    String message =  "Username field cannot be blank!";
-            	    showAndCloseDialog(finishedDialog, message, 5000);
+            String message = getResources().getString(R.string.login_error_non_blank_username);
+            finishedDialog.popup(message, 5000);
 		}
 		else if(!username.equals("") && password.equals("")) {
-            	    String message =  "Password field cannot be blank!";
-            	    showAndCloseDialog(finishedDialog, message, 5000);
+            String message = getResources().getString(R.string.login_error_non_blank_password) ;
+            finishedDialog.popup(message, 5000);
 		}
 		else{
 			startProgressDialog();
@@ -190,19 +186,6 @@ public class Bookshare_Webservice_Login extends Activity{
 			new AuthenticationTask().execute();
 		}
 	}
-	
-    private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-        finishedDialog.setTitle(message);
-        finishedDialog.show();
-
-        // Close the dialog after a short wait
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-             public void run() {
-                  finishedDialog.cancel();
-             }
-        }, wait);
-     }
     
 	private void getFreeContent(){
 		isFree = true;
@@ -357,19 +340,6 @@ public class Bookshare_Webservice_Login extends Activity{
 			}
 			return null;
 		}
-		
-        private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-            finishedDialog.setTitle(message);
-            finishedDialog.show();
-
-            // Close the dialog after a short wait
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                 public void run() {
-                      finishedDialog.cancel();
-                 }
-            }, wait);
-        }
         
 		/*
 		 * (non-Javadoc)
@@ -381,7 +351,7 @@ public class Bookshare_Webservice_Login extends Activity{
 		public void onPostExecute(Void result){
 			super.onPostExecute(result);
 
-            final Dialog finishedDialog = new Dialog(btn_login.getContext());
+            final VoiceableDialog finishedDialog = new VoiceableDialog(btn_login.getContext());
 			btn_login.setEnabled(true);
 			btn_reset.setEnabled(true);
 			editText_username.setEnabled(true);
@@ -414,14 +384,14 @@ public class Bookshare_Webservice_Login extends Activity{
 				
 			// Give the failure notification and show the login screen
 			case LOGIN_FAILED:
-		            	String message =  "Log in Failed!";
-		            	showAndCloseDialog(finishedDialog, message, 5000);
+                String message =  getResources().getString(R.string.login_failed);
+                finishedDialog.popup(message, 5000);
 				editText_username.setText("");
 				editText_password.setText("");
 				break;
 			case NETWORK_ERROR:
-	        	    	String nMessage =  "Network Error";
-	            		showAndCloseDialog(finishedDialog, nMessage, 5000);
+                String nMessage =  getResources().getString(R.string.login_network_error);
+                finishedDialog.popup(nMessage, 5000);
 				editText_username.setText("");
 				editText_password.setText("");
 				break;

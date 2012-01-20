@@ -19,10 +19,12 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import android.app.Dialog;
+import android.content.res.Resources;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 
+import org.accessibility.VoiceableDialog;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -95,6 +97,7 @@ public class Bookshare_Book_Details extends Activity{
 	private Book downloadedBook;
 	private LibraryTree libraryTreeBeforeDownload;
 	private Vector<Long> bookInstances;
+    private Resources resources;
 
 	
 	@Override
@@ -102,6 +105,7 @@ public class Bookshare_Book_Details extends Activity{
 		super.onCreate(savedInstanceState);
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_blank_page);
+        resources = getApplicationContext().getResources();
 
 		// Set full screen
 		//getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -215,9 +219,9 @@ public class Bookshare_Book_Details extends Activity{
 								else if(btn_download.getText().toString().equalsIgnoreCase("Read Book")){
 									setResult(BOOKSHARE_BOOK_DETAILS_FINISHED);
 									if(downloadedBook == null){
-										final Dialog finishedDialog = new Dialog(btn_download.getContext());
-						        	    		String message =  "Error opening book!";
-							            		showAndCloseDialog(finishedDialog, message, 2000);
+										final VoiceableDialog finishedDialog = new VoiceableDialog(btn_download.getContext());
+                                        String message =  resources.getString(R.string.book_details_open_error);
+                                        finishedDialog.popup(message, 2000);
 									}
 									else{
 										Library.Instance().addBookToRecentList(downloadedBook);
@@ -226,19 +230,6 @@ public class Bookshare_Book_Details extends Activity{
 									}
 								}
 							}
-					
-							private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-						        	finishedDialog.setTitle(message);
-						        	finishedDialog.show();
-
-						        // Close the dialog after a short wait
-							        Handler handler = new Handler();
-							        handler.postDelayed(new Runnable() {
-							             public void run() {
-							                  finishedDialog.cancel();
-							             }
-							        }, wait);
-						     	}
 						});
 					}
 					
@@ -662,37 +653,24 @@ public class Bookshare_Book_Details extends Activity{
 				}
 			}
 
-            final Dialog finishedDialog = new Dialog(btn_download.getContext());
+            final VoiceableDialog finishedDialog = new VoiceableDialog(btn_download.getContext());
 			
 			if(downloadSuccess){
-                		String message =  "Book downloaded!";
-                		showAndCloseDialog(finishedDialog, message, 1500);
-				btn_download.setText("Read Book");
+                String message =  resources.getString(R.string.book_details_download_success);
+                finishedDialog.popup(message, 1500);
+				btn_download.setText(resources.getString(R.string.book_details_download_success));
 				btn_download.setEnabled(true);
 			}
 			else{
 				String message = error != null ? error.getMessagesFormatted() : "Download Failed!";
-				message = "Download Failed!";
-		                showAndCloseDialog(finishedDialog, message, 1500);
+				message = resources.getString(R.string.book_details_download_error);
+                finishedDialog.popup(message, 1500);
 
-				btn_download.setText("Download");
+				btn_download.setText(resources.getString(R.string.book_details_download_error));
 				btn_download.setEnabled(true);
 				//finish();
 			}
 		}
-
-        private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-            finishedDialog.setTitle(message);
-            finishedDialog.show();
-
-            // Close the dialog after a short wait
-            Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                 public void run() {
-                      finishedDialog.cancel();
-                 }
-            }, wait);
-        }
     }
 
 	/**

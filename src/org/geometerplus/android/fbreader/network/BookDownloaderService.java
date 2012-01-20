@@ -26,7 +26,6 @@ import java.net.URLConnection;
 import android.os.IBinder;
 import android.os.Handler;
 import android.os.Message;
-import android.app.Dialog;
 import android.app.Service;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -35,6 +34,7 @@ import android.net.Uri;
 import android.content.Intent;
 import android.widget.RemoteViews;
 
+import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
 
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -123,9 +123,9 @@ public class BookDownloaderService extends Service {
 
 		if (myDownloadingURLs.contains(url)) {
 			if ((notifications & Notifications.ALREADY_DOWNLOADING) != 0) {
-				final Dialog finishedDialog = new Dialog(this);
+				final VoiceableDialog finishedDialog = new VoiceableDialog(this);
 				String msg = getResource().getResource("alreadyDownloading").getValue();
-				showAndCloseDialog(finishedDialog, msg, 5000);
+                finishedDialog.popup(msg, 5000);
 			}
 			doStop();
 			return;
@@ -178,26 +178,13 @@ public class BookDownloaderService extends Service {
 			title = fileFile.getName();
 		}
 		if ((notifications & Notifications.DOWNLOADING_STARTED) != 0) {
-			final Dialog finishedDialog = new Dialog(this);
+			final VoiceableDialog finishedDialog = new VoiceableDialog(this);
 			String msg = getResource().getResource("downloadingStarted").getValue();
-            		showAndCloseDialog(finishedDialog, msg, 5000);
+            finishedDialog.popup(msg, 5000);
 		}
 		final String sslCertificate = intent.getStringExtra(SSL_CERTIFICATE_KEY);
 		startFileDownload(url, sslCertificate, fileFile, title);
 	}
-
-	private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-        	finishedDialog.setTitle(message);
-		finishedDialog.show();
-
-	        // Close the dialog after a short wait
-        	Handler handler = new Handler();
-        	handler.postDelayed(new Runnable() {
-            	 	public void run() {
-     			  finishedDialog.cancel();
-             		}
-        	}, wait);
-     	}
 
 
 	private Intent getFBReaderIntent(final File file) {

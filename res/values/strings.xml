@@ -4,23 +4,26 @@
     
 	<string name="empty_string"></string>
 
-	<!--  strings for Bookshare_Webservice_login class-->
-	<string name="BOOKSHARE_URL">https://api.bookshare.org/book/searchFTS/title/*potter*</string>
-	<string name="FORGOT_PW_URL">http://www.bookshare.org/forgotPassword</string>
-	<string name="SIGNUP_URL">https://www.bookshare.org/signUpType</string>
-	<string name="user_pw_error">Username/Password field cannot be blank!</string>
-	<string name="user_error">Username field cannot be blank!</string>
-	<string name="pw_error">Password field cannot be blank!</string>
+	<!--  Bookshare_Webservice_login -->
 	<string name="fetch_book_data">Fetching free books data.</string>
 	<string name="authenticating">Authenticating</string>
-	<string name="forgot_pw">Forgot Password</string>
-	<string name="signup">Signup</string>
-    <string name="bookshare_book_detail_publish_date">Date Added:\u0020</string>
+	<string name="login_error_non_blank_password">Password field cannot be blank!</string>
+	<string name="login_error_non_blank_password_and_username">Username/Password field cannot be blank!</string>
+	<string name="login_error_non_blank_username">Username field cannot be blank!</string>
+	<string name="login_failed">Log in Failed!</string>
+	<string name="login_network_error">Network Error</string>
+
     
+    <!-- Bookshare_Book_Details -->
+    <string name="book_details_download_error">Download Failed! Download again</string>
+    <string name="book_details_download_success">Book downloaded! Read Book</string>
+    <string name="book_details_open_error">Error opening book!</string>
+    <string name="bookshare_book_detail_publish_date">Date Added:\u0020</string>
+
     <!-- Bookshare_Books_Listing -->
     <string name="fetching_books">Fetching books. Please wait.</string>
-    <string name="search_complete_with_books">Search complete. No books found.</string>
-    <string name="search_complete_no_books">Search complete. Books listing.</string>
+    <string name="search_complete_with_books">Search complete. Books listing.</string>
+    <string name="search_complete_no_books">Search complete. No books found.</string>
 
     <!-- Bookshare_Menu -->
     <string name="search_dialog_title_title">Search by Book Title</string>

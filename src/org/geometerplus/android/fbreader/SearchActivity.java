@@ -23,6 +23,7 @@ import android.os.*;
 import android.app.*;
 import android.content.Intent;
 
+import org.accessibility.VoiceableDialog;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 
 import org.geometerplus.zlibrary.ui.android.dialogs.ZLAndroidDialogManager;
@@ -47,10 +48,10 @@ abstract class SearchActivity extends Activity {
 			};
 			final Handler failureHandler = new Handler() {
 				public void handleMessage(Message message) {
-					final Dialog finishedDialog = new Dialog(getParentActivity());
+					final VoiceableDialog finishedDialog = new VoiceableDialog(getParentActivity());
 
 					String msg = ZLResource.resource("errorMessage").getResource(getFailureMessageResourceKey()).getValue();
-					showAndCloseDialog(finishedDialog, msg, 5000);
+                    finishedDialog.popup(msg, 5000);
 				}
 			};
 			final Runnable runnable = new Runnable() {
@@ -66,19 +67,6 @@ abstract class SearchActivity extends Activity {
 		}
 		finish();
 	}
-
-	private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-        	finishedDialog.setTitle(message);
-        	finishedDialog.show();
-
-        	// Close the dialog after a short wait
-        	Handler handler = new Handler();
-        	handler.postDelayed(new Runnable() {
-        		public void run() {
-				finishedDialog.cancel();
-             		}
-	        }, wait);
-     	}
 
 	abstract boolean runSearch(String pattern);
 	abstract void onSuccess();

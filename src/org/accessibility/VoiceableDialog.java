@@ -8,9 +8,9 @@ import android.os.Handler;
  * An 'accessible' dialog that pops up for a specified time and is voiced by TalkBack
  * @author roms
  */
-public class VoicableDialog extends Dialog {
+public class VoiceableDialog extends Dialog {
 
-    public VoicableDialog(Context context) {
+    public VoiceableDialog(Context context) {
         super(context);
     }
     

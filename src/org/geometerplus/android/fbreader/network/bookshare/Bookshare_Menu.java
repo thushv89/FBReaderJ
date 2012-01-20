@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.accessibility.VoiceableDialog;
 import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
 import org.benetech.android.R;
 
@@ -15,9 +16,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -69,15 +68,13 @@ public class Bookshare_Menu extends ListActivity {
 	private String password;
 	private boolean isFree = false; 
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
-    private Resources resources;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_menu_main);
-        resources = getApplicationContext().getResources();
-		
+
 		// Fetch the login info from the caller intent
 		Intent callerIntent  = getIntent();
 		username = callerIntent.getStringExtra("username");
@@ -94,12 +91,12 @@ public class Bookshare_Menu extends ListActivity {
             R.drawable.isbn		        
 		};
 		//Create a TreeMap for use in the SimpleAdapter
-        String[] items = {resources.getString(R.string.bks_menu_title_label),
-                resources.getString(R.string.bks_menu_author_label), resources.getString(R.string.bks_menu_isbn_label),
-                resources.getString(R.string.bks_menu_latest_label), resources.getString(R.string.bks_menu_popular_label)};
-        String[] descriptions = {resources.getString(R.string.bks_menu_title_description),
-                resources.getString(R.string.bks_menu_author_description), resources.getString(R.string.bks_menu_isbn_description),
-                resources.getString(R.string.bks_menu_latest_description), resources.getString(R.string.bks_menu_popular_description)};
+        String[] items = {getResources().getString(R.string.bks_menu_title_label),
+                getResources().getString(R.string.bks_menu_author_label), getResources().getString(R.string.bks_menu_isbn_label),
+                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label)};
+        String[] descriptions = {getResources().getString(R.string.bks_menu_title_description),
+                getResources().getString(R.string.bks_menu_author_description), getResources().getString(R.string.bks_menu_isbn_description),
+                getResources().getString(R.string.bks_menu_latest_description), getResources().getString(R.string.bks_menu_popular_description)};
 		for(int i = 0; i < drawables.length; i++){
 			TreeMap<String, Object> row_item = new TreeMap<String, Object>();
 			row_item.put("Name", items[i]);
@@ -162,40 +159,40 @@ public class Bookshare_Menu extends ListActivity {
 				// Clear the EditText box of any previous text
 				dialog_search_term.setText("");
 
-				if(txt_name.getText().equals(resources.getString(R.string.bks_menu_title_label))){
-					dialog.setTitle(resources.getString(R.string.search_dialog_title_title));
-					dialog_search_title.setText(resources.getString(R.string.search_dialog_label_title));
-					dialog_example_text.setText(resources.getString(R.string.search_dialog_example_title));
-                    dialog_search_term.setContentDescription(resources.getString(R.string.search_dialog_description_title));
+				if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_title_label))){
+					dialog.setTitle(getResources().getString(R.string.search_dialog_title_title));
+					dialog_search_title.setText(getResources().getString(R.string.search_dialog_label_title));
+					dialog_example_text.setText(getResources().getString(R.string.search_dialog_example_title));
+                    dialog_search_term.setContentDescription(getResources().getString(R.string.search_dialog_description_title));
 					query_type = TITLE_SEARCH_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra(REQUEST_TYPE, TITLE_SEARCH_REQUEST);
                     dialog_search_term.requestFocus();
 					dialog.show();
 				}
-				else if(txt_name.getText().equals(resources.getString(R.string.bks_menu_author_label))){
-					dialog.setTitle(resources.getString(R.string.search_dialog_title_author));
-					dialog_search_title.setText(resources.getString(R.string.search_dialog_label_author));
-					dialog_example_text.setText(resources.getString(R.string.search_dialog_example_author));
-                    dialog_search_term.setContentDescription(resources.getString(R.string.search_dialog_description_author));
+				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_author_label))){
+					dialog.setTitle(getResources().getString(R.string.search_dialog_title_author));
+					dialog_search_title.setText(getResources().getString(R.string.search_dialog_label_author));
+					dialog_example_text.setText(getResources().getString(R.string.search_dialog_example_author));
+                    dialog_search_term.setContentDescription(getResources().getString(R.string.search_dialog_description_author));
 					query_type = AUTHOR_SEARCH_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
 					intent.putExtra(REQUEST_TYPE, AUTHOR_SEARCH_REQUEST);
                     dialog_search_term.requestFocus();
 					dialog.show();
 				}
-				else if(txt_name.getText().equals(resources.getString(R.string.bks_menu_isbn_label))){
-					dialog.setTitle(resources.getString(R.string.search_dialog_title_isbn));
-					dialog_search_title.setText(resources.getString(R.string.search_dialog_label_isbn));
-					dialog_example_text.setText(resources.getString(R.string.search_dialog_example_isbn));
-                    dialog_search_term.setContentDescription(resources.getString(R.string.search_dialog_description_isbn));
+				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_isbn_label))){
+					dialog.setTitle(getResources().getString(R.string.search_dialog_title_isbn));
+					dialog_search_title.setText(getResources().getString(R.string.search_dialog_label_isbn));
+					dialog_example_text.setText(getResources().getString(R.string.search_dialog_example_isbn));
+                    dialog_search_term.setContentDescription(getResources().getString(R.string.search_dialog_description_isbn));
 					query_type = ISBN_SEARCH_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 					intent.putExtra(REQUEST_TYPE, ISBN_SEARCH_REQUEST);
                     dialog_search_term.requestFocus();
 					dialog.show();
 				}
-				else if(txt_name.getText().equals(resources.getString(R.string.bks_menu_latest_label))){
+				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_latest_label))){
 	                // Changed the behavior to search for the latest book without having to enter the date range
 					//dialog.setTitle("Search for latest books");
 					//dialog_search_title.setText("Enter \"from\" date in MMDDYYYY format");
@@ -216,7 +213,7 @@ public class Bookshare_Menu extends ListActivity {
 				}
 				
 				// Option to search for popular books on Bookshare website
-				else if(txt_name.getText().equals(resources.getString(R.string.bks_menu_popular_label))){
+				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_popular_label))){
 					if(isFree)
 						search_term = URI_String+"popular?api_key="+developerKey;
 					else
@@ -244,9 +241,9 @@ public class Bookshare_Menu extends ListActivity {
         String search_term = ZLNetworkUtil.htmlEncode(dialog_search_term.getText().toString().trim());
 
         if(search_term.equals("")){
-            final Dialog finishedDialog = new Dialog(dialog_ok.getContext());
-            String message = resources.getString(R.string.empty_search_term_error);
-            showAndCloseDialog(finishedDialog, message, 5000);
+            final VoiceableDialog finishedDialog = new VoiceableDialog(dialog_ok.getContext());
+            String message = getResources().getString(R.string.empty_search_term_error);
+            finishedDialog.popup(message, 5000);
             return;
         }
 
@@ -288,34 +285,21 @@ public class Bookshare_Menu extends ListActivity {
 
         startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
     }
-
-    private void showAndCloseDialog(final Dialog finishedDialog, String message, int wait) {
-        finishedDialog.setTitle(message);
-        finishedDialog.show();
-
-        // Close the dialog after a short wait
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                    finishedDialog.cancel();
-                }
-        }, wait);
-    }
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu){
 		if(isFree){
-			menu.add(resources.getString(R.string.bks_menu_log_in));
+			menu.add(getResources().getString(R.string.bks_menu_log_in));
 		}
 		else{
-			menu.add(resources.getString(R.string.bks_menu_log_out));
+			menu.add(getResources().getString(R.string.bks_menu_log_out));
 		}
 		return true;
 	}
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
-		if(item.getTitle().equals(resources.getString(R.string.bks_menu_log_out))){
+		if(item.getTitle().equals(getResources().getString(R.string.bks_menu_log_out))){
 			new AlertDialog.Builder(this)
             .setTitle("")
             .setMessage("Log out?")
@@ -338,7 +322,7 @@ public class Bookshare_Menu extends ListActivity {
 			})
             .show();
 		}
-		else if(item.getTitle().equals(resources.getString(R.string.bks_menu_log_in))){
+		else if(item.getTitle().equals(getResources().getString(R.string.bks_menu_log_in))){
 			Intent intent = new Intent(getApplicationContext(), Bookshare_Webservice_Login.class);
 			startActivity(intent);
 			finish();

@@ -24,7 +24,7 @@ package org.geometerplus.android.fbreader;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.accessibility.VoicableDialog;
+import org.accessibility.VoiceableDialog;
 import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.fbreader.library.Book;
@@ -328,7 +328,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	// Method to navigate to the specified page in the book
 	private void navigateByPage(int page){
 
-        final VoicableDialog finishedDialog = new VoicableDialog(this);
+        final VoiceableDialog finishedDialog = new VoiceableDialog(this);
         String message =  resources.getString(R.string.page_navigated, page);
         finishedDialog.popup(message, 2000);
 
