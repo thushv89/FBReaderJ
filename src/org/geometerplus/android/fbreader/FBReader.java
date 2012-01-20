@@ -24,6 +24,7 @@ package org.geometerplus.android.fbreader;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.accessibility.VoicableDialog;
 import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.fbreader.library.Book;
@@ -45,6 +46,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -76,7 +78,8 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	private EditText dialog_search_term;
 	private TextView dialog_search_title;
 	private TextView dialog_example_text;
-	
+    private Resources resources;
+
 //	private Speech speech;
 
 	private int myFullScreenFlag;
@@ -129,6 +132,8 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		*/
 		Instance = this;
 		final ZLAndroidApplication application = ZLAndroidApplication.Instance();
+        resources = getApplicationContext().getResources();
+
 		myFullScreenFlag =
 			application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
 		/*
@@ -322,6 +327,11 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	}
 	// Method to navigate to the specified page in the book
 	private void navigateByPage(int page){
+
+        final VoicableDialog finishedDialog = new VoicableDialog(this);
+        String message =  resources.getString(R.string.page_navigated, page);
+        finishedDialog.popup(message, 2000);
+
 		final ZLView view = ZLApplication.Instance().getCurrentView();
 		if (view instanceof ZLTextView) {
 			ZLTextView textView = (ZLTextView) view;
@@ -341,9 +351,9 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		if(accessibilityManager.isEnabled()){
 			dialog = new Dialog(this);
 			dialog.setContentView(R.layout.bookshare_dialog);
-			dialog.setTitle("Navigate to page.");
+			dialog.setTitle(resources.getString(R.string.navigate_dialog_title));
 			dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
-			dialog_search_term.setContentDescription("Enter page number");
+			dialog_search_term.setContentDescription(resources.getString(R.string.navigate_dialog_label));
 			dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
 			dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
 			Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
@@ -351,8 +361,8 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
 			final int currentPage = textView.computeCurrentPage();
 			final int pagesNumber = textView.computePageNumber();
-			dialog_search_title.setText("Enter page number.");
-			dialog_example_text.setText("Current page = "+currentPage+", Total pages = "+pagesNumber+".");
+			dialog_search_title.setText(resources.getString(R.string.navigate_dialog_label));
+			dialog_example_text.setText(resources.getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
 			dialog_search_term.setOnKeyListener(new OnKeyListener() {
 			    public boolean onKey(View v, int keyCode, KeyEvent event) {
 			        // If the event is a key-down event on the "enter" button
@@ -394,6 +404,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 				}
 			});
 			dialog.show();
+            dialog_search_term.requestFocus();
 		}
 		else{
 			if (!myNavigatePanel.hasControlPanel()) {
@@ -421,7 +432,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		final Book currentBook = library.getRecentBook();
 		
 		if (currentBook != null) {
-			setTitle(getApplicationContext().getResources().getString(R.string.app_name) + " - " + currentBook.getTitle());
+			setTitle(resources.getString(R.string.app_name) + " - " + currentBook.getTitle());
 		}
 	}
 	
