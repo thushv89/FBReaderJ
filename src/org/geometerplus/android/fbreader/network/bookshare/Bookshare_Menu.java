@@ -302,7 +302,7 @@ public class Bookshare_Menu extends ListActivity {
 		if(item.getTitle().equals(getResources().getString(R.string.bks_menu_log_out))){
 			new AlertDialog.Builder(this)
             .setTitle("")
-            .setMessage("Log out?")
+            .setMessage(getResources().getString(R.string.logout_dialog_message))
             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {					
 					// Upon logout clear the stored login credentials
