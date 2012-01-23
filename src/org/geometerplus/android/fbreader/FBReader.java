@@ -79,6 +79,7 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	private TextView dialog_search_title;
 	private TextView dialog_example_text;
     private Resources resources;
+    private AccessibilityManager accessibilityManager;
 
 //	private Speech speech;
 
@@ -133,6 +134,8 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 		Instance = this;
 		final ZLAndroidApplication application = ZLAndroidApplication.Instance();
         resources = getApplicationContext().getResources();
+        accessibilityManager =
+        	        (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 
 		myFullScreenFlag =
 			application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
@@ -346,8 +349,6 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	}
 	
 	public void navigate(){
-		AccessibilityManager accessibilityManager =
-	        (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 		if(accessibilityManager.isEnabled()){
 			dialog = new Dialog(this);
 			dialog.setContentView(R.layout.bookshare_dialog);
@@ -571,6 +572,14 @@ public final class FBReader extends ZLAndroidActivity implements OnGestureListen
 	{
 		return false;
 	}
+
+    public void onWindowFocusChanged(boolean hasFocus) {
+        setApplicationTitle();
+    }
+
+    protected void onActivityResult( int requestCode, int resultCode, Intent data) {
+        int i;
+    }
 	
 	
 }
