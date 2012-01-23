@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.accessibility.SimpleGestureFilter;
 import org.geometerplus.fbreader.fbreader.FBReader;
 import org.geometerplus.fbreader.fbreader.FBView;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.text.view.ZLTextElement;
 import org.geometerplus.zlibrary.text.view.ZLTextParagraphCursor;
@@ -17,20 +20,23 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.TextView;
 
 
 // This class is used to compile for the non TTS version (regular). It contains the ImageButtons for TTS player controls
 //public class SpeakActivity_nonTTS extends Activity implements OnInitListener, OnUtteranceCompletedListener {
-public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener{
+public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener, SimpleGestureFilter.SimpleGestureListener {
     static final int ACTIVE = 1;
     static final int INACTIVE = 0;
 	private static final int CHECK_TTS_INSTALLED = 0;
@@ -57,6 +63,41 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     private Activity activity;
     private boolean resumePlaying = false;
     private Resources resources;
+    private SimpleGestureFilter detector;
+    private Vibrator myVib;
+
+    @Override
+     public boolean dispatchTouchEvent(MotionEvent me){
+       this.detector.onTouchEvent(me);
+      return super.dispatchTouchEvent(me);
+     }
+
+    @Override
+    public void onSwipe(int direction) {
+        myVib.vibrate(50);
+        switch (direction) {
+
+            case SimpleGestureFilter.SWIPE_RIGHT :
+                goForward();
+                break;
+            case SimpleGestureFilter.SWIPE_LEFT :
+                goBackward();
+                break;
+            case SimpleGestureFilter.SWIPE_DOWN :
+                showContents();
+                break;
+            case SimpleGestureFilter.SWIPE_UP :
+                showContents();
+                break;
+
+          }
+    }
+
+    @Override
+    public void onDoubleTap() {
+        myVib.vibrate(50);
+        playOrPause();
+    }
 
     class UpdateControls implements Runnable {
         private int buttonstate;
@@ -90,43 +131,59 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     	
     private OnClickListener forwardListener = new OnClickListener() {
         public void onClick(View v) {
-            stopTalking();
-            setState(INACTIVE);
-            nextParagraph(SEARCHFORWARD);
-            speakBook();
+            goForward();
         }
     };
+
+    private void goForward() {
+        stopTalking();
+        setState(INACTIVE);
+        nextParagraph(SEARCHFORWARD);
+        speakBook();
+    }
 
     private OnClickListener backListener = new OnClickListener() {
         public void onClick(View v) {
-            stopTalking();
-            setState(INACTIVE);
-            nextParagraph(SEARCHBACKWARD);
-            speakBook();
+            goBackward();
         }
     };
-    
+
+    private void goBackward() {
+        stopTalking();
+        setState(INACTIVE);
+        nextParagraph(SEARCHBACKWARD);
+        speakBook();
+    }
+
     private OnClickListener contentsListener = new OnClickListener() {
         public void onClick(View view) {
-            stopTalking();
-            setState(INACTIVE);
-            Intent tocIntent = new Intent(activity, TOCActivity.class);
-            activity.startActivityForResult(tocIntent, PLAY_AFTER_TOC);
+            showContents();
         }
     };
-    	
+
+    private void showContents() {
+        stopTalking();
+        setState(INACTIVE);
+        Intent tocIntent = new Intent(activity, TOCActivity.class);
+        activity.startActivityForResult(tocIntent, PLAY_AFTER_TOC);
+    }
+
     private OnClickListener pauseListener = new OnClickListener() {
         public void onClick(View v) {
 
-            if(state==ACTIVE){
-                stopTalking();
-                fromPause = true;
-                setState(INACTIVE);
-            } else {
-                speakBook();
-            }
+            playOrPause();
         }
     };
+
+    private void playOrPause() {
+        if(state==ACTIVE){
+            stopTalking();
+            fromPause = true;
+            setState(INACTIVE);
+        } else {
+            speakBook();
+        }
+    }
 
     private void speakBook() {
         setState(ACTIVE);
@@ -144,6 +201,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        detector = new SimpleGestureFilter(this,this);
 
         Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
         Reader = (FBReader)ZLApplication.Instance();
@@ -167,6 +225,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 
         TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
         tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
+        myVib = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 
         resources = getApplicationContext().getResources();
 
@@ -176,9 +235,26 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         pausebutton.requestFocus();
         activity = this;
     }
+    
+    /** 
+     * If book is available, add it to application title.
+     */
+    private final void setApplicationTitle() {
+        Library library = Library.Instance();
+        final Book currentBook = library.getRecentBook();
+        
+        if (currentBook != null) {
+            StringBuilder title = new StringBuilder(currentBook.getTitle());
+            if (title.toString().equals("About Bookshare Reader")) {
+                title.append(getResources().getString(R.string.speak_title_postfix));
+            }
+            setTitle(title);
+        }
+    }
 
     @Override
     protected void onStart() {
+        setApplicationTitle();
         super.onStart();
 
         pausebutton.requestFocus();
