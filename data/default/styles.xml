@@ -40,4 +40,5 @@
 	<style id="29" partial="true" name="Definition" italic="true"/>
 	<style id="30" partial="true" name="Definition Description" italic="true"/>
 	<style id="38" name="Image Description" partial="true" spaceBefore="10" spaceAfter="10" fontSizeDelta="-2"/>
+	<style id="39" name="Span" partial="true" />
 </DefaultStyles>

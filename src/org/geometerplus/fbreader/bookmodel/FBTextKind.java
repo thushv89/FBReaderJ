@@ -59,4 +59,5 @@ public interface FBTextKind {
 	byte H6 = 36;
 	byte EXTERNAL_HYPERLINK = 37;
 	byte PRODNOTE = 38;
+	byte SPAN = 39;
 };
