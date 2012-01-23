@@ -8,6 +8,7 @@ import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.benetech.android.R;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -28,6 +30,7 @@ public class MenuActivity extends Activity {
 	static boolean showDayViewOption = false;
     private ListView list;
     private static Resources resources;
+    private AccessibilityManager accessibilityManager;
 
     /** Called when the activity is first created. */
     @Override
@@ -36,8 +39,16 @@ public class MenuActivity extends Activity {
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog);
         resources = getApplicationContext().getResources();
+        accessibilityManager =
+            (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 
-        for ( int i = 0; i < 13; i++ ) {
+        int menuItemLimit = 13;
+        // hide final 4 main menu items if accessibility is turned on (they only make sense for sighted users)
+        if (accessibilityManager.isEnabled()) {
+            menuItemLimit = 9;
+        }
+
+        for ( int i = 0; i < menuItemLimit; i++ ) {
 			Object object = new Object();
 			listItems.add(object);
         }        
@@ -118,6 +129,12 @@ public class MenuActivity extends Activity {
                 ZLApplication.Instance().doAction(ActionCode.SPEAK);
 	        }
 	    }),
+        networkLibrary(resources.getString(R.string.menu_network_library), new MenuOperation() {
+        	        public void click(final Activity activity) {
+                        ZLApplication.Instance().doAction(ActionCode.SHOW_NETWORK_LIBRARY);
+                        activity.finish();
+        	        }
+        	    }),
 	    tableOfContents(resources.getString(R.string.menu_toc), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
@@ -154,12 +171,7 @@ public class MenuActivity extends Activity {
                 activity.finish();
 	        }
 	    }),
-	    networkLibrary(resources.getString(R.string.menu_network_library), new MenuOperation() {
-	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SHOW_NETWORK_LIBRARY);
-                activity.finish();
-	        }
-	    }),
+
 	    settings(resources.getString(R.string.menu_settings), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
