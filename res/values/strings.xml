@@ -72,7 +72,7 @@
     <string name="menu_search">Search Book</string>
     <string name="menu_book_info">Book Info</string>
     <string name="menu_library">Downloaded Books</string>
-    <string name="menu_network_library">Online Book Catalogs</string>
+    <string name="menu_network_library">Add from Bookshare and other catalogs</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_rotate_screen">Rotate Screen</string>
     <string name="menu_night_view">Night View</string>
@@ -87,7 +87,8 @@
     <string name="toc">Table of Contents</string>
     <string name="on_press_play">Play/Pause</string>
     <string name="on_press_pause">Pause/Play</string>
-    
+    <string name="speak_title_postfix">\u0020- press play or double click screen</string>
+
     <!-- TOCActivity -->
     <string name="subheading">\u0020(has %1$d sub headings)</string>
 
