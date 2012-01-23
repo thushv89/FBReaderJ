@@ -57,7 +57,9 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		addAction("h6", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H6));
 		addAction("level1", Daisy3XMLTagLevelControlAction.getInstance());
 		addAction("level2", Daisy3XMLTagLevelControlAction.getInstance());
-		addAction("level3", Daisy3XMLTagLevelControlAction.getInstance());		
+		addAction("level3", Daisy3XMLTagLevelControlAction.getInstance());
+		addAction("prodnote",  new Daisy3XMLTagStructuralWithControlAction(FBTextKind.PRODNOTE,
+				"Image Description.", "End Image Description."));
 	}
 
 	/**
