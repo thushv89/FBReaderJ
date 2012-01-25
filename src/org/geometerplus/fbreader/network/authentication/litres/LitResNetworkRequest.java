@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,21 +21,34 @@ package org.geometerplus.fbreader.network.authentication.litres;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.net.URLConnection;
 
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
 
-class LitResNetworkRequest extends ZLNetworkRequest {
+public class LitResNetworkRequest extends ZLNetworkRequest {
 	public final LitResAuthenticationXMLReader Reader;
 
-	public LitResNetworkRequest(String url, String sslCertificate, LitResAuthenticationXMLReader reader) {
-		super(url, sslCertificate);
+	static String clean(String url) {
+		final int index = url.indexOf('?');
+		return index != -1 ? url.substring(0, index) : url;
+	}
+
+	public LitResNetworkRequest(String url, LitResAuthenticationXMLReader reader) {
+		super(clean(url), null, null);
+		final int index = url.indexOf('?');
+		if (index != -1) {
+			for (String param : url.substring(index + 1).split("&")) {
+				String[] pp = param.split("=");
+				if (pp.length == 2) {
+					addPostParameter(pp[0], pp[1]);
+				}
+			}
+		}
 		Reader = reader;
 	}
 
 	@Override
-	public void handleStream(URLConnection connection, InputStream inputStream) throws IOException, ZLNetworkException {
+	public void handleStream(InputStream inputStream, int length) throws IOException, ZLNetworkException {
 		Reader.read(inputStream);
 		ZLNetworkException e = Reader.getException();
 		if (e != null) {

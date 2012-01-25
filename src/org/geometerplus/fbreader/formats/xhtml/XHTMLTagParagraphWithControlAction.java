@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,15 @@ class XHTMLTagParagraphWithControlAction extends XHTMLTagAction {
 
 	protected void doAtStart(XHTMLReader reader, ZLStringMap xmlattributes) {
 		final BookReader modelReader = reader.getModelReader();
-		if ((myControl == FBTextKind.TITLE) &&
-				(modelReader.Model.BookTextModel.getParagraphsNumber() > 1)) {
-			modelReader.insertEndOfSectionParagraph();
+		switch (myControl) {
+			case FBTextKind.TITLE:
+			case FBTextKind.H1:
+			case FBTextKind.H2:
+				if (modelReader.Model.BookTextModel.getParagraphsNumber() > 1) {
+					modelReader.insertEndOfSectionParagraph();
+				}
+				modelReader.enterTitle();
+				break;
 		}
 		modelReader.pushKind(myControl);
 		modelReader.beginParagraph();
@@ -44,6 +50,13 @@ class XHTMLTagParagraphWithControlAction extends XHTMLTagAction {
 		final BookReader modelReader = reader.getModelReader();
 		modelReader.endParagraph();
 		modelReader.popKind();
+		switch (myControl) {
+			case FBTextKind.TITLE:
+			case FBTextKind.H1:
+			case FBTextKind.H2:
+				modelReader.exitTitle();
+				break;
+		}
 	}
 }
 /*

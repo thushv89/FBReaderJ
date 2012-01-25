@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 
 package org.geometerplus.zlibrary.core.config;
 
+import java.util.List;
+
 public abstract class ZLConfig {
 	public static ZLConfig Instance() {
 		return ourInstance;
@@ -29,6 +31,9 @@ public abstract class ZLConfig {
 	protected ZLConfig() {
 		ourInstance = this;
 	}
+
+	public abstract List<String> listGroups();
+	public abstract List<String> listNames(String group);
 
 	public abstract String getValue(String group, String name, String defaultValue);
 	public abstract void setValue(String group, String name, String value);

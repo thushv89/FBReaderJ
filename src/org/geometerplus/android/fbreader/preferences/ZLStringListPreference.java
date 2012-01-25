@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import android.preference.ListPreference;
 
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 
-abstract class ZLStringListPreference extends ListPreference implements ZLPreference {
+abstract class ZLStringListPreference extends ListPreference {
 	private final ZLResource myResource;
 
 	ZLStringListPreference(Context context, ZLResource rootResource, String resourceKey) {
@@ -38,7 +38,7 @@ abstract class ZLStringListPreference extends ListPreference implements ZLPrefer
 		String[] texts = new String[values.length];
 		for (int i = 0; i < values.length; ++i) {
 			final ZLResource resource = myResource.getResource(values[i]);
-			texts[i] = (resource.hasValue()) ? resource.getValue() : values[i];
+			texts[i] = resource.hasValue() ? resource.getValue() : values[i];
 		}
 		setLists(values, texts);
 	}
@@ -50,7 +50,19 @@ abstract class ZLStringListPreference extends ListPreference implements ZLPrefer
 	}
 
 	protected final boolean setInitialValue(String value) {
-		final int index = findIndexOfValue(value);
+		if (value == null) {
+			return false;
+		}
+		// throws NPE in some cases (?)
+		//final int index = findIndexOfValue(value);
+		int index = -1;
+		final CharSequence[] entryValues = getEntryValues();
+		for (int i = 0; i < entryValues.length; ++i) {
+			if (value.equals(entryValues[i])) {
+				index = i;
+				break;
+			}
+		}
 		if (index >= 0) {
 			setValueIndex(index);
 			setSummary(getEntry());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,52 +19,54 @@
 
 package org.geometerplus.zlibrary.core.network;
 
+import java.util.Map;
+import java.util.HashMap;
 import java.io.InputStream;
 import java.io.IOException;
-import java.net.URLConnection;
-import java.util.zip.GZIPInputStream;
-
 
 public abstract class ZLNetworkRequest {
-
-	public static final int AUTHENTICATION_NO_AUTH = 0;
-	public static final int AUTHENTICATION_BASIC = 1;
-
-
-	public final String URL;
+	String URL;
 	public final String SSLCertificate;
+	public final String PostData;
+	public final Map<String,String> PostParameters = new HashMap<String,String>();
 
-	public int AuthenticationMethod = AUTHENTICATION_NO_AUTH;
-	public String UserName;
-	public String Password;
-
-	public boolean FollowRedirects = true;
-
+	private final boolean myIsQuiet;
 
 	protected ZLNetworkRequest(String url) {
-		this(url, null);
+		this(url, null, null, false);
 	}
 
-	protected ZLNetworkRequest(String url, String sslCertificate) {
+	protected ZLNetworkRequest(String url, boolean quiet) {
+		this(url, null, null, quiet);
+	}
+
+	protected ZLNetworkRequest(String url, String sslCertificate, String postData) {
+		this(url, null, null, false);
+	}
+
+	protected ZLNetworkRequest(String url, String sslCertificate, String postData, boolean quiet) {
 		URL = url;
 		SSLCertificate = sslCertificate;
+		PostData = postData;
+		myIsQuiet = quiet;
+	}
+
+	public void addPostParameter(String name, String value) {
+		PostParameters.put(name, value);
+	}
+
+	public String getURL() {
+		return URL;
+	}
+
+	public boolean isQuiet() {
+		return myIsQuiet;
 	}
 
 	public void doBefore() throws ZLNetworkException {
 	}
 	
-	void doHandleStream(URLConnection connection, InputStream inputStream) throws IOException, ZLNetworkException {
-		String encoding = connection.getContentEncoding();
-		if (encoding != null) {
-			encoding = encoding.toLowerCase();
-			if (encoding.equals("gzip")) {
-				inputStream = new GZIPInputStream(inputStream);
-			}
-		}
-		handleStream(connection, inputStream);
-	}
-
-	public abstract void handleStream(URLConnection connection, InputStream inputStream) throws IOException, ZLNetworkException;
+	public abstract void handleStream(InputStream inputStream, int length) throws IOException, ZLNetworkException;
 
 	public void doAfter(boolean success) throws ZLNetworkException {
 	}

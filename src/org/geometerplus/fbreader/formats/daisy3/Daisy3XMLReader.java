@@ -207,7 +207,6 @@ cycle:
 		return true;
 	}
 	
-	@Override
 	public void namespaceMapChangedHandler(HashMap<String,String> namespaceMap) {
 	}
 }

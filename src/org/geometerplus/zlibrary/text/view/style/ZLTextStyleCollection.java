@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ public class ZLTextStyleCollection {
 	private final ZLTextStyleDecoration[] myDecorationMap = new ZLTextStyleDecoration[256];
 
 	private ZLTextStyleCollection() {
-		new TextStyleReader(this).read(ZLResourceFile.createResourceFile("data/default/styles.xml"));
+		new TextStyleReader(this).read(ZLResourceFile.createResourceFile("default/styles.xml"));
 	}
 
 	public static ZLTextStyleCollection Instance() {
@@ -76,8 +76,8 @@ public class ZLTextStyleCollection {
 			return "true".equals(attributes.getValue(name));
 		}
 
-		private static int b3Value(ZLStringMap attributes, String name) {
-			return ZLBoolean3.getByString(attributes.getValue(name));
+		private static ZLBoolean3 b3Value(ZLStringMap attributes, String name) {
+			return ZLBoolean3.getByName(attributes.getValue(name));
 		}
 
 		public TextStyleReader(ZLTextStyleCollection collection) {
@@ -98,11 +98,11 @@ public class ZLTextStyleCollection {
 					ZLTextStyleDecoration decoration;
 
 					int fontSizeDelta = intValue(attributes, "fontSizeDelta", 0);
-					int bold = b3Value(attributes, "bold");
-					int italic = b3Value(attributes, "italic");
-					int underline = b3Value(attributes, "underline");
+					ZLBoolean3 bold = b3Value(attributes, "bold");
+					ZLBoolean3 italic = b3Value(attributes, "italic");
+					ZLBoolean3 underline = b3Value(attributes, "underline");
 					int verticalShift = intValue(attributes, "vShift", 0);
-					int allowHyphenations = b3Value(attributes, "allowHyphenations");
+					ZLBoolean3 allowHyphenations = b3Value(attributes, "allowHyphenations");
 
 					if (booleanValue(attributes, "partial")) {
 						decoration = new ZLTextStyleDecoration(name, fontSizeDelta, bold, italic, underline, verticalShift, allowHyphenations);

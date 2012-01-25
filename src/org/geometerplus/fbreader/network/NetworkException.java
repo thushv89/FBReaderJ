@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@ package org.geometerplus.fbreader.network;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 
 public abstract class NetworkException extends ZLNetworkException {
+	private static final long serialVersionUID = 8931535868304063605L;
+
 	public static final String ERROR_INTERNAL = "internalError";
 	public static final String ERROR_PURCHASE_NOT_ENOUGH_MONEY = "purchaseNotEnoughMoney";
 	public static final String ERROR_PURCHASE_MISSING_BOOK = "purchaseMissingBook";
@@ -29,16 +31,15 @@ public abstract class NetworkException extends ZLNetworkException {
 	public static final String ERROR_BOOK_NOT_PURCHASED = "bookNotPurchased";
 	public static final String ERROR_DOWNLOAD_LIMIT_EXCEEDED = "downloadLimitExceeded";
 
-	public static final String ERROR_LOGIN_ALREADY_TAKEN = "loginAlreadyTaken";
-	public static final String ERROR_LOGIN_WAS_NOT_SPECIFIED = "loginNotSpecified";
-	public static final String ERROR_PASSWORD_WAS_NOT_SPECIFIED = "passwordNotSpecified";
 	public static final String ERROR_EMAIL_WAS_NOT_SPECIFIED = "emailNotSpecified";
-	public static final String ERROR_INVALID_EMAIL = "invalidEMail";
-	public static final String ERROR_TOO_MANY_REGISTRATIONS = "tooManyRegistrations";
 
 	public static final String ERROR_NO_USER_EMAIL = "noUserEmail";
 
 	public static final String ERROR_UNSUPPORTED_OPERATION = "unsupportedOperation";
+
+	public static final String ERROR_NOT_AN_OPDS = "notAnOPDS";
+	public static final String ERROR_NO_REQUIRED_INFORMATION = "noRequiredInformation";
+	public static final String ERROR_CACHE_DIRECTORY_ERROR = "cacheDirectoryError";
 
 	private NetworkException() {
 		super(null);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,25 +20,41 @@
 package org.geometerplus.fbreader.library;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
+import java.lang.ref.WeakReference;
+import java.util.*;
 
+import org.geometerplus.zlibrary.core.filesystem.*;
+import org.geometerplus.zlibrary.core.image.ZLImage;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
+
+import org.geometerplus.fbreader.tree.FBTree;
+import org.geometerplus.fbreader.formats.FormatPlugin;
+import org.geometerplus.fbreader.formats.PluginCollection;
 import org.geometerplus.fbreader.Paths;
-import org.geometerplus.zlibrary.core.filesystem.ZLArchiveEntryFile;
-import org.geometerplus.zlibrary.core.filesystem.ZLFile;
-import org.geometerplus.zlibrary.core.filesystem.ZLPhysicalFile;
-import org.geometerplus.zlibrary.core.filesystem.ZLResourceFile;
-import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
 
 public final class Library {
-	private static Library ourInstance;
+	public interface ChangeListener {
+		public enum Code {
+			BookAdded,
+			BookRemoved,
+			StatusChanged,
+			Found,
+			NotFound
+		}
 
+		void onLibraryChanged(Code code);
+	}
+
+	public static final String ROOT_FOUND = "found";
+	public static final String ROOT_FAVORITES = "favorites";
+	public static final String ROOT_RECENT = "recent";
+	public static final String ROOT_BY_AUTHOR = "byAuthor";
+	public static final String ROOT_BY_TITLE = "byTitle";
+	public static final String ROOT_BY_SERIES = "bySeries";
+	public static final String ROOT_BY_TAG = "byTag";
+	public static final String ROOT_FILE_TREE = "fileTree";
+
+	private static Library ourInstance;
 	public static Library Instance() {
 		if (ourInstance == null) {
 			ourInstance = new Library();
@@ -46,34 +62,73 @@ public final class Library {
 		return ourInstance;
 	}
 
-	private final LinkedList<Book> myBooks = new LinkedList<Book>();
-	private final HashSet<Book> myExternalBooks = new HashSet<Book>();
-	private final LibraryTree myLibraryByAuthor = new RootTree();
-	private final LibraryTree myLibraryByTag = new RootTree();
-	private final LibraryTree myRecentBooks = new RootTree();
-	private final LibraryTree myLibraryByTitle = new RootTree();
-	private final LibraryTree mySearchResult = new RootTree();
+	public static ZLResource resource() {
+		return ZLResource.resource("library");
+	}
 
-	private boolean myDoRebuild = true;
+	private final List<Book> myBooks = Collections.synchronizedList(new LinkedList<Book>());
+	private final RootTree myRootTree = new RootTree(this);
+	private boolean myDoGroupTitlesByFirstLetter;
+
+	private final List<ChangeListener> myListeners = Collections.synchronizedList(new LinkedList<ChangeListener>());
+
+	private final static int STATUS_LOADING = 1;
+	private final static int STATUS_SEARCHING = 2;
+	private volatile int myStatusMask = 0;
+
+	private synchronized void setStatus(int status) {
+		myStatusMask = status;
+		fireModelChangedEvent(ChangeListener.Code.StatusChanged);
+	}
 
 	private Library() {
+		new FavoritesTree(myRootTree, ROOT_FAVORITES);
+		new FirstLevelTree(myRootTree, ROOT_RECENT);
+		new FirstLevelTree(myRootTree, ROOT_BY_AUTHOR);
+		new FirstLevelTree(myRootTree, ROOT_BY_TITLE);
+		new FirstLevelTree(myRootTree, ROOT_BY_TAG);
+		new FileFirstLevelTree(myRootTree, ROOT_FILE_TREE);
 	}
 
-	public void clear() {
-		myDoRebuild = true;
-
-		myBooks.clear();
-		myExternalBooks.clear();
-		myLibraryByAuthor.clear();
-		myLibraryByTag.clear();
-		myRecentBooks.clear();
-		myLibraryByTitle.clear();
-		mySearchResult.clear();
+	public LibraryTree getRootTree() {
+		return myRootTree;
 	}
 
-	public ZLResourceFile getHelpFile() {
-		final ZLResourceFile file = ZLResourceFile.createResourceFile(
-			"data/help/MiniHelp." + Locale.getDefault().getLanguage() + ".fb2"
+	public FirstLevelTree getFirstLevelTree(String key) {
+		return (FirstLevelTree)myRootTree.getSubTree(key);
+	}
+
+	public void addChangeListener(ChangeListener listener) {
+		myListeners.add(listener);
+	}
+
+	public void removeChangeListener(ChangeListener listener) {
+		myListeners.remove(listener);
+	}
+
+	public LibraryTree getLibraryTree(LibraryTree.Key key) {
+		if (key == null) {
+			return null;
+		}
+		if (key.Parent == null) {
+			return key.Id.equals(myRootTree.getUniqueKey().Id) ? myRootTree : null;
+		}
+		final LibraryTree parentTree = getLibraryTree(key.Parent);
+		return parentTree != null ? (LibraryTree)parentTree.getSubTree(key.Id) : null;
+	}
+
+	public static ZLResourceFile getHelpFile() {
+		final Locale locale = Locale.getDefault();
+
+		ZLResourceFile file = ZLResourceFile.createResourceFile(
+			"data/help/MiniHelp." + locale.getLanguage() + "_" + locale.getCountry() + ".fb2"
+		);
+		if (file.exists()) {
+			return file;
+		}
+
+		file = ZLResourceFile.createResourceFile(
+			"data/help/MiniHelp." + locale.getLanguage() + ".fb2"
 		);
 		if (file.exists()) {
 			return file;
@@ -82,62 +137,41 @@ public final class Library {
 		return ZLResourceFile.createResourceFile("data/help/MiniHelp.en.fb2");
 	}
 
-	private static Book getBook(ZLFile bookFile, FileInfoSet fileInfos, Map<Long,Book> saved, boolean doReadMetaInfo) {
-		Book book = saved.remove(fileInfos.getId(bookFile));
-		if (book == null) {
-			doReadMetaInfo = true;
-			book = new Book(bookFile);
-		}
-			
-		if (doReadMetaInfo && !book.readMetaInfo()) {
-			return null;
-		}
-		return book;
-	}
-
 	private void collectBooks(
-		ZLFile file,
-		FileInfoSet fileInfos,
-		Map<Long,Book> savedBooks,
+		ZLFile file, FileInfoSet fileInfos,
+		Map<Long,Book> savedBooksByFileId, Map<Long,Book> orphanedBooksByFileId,
+		Set<Book> newBooks,
 		boolean doReadMetaInfo
 	) {
-		Book book = getBook(file, fileInfos, savedBooks, doReadMetaInfo);
-		if (book != null) {
-			myBooks.add(book);
-		} else if (file.isArchive()) {
-			for (ZLFile entry : fileInfos.archiveEntries(file)) {
-				collectBooks(entry, fileInfos, savedBooks, doReadMetaInfo);
-			}
+		final long fileId = fileInfos.getId(file);
+		if (savedBooksByFileId.get(fileId) != null) {
+			return;
 		}
-	}
 
-	private void collectExternalBooks(FileInfoSet fileInfos, Map<Long,Book> savedBooks) {
-		final HashSet<ZLPhysicalFile> myUpdatedFiles = new HashSet<ZLPhysicalFile>();
-		final HashSet<Long> files = new HashSet<Long>(savedBooks.keySet());
-		for (Long fileId: files) {
-			final ZLFile bookFile = fileInfos.getFile(fileId);
-			if (bookFile == null) {
-				continue;
-			}
-			final ZLPhysicalFile physicalFile = bookFile.getPhysicalFile();
-			if (physicalFile == null || !physicalFile.exists()) {
-				continue;
-			}
-			boolean reloadMetaInfo = false;
-			if (myUpdatedFiles.contains(physicalFile)) {
-				reloadMetaInfo = true;
-			} else if (!fileInfos.check(physicalFile)) {
-				reloadMetaInfo = true;
-				myUpdatedFiles.add(physicalFile);
-			}
-			final Book book = getBook(bookFile, fileInfos, savedBooks, reloadMetaInfo);
-			if (book == null) {
-				continue;
-			}
-			final long bookId = book.getId();
-			if (bookId != -1 && BooksDatabase.Instance().checkBookList(bookId)) {
-				myBooks.add(book);
-				myExternalBooks.add(book);
+		Book book = orphanedBooksByFileId.get(fileId);
+		if (book != null && (!doReadMetaInfo || book.readMetaInfo())) {
+			addBookToLibrary(book);
+			fireModelChangedEvent(ChangeListener.Code.BookAdded);
+			newBooks.add(book);
+			return;
+		}
+
+		book = new Book(file);
+		if (book.readMetaInfo()) {
+			addBookToLibrary(book);
+			fireModelChangedEvent(ChangeListener.Code.BookAdded);
+			newBooks.add(book);
+			return;
+		}
+
+		if (file.isArchive()) {
+			for (ZLFile entry : fileInfos.archiveEntries(file)) {
+				collectBooks(
+					entry, fileInfos,
+					savedBooksByFileId, orphanedBooksByFileId,
+					newBooks,
+					doReadMetaInfo
+				);
 			}
 		}
 	}
@@ -147,7 +181,7 @@ public final class Library {
 		final HashSet<ZLFile> dirSet = new HashSet<ZLFile>();
 		final LinkedList<ZLPhysicalFile> fileList = new LinkedList<ZLPhysicalFile>();
 
-		dirQueue.offer(new ZLPhysicalFile(new File(Paths.BooksDirectoryOption.getValue())));
+		dirQueue.offer(new ZLPhysicalFile(new File(Paths.BooksDirectoryOption().getValue())));
 
 		while (!dirQueue.isEmpty()) {
 			for (ZLFile file : dirQueue.poll().children()) {
@@ -165,202 +199,336 @@ public final class Library {
 		return fileList;
 	}
 
-	private void collectBooks() {
-		//final long start = System.currentTimeMillis();
-		//android.os.Debug.startMethodTracing("/sdcard/ll0");
-		final List<ZLPhysicalFile> physicalFilesList = collectPhysicalFiles();
-		//android.os.Debug.stopMethodTracing();
-		//System.err.println(physicalFilesList.size() + " files " + (System.currentTimeMillis() - start));
+	private final List<?> myNullList = Collections.singletonList(null);
 
-		//android.os.Debug.startMethodTracing("/sdcard/ll2");
-		FileInfoSet fileInfos = new FileInfoSet();
-		//android.os.Debug.stopMethodTracing();
-		//System.err.println("file infos have been loaded " + (System.currentTimeMillis() - start));
-
-		//android.os.Debug.startMethodTracing("/sdcard/ll1");
-		final Map<Long,Book> savedBooks = BooksDatabase.Instance().listBooks(fileInfos);
-		//android.os.Debug.stopMethodTracing();
-		//System.err.println(savedBooks.size() + " saved books " + (System.currentTimeMillis() - start));
-
-		//android.os.Debug.startMethodTracing("/sdcard/ll3");
-		for (ZLPhysicalFile file : physicalFilesList) {
-			collectBooks(file, fileInfos, savedBooks, !fileInfos.check(file));
-			file.setCached(false);
+	private LibraryTree getTagTree(Tag tag) {
+		if (tag == null || tag.Parent == null) {
+			return getFirstLevelTree(ROOT_BY_TAG).getTagSubTree(tag);
+		} else {
+			return getTagTree(tag.Parent).getTagSubTree(tag);
 		}
-		myBooks.add(getBook(getHelpFile(), fileInfos, savedBooks, false));
-		//android.os.Debug.stopMethodTracing();
-		//System.err.println("books have been synchronized " + (System.currentTimeMillis() - start));
-
-		collectExternalBooks(fileInfos, savedBooks);
-
-		//android.os.Debug.startMethodTracing("/sdcard/ll4");
-		fileInfos.save();
-		//android.os.Debug.stopMethodTracing();
 	}
 
-	private static class AuthorSeriesPair {
-		private final Author myAuthor;
-		private final String mySeries;
+	private synchronized void addBookToLibrary(Book book) {
+		myBooks.add(book);
 
-		AuthorSeriesPair(Author author, String series) {
-			myAuthor = author;
-			mySeries = series;
+		List<Author> authors = book.authors();
+		if (authors.isEmpty()) {
+			authors = (List<Author>)myNullList;
 		}
-
-		public boolean equals(Object object) {
-			if (this == object) {
-				return true;
+		final SeriesInfo seriesInfo = book.getSeriesInfo();
+		for (Author a : authors) {
+			final AuthorTree authorTree = getFirstLevelTree(ROOT_BY_AUTHOR).getAuthorSubTree(a);
+			if (seriesInfo == null) {
+				authorTree.getBookSubTree(book, false);
+			} else {
+				authorTree.getSeriesSubTree(seriesInfo.Name).getBookInSeriesSubTree(book);
 			}
-			if (!(object instanceof AuthorSeriesPair)) {
-				return false;
+		}
+
+		if (seriesInfo != null) {
+			FirstLevelTree seriesRoot = getFirstLevelTree(ROOT_BY_SERIES);
+			if (seriesRoot == null) {
+				seriesRoot = new FirstLevelTree(
+					myRootTree,
+					myRootTree.indexOf(getFirstLevelTree(ROOT_BY_TITLE)) + 1,
+					ROOT_BY_SERIES
+				);
 			}
-			AuthorSeriesPair pair = (AuthorSeriesPair)object;
-			return ZLMiscUtil.equals(myAuthor, pair.myAuthor) && mySeries.equals(pair.mySeries);
+			seriesRoot.getSeriesSubTree(seriesInfo.Name).getBookInSeriesSubTree(book);
 		}
 
-		public int hashCode() {
-			return Author.hashCode(myAuthor) + mySeries.hashCode();
+		if (myDoGroupTitlesByFirstLetter) {
+			final String letter = TitleTree.firstTitleLetter(book);
+			if (letter != null) {
+				final TitleTree tree =
+					getFirstLevelTree(ROOT_BY_TITLE).getTitleSubTree(letter);
+				tree.getBookSubTree(book, true);
+			}
+		} else {
+			getFirstLevelTree(ROOT_BY_TITLE).getBookSubTree(book, true);
+		}
+
+		List<Tag> tags = book.tags();
+		if (tags.isEmpty()) {
+			tags = (List<Tag>)myNullList;
+		}
+		for (Tag t : tags) {
+			getTagTree(t).getBookSubTree(book, true);
+		}
+
+		final SearchResultsTree found =
+			(SearchResultsTree)getFirstLevelTree(ROOT_FOUND);
+		if (found != null && book.matches(found.getPattern())) {
+			found.getBookSubTree(book, true);
 		}
 	}
 
-	private static final ArrayList ourNullList = new ArrayList(1);
-	static {
-		ourNullList.add(null);
+	private void fireModelChangedEvent(ChangeListener.Code code) {
+		synchronized (myListeners) {
+			for (ChangeListener l : myListeners) {
+				l.onLibraryChanged(code);
+			}
+		}
 	}
 
-	private TagTree getTagTree(Tag tag, HashMap<Tag,TagTree> tagTreeMap) {
-		TagTree tagTree = tagTreeMap.get(tag);
-		if (tagTree == null) {
-			LibraryTree parent =
-				((tag != null) && (tag.Parent != null)) ?
-					getTagTree(tag.Parent, tagTreeMap) : myLibraryByTag;
-			tagTree = parent.createTagSubTree(tag);
-			tagTreeMap.put(tag, tagTree);
+	private void removeFromTree(String rootId, Book book) {
+		final FirstLevelTree tree = getFirstLevelTree(rootId);
+		if (tree != null) {
+			tree.removeBook(book, false);
 		}
-		return tagTree;
+	}
+
+	private void refreshInTree(String rootId, Book book) {
+		final FirstLevelTree tree = getFirstLevelTree(rootId);
+		if (tree != null) {
+			int index = tree.indexOf(new BookTree(book, true));
+			if (index >= 0) {
+				tree.removeBook(book, false);
+				new BookTree(tree, book, true, index);
+			}
+		}
+	}
+
+	public synchronized void refreshBookInfo(Book book) {
+		if (book == null) {
+			return;
+		}
+
+		myBooks.remove(book);
+		refreshInTree(ROOT_FAVORITES, book);
+		refreshInTree(ROOT_RECENT, book);
+		removeFromTree(ROOT_FOUND, book);
+		removeFromTree(ROOT_BY_TITLE, book);
+		removeFromTree(ROOT_BY_SERIES, book);
+		removeFromTree(ROOT_BY_AUTHOR, book);
+		removeFromTree(ROOT_BY_TAG, book);
+		addBookToLibrary(book);
+		fireModelChangedEvent(ChangeListener.Code.BookAdded);
 	}
 
 	private void build() {
-		//System.err.println("before build: " + System.currentTimeMillis() % 20000);
-		final HashMap<Tag,TagTree> tagTreeMap = new HashMap<Tag,TagTree>();
-		final HashMap<Author,AuthorTree> authorTreeMap = new HashMap<Author,AuthorTree>();
-		final HashMap<AuthorSeriesPair,SeriesTree> seriesTreeMap = new HashMap<AuthorSeriesPair,SeriesTree>();
-		final HashMap<Long,Book> bookById = new HashMap<Long,Book>();
-
-		collectBooks();
-		//System.err.println(myBooks.size() + " books " + System.currentTimeMillis() % 20000);
-		for (Book book : myBooks) {
-			bookById.put(book.getId(), book);
-			List<Author> authors = book.authors();
-			if (authors.isEmpty()) {
-				authors = (List<Author>)ourNullList;
-			}
-			final SeriesInfo seriesInfo = book.getSeriesInfo();
-			for (Author a : authors) {
-				AuthorTree authorTree = authorTreeMap.get(a);
-				if (authorTree == null) {
-					authorTree = myLibraryByAuthor.createAuthorSubTree(a);
-					authorTreeMap.put(a, authorTree);
-				}
-				if (seriesInfo == null) {
-					authorTree.createBookSubTree(book, false);
-				} else {
-					final String series = seriesInfo.Name;
-					final AuthorSeriesPair pair = new AuthorSeriesPair(a, series);
-					SeriesTree seriesTree = seriesTreeMap.get(pair);
-					if (seriesTree == null) {
-						seriesTree = authorTree.createSeriesSubTree(series);
-						seriesTreeMap.put(pair, seriesTree);
-					}
-					seriesTree.createBookInSeriesSubTree(book);
-				}
-			}
-
-			List<Tag> tags = book.tags();
-			if (tags.isEmpty()) {
-				tags = (List<Tag>)ourNullList;
-			}
-			for (Tag t : tags) {
-				getTagTree(t, tagTreeMap).createBookSubTree(book, true);
-			}
-		}
-
 		final BooksDatabase db = BooksDatabase.Instance();
-		for (long id : db.listRecentBookIds()) {
-			Book book = bookById.get(id);
+
+		// Step 0: get database books marked as "existing"
+		final FileInfoSet fileInfos = new FileInfoSet();
+		final Map<Long,Book> savedBooksByFileId = db.loadBooks(fileInfos, true);
+		final Map<Long,Book> savedBooksByBookId = new HashMap<Long,Book>();
+		for (Book b : savedBooksByFileId.values()) {
+			savedBooksByBookId.put(b.getId(), b);
+		}
+
+		// Step 1: add "existing" books recent and favorites lists
+		for (long id : db.loadRecentBookIds()) {
+			Book book = savedBooksByBookId.get(id);
+			if (book == null) {
+				book = Book.getById(id);
+				if (book != null && !book.File.exists()) {
+					book = null;
+				}
+			}
 			if (book != null) {
-				myRecentBooks.createBookSubTree(book, true);
+				new BookTree(getFirstLevelTree(ROOT_RECENT), book, true);
 			}
 		}
-		for(Book book : myBooks){
-			myLibraryByTitle.createBookSubTree(book, true);
+
+		for (long id : db.loadFavoritesIds()) {
+			Book book = savedBooksByBookId.get(id);
+			if (book == null) {
+				book = Book.getById(id);
+				if (book != null && !book.File.exists()) {
+					book = null;
+				}
+			}
+			if (book != null) {
+				getFirstLevelTree(ROOT_FAVORITES).getBookSubTree(book, true);
+			}
 		}
-		myLibraryByTitle.sortAllChildren();
+
+		fireModelChangedEvent(ChangeListener.Code.BookAdded);
+
+		// Step 2: check if files corresponding to "existing" books really exists;
+		//         add books to library if yes (and reload book info if needed);
+		//         remove from recent/favorites list if no;
+		//         collect newly "orphaned" books
+		if (savedBooksByFileId.size() > 10) {
+			final HashSet<String> letterSet = new HashSet<String>();
+			for (Book book : savedBooksByFileId.values()) {
+				final String letter = TitleTree.firstTitleLetter(book);
+				if (letter != null) {
+					letterSet.add(letter);
+				}
+			}
+			myDoGroupTitlesByFirstLetter = savedBooksByFileId.values().size() > letterSet.size() * 5 / 4;
+		}
+
+		final Set<Book> orphanedBooks = new HashSet<Book>();
+		int count = 0;
+		for (Book book : savedBooksByFileId.values()) {
+			synchronized (this) {
+				if (book.File.exists()) {
+					boolean doAdd = true;
+					final ZLPhysicalFile file = book.File.getPhysicalFile();
+					if (file == null) {
+						continue;
+					}
+					if (!fileInfos.check(file, true)) {
+						if (book.readMetaInfo()) {
+							book.save();
+						} else {
+							doAdd = false;
+						}
+						file.setCached(false);
+					}
+					if (doAdd) {
+						addBookToLibrary(book);
+						if (++count % 16 == 0) {
+							fireModelChangedEvent(ChangeListener.Code.BookAdded);
+						}
+					}
+				} else {
+					myRootTree.removeBook(book, true);
+					fireModelChangedEvent(ChangeListener.Code.BookRemoved);
+					orphanedBooks.add(book);
+				}
+			}
+		}
+		fireModelChangedEvent(ChangeListener.Code.BookAdded);
+		db.setExistingFlag(orphanedBooks, false);
+
+		// Step 3: collect books from physical files; add new, update already added,
+		//         unmark orphaned as existing again, collect newly added
+		final Map<Long,Book> orphanedBooksByFileId = db.loadBooks(fileInfos, false);
+		final Set<Book> newBooks = new HashSet<Book>();
+
+		final List<ZLPhysicalFile> physicalFilesList = collectPhysicalFiles();
+		for (ZLPhysicalFile file : physicalFilesList) {
+			collectBooks(
+				file, fileInfos,
+				savedBooksByFileId, orphanedBooksByFileId,
+				newBooks,
+				!fileInfos.check(file, true)
+			);
+			file.setCached(false);
+		}
+		
+		// Step 4: add help file
+		final ZLFile helpFile = getHelpFile();
+		Book helpBook = savedBooksByFileId.get(fileInfos.getId(helpFile));
+		if (helpBook == null) {
+			helpBook = new Book(helpFile);
+			helpBook.readMetaInfo();
+		}
+		addBookToLibrary(helpBook);
+		fireModelChangedEvent(ChangeListener.Code.BookAdded);
+
+		// Step 5: save changes into database
+		fileInfos.save();
 
 		db.executeAsATransaction(new Runnable() {
 			public void run() {
-				for (Book book : myBooks) {
+				for (Book book : newBooks) {
 					book.save();
 				}
 			}
 		});
-		//System.err.println("after build: " + System.currentTimeMillis() % 20000);
+		db.setExistingFlag(newBooks, true);
 	}
 
-	public void synchronize() {
-		if (myDoRebuild) {
-			build();
+	private volatile boolean myBuildStarted = false;
 
-			myLibraryByAuthor.sortAllChildren();
-			myLibraryByTag.sortAllChildren();
-
-			myDoRebuild = false;
+	public synchronized void startBuild() {
+		if (myBuildStarted) {
+			fireModelChangedEvent(ChangeListener.Code.StatusChanged);
+			return;
 		}
-	}
+		myBuildStarted = true;
 
-	public LibraryTree byAuthor() {
-		synchronize();
-		return myLibraryByAuthor;
-	}
-
-	public LibraryTree byTag() {
-		synchronize();
-		return myLibraryByTag;
-	}
-
-	public LibraryTree recentBooks() {
-		synchronize();
-		return myRecentBooks;
-	}
-	
-	public LibraryTree byTitle(){
-		synchronize();
-		return myLibraryByTitle;
-	}
-
-	public Book getRecentBook() {
-		List<Long> recentIds = BooksDatabase.Instance().listRecentBookIds();
-		return (recentIds.size() > 0) ? Book.getById(recentIds.get(0)) : null;
-	}
-
-	public LibraryTree searchBooks(String pattern) {
-		synchronize();
-		mySearchResult.clear();
-		if (pattern != null) {
-			pattern = pattern.toLowerCase();
-			for (Book book : myBooks) {
-				if (book.matches(pattern)) {
-					mySearchResult.createBookSubTree(book, true);
+		setStatus(myStatusMask | STATUS_LOADING);
+		final Thread builder = new Thread("Library.build") {
+			public void run() {
+				try {
+					build();
+				} finally {
+					setStatus(myStatusMask & ~STATUS_LOADING);
 				}
 			}
-			mySearchResult.sortAllChildren();
-		}
-		return mySearchResult;
+		};
+		builder.setPriority((Thread.MIN_PRIORITY + Thread.NORM_PRIORITY) / 2);
+		builder.start();
 	}
 
-	public void addBookToRecentList(Book book) {
+	public boolean isUpToDate() {
+		return myStatusMask == 0;
+	}
+
+	public static Book getRecentBook() {
+		List<Long> recentIds = BooksDatabase.Instance().loadRecentBookIds();
+		return recentIds.size() > 0 ? Book.getById(recentIds.get(0)) : null;
+	}
+
+	public static Book getPreviousBook() {
+		List<Long> recentIds = BooksDatabase.Instance().loadRecentBookIds();
+		return recentIds.size() > 1 ? Book.getById(recentIds.get(1)) : null;
+	}
+
+	public void startBookSearch(final String pattern) {
+		setStatus(myStatusMask | STATUS_SEARCHING);
+		final Thread searcher = new Thread("Library.searchBooks") {
+			public void run() {
+				try {
+					searchBooks(pattern);
+				} finally {
+					setStatus(myStatusMask & ~STATUS_SEARCHING);
+				}
+			}
+		};
+		searcher.setPriority((Thread.MIN_PRIORITY + Thread.NORM_PRIORITY) / 2);
+		searcher.start();
+	}
+
+	private void searchBooks(String pattern) {
+		if (pattern == null) {
+			fireModelChangedEvent(ChangeListener.Code.NotFound);
+			return;
+		}
+
+		pattern = pattern.toLowerCase();
+
+		final SearchResultsTree oldSearchResults = (SearchResultsTree)getFirstLevelTree(ROOT_FOUND);
+		if (oldSearchResults != null && pattern.equals(oldSearchResults.getPattern())) {
+			fireModelChangedEvent(ChangeListener.Code.Found);
+			return;
+		}
+		
+		FirstLevelTree newSearchResults = null;
+		final List<Book> booksCopy;
+		synchronized (myBooks) {
+			booksCopy = new ArrayList<Book>(myBooks);
+		}
+		for (Book book : booksCopy) {
+			if (book.matches(pattern)) {
+				synchronized (this) {
+					if (newSearchResults == null) {
+						if (oldSearchResults != null) {
+							oldSearchResults.removeSelf();
+						}
+						newSearchResults = new SearchResultsTree(myRootTree, ROOT_FOUND, pattern);
+						fireModelChangedEvent(ChangeListener.Code.Found);
+					}
+					newSearchResults.getBookSubTree(book, true);
+					fireModelChangedEvent(ChangeListener.Code.BookAdded);
+				}
+			}
+		}
+		if (newSearchResults == null) {
+			fireModelChangedEvent(ChangeListener.Code.NotFound);
+		}
+	}
+
+	public static void addBookToRecentList(Book book) {
 		final BooksDatabase db = BooksDatabase.Instance();
-		final List<Long> ids = db.listRecentBookIds();
+		final List<Long> ids = db.loadRecentBookIds();
 		final Long bookId = book.getId();
 		ids.remove(bookId);
 		ids.add(0, bookId);
@@ -370,15 +538,42 @@ public final class Library {
 		db.saveRecentBookIds(ids);
 	}
 
+	public boolean isBookInFavorites(Book book) {
+		if (book == null) {
+			return false;
+		}
+		final LibraryTree rootFavorites = getFirstLevelTree(ROOT_FAVORITES);
+		for (FBTree tree : rootFavorites.subTrees()) {
+			if (tree instanceof BookTree && book.equals(((BookTree)tree).Book)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void addBookToFavorites(Book book) {
+		if (isBookInFavorites(book)) {
+			return;
+		}
+		final LibraryTree rootFavorites = getFirstLevelTree(ROOT_FAVORITES);
+		rootFavorites.getBookSubTree(book, true);
+		BooksDatabase.Instance().addToFavorites(book.getId());
+	}
+
+	public void removeBookFromFavorites(Book book) {
+		if (getFirstLevelTree(ROOT_FAVORITES).removeBook(book, false)) {
+			BooksDatabase.Instance().removeFromFavorites(book.getId());
+			fireModelChangedEvent(ChangeListener.Code.BookRemoved);
+		}
+	}
+
 	public static final int REMOVE_DONT_REMOVE = 0x00;
 	public static final int REMOVE_FROM_LIBRARY = 0x01;
 	public static final int REMOVE_FROM_DISK = 0x02;
 	public static final int REMOVE_FROM_LIBRARY_AND_DISK = REMOVE_FROM_LIBRARY | REMOVE_FROM_DISK;
 
 	public int getRemoveBookMode(Book book) {
-		synchronize();
-		return (myExternalBooks.contains(book) ? REMOVE_FROM_LIBRARY : REMOVE_DONT_REMOVE)
-			| (canDeleteBookFile(book) ? REMOVE_FROM_DISK : REMOVE_DONT_REMOVE);
+		return canDeleteBookFile(book) ? REMOVE_FROM_DISK : REMOVE_DONT_REMOVE;
 	}
 
 	private boolean canDeleteBookFile(Book book) {
@@ -399,22 +594,57 @@ public final class Library {
 		if (removeMode == REMOVE_DONT_REMOVE) {
 			return;
 		}
-		synchronize();
 		myBooks.remove(book);
-		myLibraryByTitle.removeBook(book);
-		myLibraryByAuthor.removeBook(book);
-		myLibraryByTag.removeBook(book);
-		if (myRecentBooks.removeBook(book)) {
+		if (getFirstLevelTree(ROOT_RECENT).removeBook(book, false)) {
 			final BooksDatabase db = BooksDatabase.Instance();
-			final List<Long> ids = db.listRecentBookIds();
+			final List<Long> ids = db.loadRecentBookIds();
 			ids.remove(book.getId());
 			db.saveRecentBookIds(ids);
 		}
-		mySearchResult.removeBook(book);
+		getFirstLevelTree(ROOT_FAVORITES).removeBook(book, false);
+		myRootTree.removeBook(book, true);
 
 		BooksDatabase.Instance().deleteFromBookList(book.getId());
 		if ((removeMode & REMOVE_FROM_DISK) != 0) {
 			book.File.getPhysicalFile().delete();
 		}
+	}
+
+	private static final HashMap<String,WeakReference<ZLImage>> ourCoverMap =
+		new HashMap<String,WeakReference<ZLImage>>();
+	private static final WeakReference<ZLImage> NULL_IMAGE = new WeakReference<ZLImage>(null);
+
+	public static ZLImage getCover(ZLFile file) {
+		if (file == null) {
+			return null;
+		}
+		synchronized (ourCoverMap) {
+			final String path = file.getPath();
+			final WeakReference<ZLImage> ref = ourCoverMap.get(path);
+			if (ref == NULL_IMAGE) {
+				return null;
+			} else if (ref != null) {
+				final ZLImage image = ref.get();
+				if (image != null) {
+					return image;
+				}
+			}
+			ZLImage image = null;
+			final FormatPlugin plugin = PluginCollection.Instance().getPlugin(file);
+			if (plugin != null) {
+				image = plugin.readCover(file);
+			}
+			if (image == null) {
+				ourCoverMap.put(path, NULL_IMAGE);
+			} else {
+				ourCoverMap.put(path, new WeakReference<ZLImage>(image));
+			}
+			return image;
+		}
+	}
+
+	public static String getAnnotation(ZLFile file) {
+		final FormatPlugin plugin = PluginCollection.Instance().getPlugin(file);
+		return plugin != null ? plugin.readAnnotation(file) : null;
 	}
 }

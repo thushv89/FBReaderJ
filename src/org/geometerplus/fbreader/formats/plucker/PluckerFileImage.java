@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,34 +22,34 @@ package org.geometerplus.fbreader.formats.plucker;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.geometerplus.zlibrary.core.image.ZLSingleImage;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.image.ZLSingleImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
+import org.geometerplus.zlibrary.core.util.SliceInputStream;
 
 public class PluckerFileImage extends ZLSingleImage {
 	private final ZLFile myFile;
 	private final int myOffset;
 	private final int mySize;
 
-	public PluckerFileImage(String mimeType, final ZLFile file, final int offset, final int size) {
+	public PluckerFileImage(MimeType mimeType, final ZLFile file, final int offset, final int size) {
 		super(mimeType);
 		myFile = file;
 		myOffset = offset;
 		mySize = size;
 	}
 
-	public byte[] byteData() {
-		try {
-			final InputStream stream = myFile.getInputStream();
-			if (stream == null) {
-				return new byte[0];
-			}
+	public String getURI() {
+		// TODO: implement
+		return null;
+	}
 
-			stream.skip(myOffset);
-			byte [] buffer = new byte[mySize];
-			stream.read(buffer, 0, mySize);
-			return buffer;
-		} catch (IOException e) {}
-		
-		return new byte[0];
+	@Override
+	public InputStream inputStream() {
+		try {
+			return new SliceInputStream(myFile.getInputStream(), myOffset, mySize);
+		} catch (IOException e) {
+			return null;
+		}
 	}
 }

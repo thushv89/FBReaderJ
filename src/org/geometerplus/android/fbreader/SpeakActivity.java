@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.accessibility.SimpleGestureFilter;
-import org.geometerplus.fbreader.fbreader.FBReader;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.fbreader.fbreader.FBView;
 import org.geometerplus.fbreader.library.Book;
 import org.geometerplus.fbreader.library.Library;
@@ -30,6 +30,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -48,7 +49,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	static final int SEARCHBACKWARD = 2;
 		
     private TextToSpeech mTts=null;
-    private FBReader Reader; 
+    private FBReaderApp Reader;
     private ZLTextParagraphCursor myParaCursor;
     
     private Button pausebutton;
@@ -204,9 +205,9 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         detector = new SimpleGestureFilter(this,this);
 
         Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
-        Reader = (FBReader)ZLApplication.Instance();
+        Reader = (FBReaderApp)ZLApplication.Instance();
 
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.view_spokentext);
 
         final Button backbutton = (Button) findViewById(R.id.spokentextback);
@@ -434,7 +435,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		super.onResume();
 
         if (! fromPause) {
-            final FBView theView = ((FBReader) FBReader.Instance()).getTextView();
+            final FBView theView = ((FBReaderApp) FBReaderApp.Instance()).getTextView();
             final ZLTextWordCursor cursor = theView.getStartCursor();
             myParaCursor = cursor.getParagraphCursor();
         }

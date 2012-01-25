@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,16 @@
 
 package org.geometerplus.fbreader.library;
 
+import org.geometerplus.zlibrary.core.image.ZLImage;
+
 public class BookTree extends LibraryTree {
 	public final Book Book;
 	private final boolean myShowAuthors;
+
+	BookTree(Book book, boolean showAuthors) {
+		Book = book;
+		myShowAuthors = showAuthors;
+	}
 
 	BookTree(LibraryTree parent, Book book, boolean showAuthors) {
 		super(parent);
@@ -29,10 +36,28 @@ public class BookTree extends LibraryTree {
 		myShowAuthors = showAuthors;
 	}
 
+	BookTree(LibraryTree parent, Book book, boolean showAuthors, int position) {
+		super(parent, position);
+		Book = book;
+		myShowAuthors = showAuthors;
+	}
+
+	@Override
 	public String getName() {
 		return Book.getTitle();
 	}
 
+	@Override
+	public Book getBook() {
+		return Book;
+	}
+
+	@Override
+	protected String getStringId() {
+		return "@BookTree " + getName();
+	}
+
+	@Override
 	public String getSummary() {
 		if (!myShowAuthors) {
 			return super.getSummary();
@@ -49,5 +74,26 @@ public class BookTree extends LibraryTree {
 			}
 		}
 		return builder.toString();
+	}
+
+	@Override
+	protected ZLImage createCover() {
+		return Library.getCover(Book.File);
+	}
+
+	@Override
+	public boolean containsBook(Book book) {
+		return book != null && book.equals(Book);
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (object == this) {
+			return true;
+		}
+		if (!(object instanceof BookTree)) {
+			return false;
+		}
+		return Book.equals(((BookTree)object).Book);
 	}
 }

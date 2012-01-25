@@ -20,6 +20,8 @@ import javax.xml.parsers.SAXParserFactory;
 
 import android.app.Dialog;
 import android.content.res.Resources;
+import android.view.Window;
+import android.view.WindowManager;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
@@ -30,7 +32,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.fbreader.Paths;
-import org.geometerplus.fbreader.fbreader.FBReader;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.fbreader.library.Book;
 import org.geometerplus.fbreader.library.BookTree;
 import org.geometerplus.fbreader.library.Library;
@@ -103,12 +105,12 @@ public class Bookshare_Book_Details extends Activity{
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-		//requestWindowFeature(Window.FEATURE_NO_TITLE);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_blank_page);
         resources = getApplicationContext().getResources();
 
 		// Set full screen
-		//getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		Intent intent  = getIntent();
 		username = intent.getStringExtra("username");
@@ -225,7 +227,7 @@ public class Bookshare_Book_Details extends Activity{
 									}
 									else{
 										Library.Instance().addBookToRecentList(downloadedBook);
-										((FBReader)FBReader.Instance()).openBook(downloadedBook, null);
+										((FBReaderApp)FBReaderApp.Instance()).openBook(downloadedBook, null);
 										finish();
 									}
 								}
@@ -445,7 +447,7 @@ public class Bookshare_Book_Details extends Activity{
 		@Override
 		protected void onPreExecute(){
 			btn_download.setText("Downloading Book...");
-			libraryTreeBeforeDownload = Library.Instance().byAuthor();
+			libraryTreeBeforeDownload = Library.Instance().getFirstLevelTree(Library.ROOT_BY_AUTHOR);
 			if(bookInstances == null){
 				bookInstances = new Vector<Long>();						
 			}
@@ -494,7 +496,7 @@ public class Bookshare_Book_Details extends Activity{
 						filename = temp;
 						filename = filename.replaceAll(" +", "_").replaceAll(":", "__");
 					}
-					String zip_file = Paths.BooksDirectoryOption.getValue() +"/"+ filename + ".zip";
+					String zip_file = Paths.BooksDirectoryOption().getValue() +"/"+ filename + ".zip";
 					
 					File downloaded_zip_file = new File(zip_file);
 					if(downloaded_zip_file.exists()){
@@ -551,18 +553,18 @@ public class Bookshare_Book_Details extends Activity{
 								// Loop through the file headers
 								for (int i = 0; i < fileHeaderList.size(); i++) {
 									FileHeader fileHeader = (FileHeader)fileHeaderList.get(i);
-									System.out.println(Paths.BooksDirectoryOption.getValue() +"/"+ filename);
+									System.out.println(Paths.BooksDirectoryOption().getValue() +"/"+ filename);
 									// Extract the file to the specified destination
-									zipFile.extractFile(fileHeader, Paths.BooksDirectoryOption.getValue() +"/"+ filename);
+									zipFile.extractFile(fileHeader, Paths.BooksDirectoryOption().getValue() +"/"+ filename);
 								}
 							}
 							// Unzip the non-encrypted archive file
 							else{
 								try
 						        {
-									File file = new File(Paths.BooksDirectoryOption.getValue() +"/"+ filename);
+									File file = new File(Paths.BooksDirectoryOption().getValue() +"/"+ filename);
 									file.mkdir();
-						            String destinationname = Paths.BooksDirectoryOption.getValue() +"/"+ filename + "/";
+						            String destinationname = Paths.BooksDirectoryOption().getValue() +"/"+ filename + "/";
 						            byte[] buf = new byte[1024];
 						            ZipInputStream zipinputstream = null;
 						            ZipEntry zipentry;
@@ -636,10 +638,11 @@ public class Bookshare_Book_Details extends Activity{
 		protected void onPostExecute(Void param){
 			
 			// Clear the library instance to fetch recently downloaded book
-			Library.Instance().clear();
+            // todo - Rom - need to reimplement after new code base
+			//Library.Instance().clear();
 
 			// Get the latest set of books
-			LibraryTree libraryTreeAfterDownload = Library.Instance().byAuthor();
+			LibraryTree libraryTreeAfterDownload = Library.Instance().getFirstLevelTree(Library.ROOT_RECENT);
 			for (FBTree tree : libraryTreeAfterDownload) {
 				if(tree instanceof BookTree){
 					Book book = ((BookTree)tree).Book;

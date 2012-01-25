@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,25 +142,5 @@ final class ZLTextPage {
 		}
 		cursor.setCursor(info.ParagraphCursor);
 		cursor.moveTo(info.EndElementIndex, info.EndCharIndex);
-	}
-
-	ZLTextElementArea findLast(int from, int to, ZLTextSelectionModel.BoundElement bound) {
-		final int boundElementIndex = bound.ElementIndex;
-		final int boundCharIndex = bound.CharIndex;
-		final ZLTextElementAreaVector textAreas = TextElementMap;
-		ZLTextElementArea elementArea = textAreas.get(from);
-		if ((elementArea.ElementIndex < boundElementIndex) ||
-				((elementArea.ElementIndex == boundElementIndex) &&
-				 (elementArea.CharIndex <= boundCharIndex))) {
-			for (++from; from < to; ++from) {
-				elementArea = textAreas.get(from);
-				if ((elementArea.ElementIndex > boundElementIndex) ||
-						((elementArea.ElementIndex == boundElementIndex) &&
-						 (elementArea.CharIndex > boundCharIndex))) {
-					return textAreas.get(from - 1);
-				}
-			}
-		}
-		return elementArea;
 	}
 }

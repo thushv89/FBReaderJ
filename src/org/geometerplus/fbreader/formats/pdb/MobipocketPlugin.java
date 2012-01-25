@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,12 @@ package org.geometerplus.fbreader.formats.pdb;
 
 import java.io.*;
 
-import org.geometerplus.zlibrary.core.filesystem.ZLFile;
-import org.geometerplus.zlibrary.core.image.ZLImage;
 import org.geometerplus.zlibrary.core.encoding.ZLEncodingCollection;
-import org.geometerplus.zlibrary.core.util.ZLLanguageUtil;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.image.ZLFileImage;
+import org.geometerplus.zlibrary.core.image.ZLImage;
+import org.geometerplus.zlibrary.core.language.ZLLanguageUtil;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.fbreader.library.Book;
 import org.geometerplus.fbreader.bookmodel.BookModel;
@@ -57,7 +59,7 @@ public class MobipocketPlugin extends PdbPlugin {
 			final int fullNameOffset = (int)PdbUtil.readInt(stream);
 			final int fullNameLength = (int)PdbUtil.readInt(stream);
 			final int languageCode = (int)PdbUtil.readInt(stream);
-			book.setLanguage(ZLLanguageUtil.languageByCode(languageCode & 0xFF, (languageCode >> 8) & 0xFF));
+			book.setLanguage(ZLLanguageUtil.languageByIntCode(languageCode & 0xFF, (languageCode >> 8) & 0xFF));
 			PdbUtil.skip(stream, 32);
 			int offset = 132;
 			if ((PdbUtil.readInt(stream) & 0x40) != 0) {
@@ -133,10 +135,10 @@ public class MobipocketPlugin extends PdbPlugin {
 	}
 
 	@Override
-	public ZLImage readCover(Book book) {
+	public ZLImage readCover(ZLFile file) {
 		InputStream stream = null;
 		try {
-			stream = book.File.getInputStream();
+			stream = file.getInputStream();
 			final PdbHeader header = new PdbHeader(stream);
 			PdbUtil.skip(stream, header.Offsets[0] + 16 - header.length());
 			if (PdbUtil.readInt(stream) != 0x4D4F4249) /* "MOBI" */ {
@@ -202,21 +204,14 @@ public class MobipocketPlugin extends PdbPlugin {
 				coverIndex = thumbIndex;
 			}
 
-			final ZLFile file = book.File;
-			final MobipocketStream mpStream = new MobipocketStream(file);
-
-			// TODO: implement
-			/*int index = pbStream.firstImageLocationIndex(file.path());
-			if (index >= 0) {
-				std::pair<int,int> imageLocation = pbStream.imageLocation(pbStream.header(), index + coverIndex);
-				if ((imageLocation.first > 0) && (imageLocation.second > 0)) {
-					return new ZLFileImage(
-						file,
-						imageLocation.first,
-						imageLocation.second
-					);
+			MobipocketStream myMobipocketStream = new MobipocketStream(file);
+			int start = myMobipocketStream.getImageOffset(coverIndex);
+			if (start >= 0) {
+				int len = myMobipocketStream.getImageLength(coverIndex);
+				if (len > 0) {
+					return new ZLFileImage(MimeType.IMAGE_AUTO, file, start, len);
 				}
-			}*/
+			}
 			return null; 
 		} catch (IOException e) {
 			return null;
@@ -228,5 +223,10 @@ public class MobipocketPlugin extends PdbPlugin {
 				}
 			}
 		}
+	}
+
+	@Override
+	public String readAnnotation(ZLFile file) {
+		return null;
 	}
 }

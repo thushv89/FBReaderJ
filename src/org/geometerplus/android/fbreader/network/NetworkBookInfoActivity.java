@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,86 +19,149 @@
 
 package org.geometerplus.android.fbreader.network;
 
-import java.util.Set;
+import java.util.*;
 
 import android.app.Activity;
-import android.app.Dialog;
-import android.os.Bundle;
-//import android.util.StringBuilderPrinter;
-import android.view.View;
-import android.widget.ImageView;
-//import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.Bundle;
+import android.text.method.LinkMovementMethod;
+import android.util.DisplayMetrics;
+import android.view.*;
+import android.widget.*;
 
 import org.benetech.android.R;
 
-import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.image.ZLImage;
+import org.geometerplus.zlibrary.core.image.ZLLoadableImage;
+import org.geometerplus.zlibrary.core.network.ZLNetworkException;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.zlibrary.ui.android.image.ZLAndroidImageManager;
 import org.geometerplus.zlibrary.ui.android.image.ZLAndroidImageData;
+import org.geometerplus.zlibrary.ui.android.network.SQLiteCookieDatabase;
 
 import org.geometerplus.fbreader.network.*;
+import org.geometerplus.fbreader.network.tree.NetworkBookTree;
+import org.geometerplus.fbreader.network.urlInfo.*;
+import org.geometerplus.fbreader.network.opds.OPDSBookItem;
 
+import org.geometerplus.android.fbreader.network.action.OpenCatalogAction;
+import org.geometerplus.android.fbreader.network.action.NetworkBookActions;
 
-public class NetworkBookInfoActivity extends Activity implements NetworkView.EventListener {
+import org.geometerplus.android.util.UIUtil;
 
+public class NetworkBookInfoActivity extends Activity implements NetworkLibrary.ChangeListener {
+	private NetworkBookTree myTree;
 	private NetworkBookItem myBook;
+	private View myMainView;
 
 	private final ZLResource myResource = ZLResource.resource("networkBookView");
 	private BookDownloaderServiceConnection myConnection;
 
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+	@Override
+	protected void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
+		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
 
-		if (!NetworkView.Instance().isInitialized()) {
-			finish();
-			return;
+		SQLiteCookieDatabase.init(this);
+
+		myMainView = getLayoutInflater().inflate(R.layout.network_book, null, false);
+		setContentView(myMainView);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		NetworkLibrary.Instance().fireModelChangedEvent(NetworkLibrary.ChangeListener.Code.SomeCode);
+
+		if (!myInitializerStarted) {
+			UIUtil.wait("loadingNetworkBookInfo", myInitializer, this);
 		}
+	}
 
-		myBook = NetworkView.Instance().getBookInfoItem();
-		if (myBook == null) {
-			finish();
-			return;
+	private volatile boolean myInitializerStarted;
+
+	private final Runnable myInitializer = new Runnable() {
+		public void run() {
+			synchronized (this) {
+				if (myInitializerStarted) {
+					return;
+				}
+				myInitializerStarted = true;
+			}
+			final NetworkLibrary library = NetworkLibrary.Instance();
+			if (!library.isInitialized()) {
+				if (SQLiteNetworkDatabase.Instance() == null) {
+					new SQLiteNetworkDatabase(getApplication());
+				}
+				library.initialize();
+			}
+        
+			if (myBook == null) {
+				final Uri url = getIntent().getData();
+				if (url != null && "litres-book".equals(url.getScheme())) {
+					myBook = OPDSBookItem.create(
+						library.getLinkBySiteName("litres.ru"),
+						url.toString().replace("litres-book://", "http://")
+					);
+					if (myBook != null) {
+						myTree = library.getFakeBookTree(myBook);
+					}
+				} else {
+					final NetworkTree tree = library.getTreeByKey(
+						(NetworkTree.Key)getIntent().getSerializableExtra(
+							NetworkLibraryActivity.TREE_KEY_KEY
+						)
+					);
+					if (tree instanceof NetworkBookTree) {
+						myTree = (NetworkBookTree)tree;
+						myBook = myTree.Book;
+					}
+				}
+
+				runOnUiThread(myViewInitializer);
+			}
 		}
+	};
 
-		myConnection = new BookDownloaderServiceConnection();
-		bindService(
-			new Intent(getApplicationContext(), BookDownloaderService.class),
-			myConnection,
-			BIND_AUTO_CREATE
-		);
-
-		setTitle(myBook.Title);
-		setContentView(R.layout.network_book);
-
-		setupDescription();
-		setupInfo();
-		setupCover();
-		setupButtons();
-
-		/*LinearLayout layout = (LinearLayout) findViewById(R.id.network_book_cover).getParent();
-		TextView detailsTitle = new TextView(this, null, android.R.attr.listSeparatorTextViewStyle);
-		TextView details = new TextView(this);
-		detailsTitle.setText("Debug Details");
-
-		StringBuilder builder = new StringBuilder();
-		StringBuilderPrinter printer = new StringBuilderPrinter(builder);
-		
-		printer.println("Id = " + myBook.Id);
-		printer.println("Index = " + myBook.Index);
-		printer.println("Cover = " + myBook.Cover);
-		printer.println("References (" + myBook.myReferences.size() + "):");
-		for (BookReference ref: myBook.myReferences) {
-			printer.println( ref.toString() );
+	private final Runnable myViewInitializer = new Runnable() {
+		public void run() {
+			if (myBook == null) {
+				finish();
+			} else {
+				myConnection = new BookDownloaderServiceConnection();
+				bindService(
+					new Intent(getApplicationContext(), BookDownloaderService.class),
+					myConnection,
+					BIND_AUTO_CREATE
+				);
+            
+				setTitle(myBook.Title);
+            
+				setupDescription();
+				setupExtraLinks();
+				setupInfo();
+				setupCover();
+				setupButtons();
+			}
 		}
+	};
 
-		details.setText(builder.toString());
+	View getMainView() {
+		return myMainView;
+	}
 
-		layout.addView(detailsTitle);
-		layout.addView(details);*/
+	private void setTextById(int id, CharSequence text) {
+		((TextView)findViewById(id)).setText(text);
+	}
+
+	private void setTextFromResource(int id, String resourceKey) {
+		setTextById(id, myResource.getResource(resourceKey).getValue());
 	}
 
 	@Override
@@ -111,108 +174,162 @@ public class NetworkBookInfoActivity extends Activity implements NetworkView.Eve
 	}
 
 	private final void setupDescription() {
-		((TextView) findViewById(R.id.network_book_description_title)).setText(myResource.getResource("description").getValue());
+		setTextFromResource(R.id.network_book_description_title, "description");
 
-		final TextView descriptionView = (TextView) findViewById(R.id.network_book_description);
-		final String description;
-		if (myBook.Summary != null) {
-			description = myBook.Summary;
-		} else {
+		CharSequence description = myBook.getSummary();
+		if (description == null) {
 			description = myResource.getResource("noDescription").getValue();
 		}
+		final TextView descriptionView = (TextView)findViewById(R.id.network_book_description);
 		descriptionView.setText(description);
+		descriptionView.setMovementMethod(new LinkMovementMethod());
+		descriptionView.setTextColor(
+			ColorStateList.valueOf(descriptionView.getTextColors().getDefaultColor())
+		);
+	}
+
+	private final void setupExtraLinks() {
+		final List<UrlInfo> extraLinks = myBook.getAllInfos(UrlInfo.Type.Related);
+		if (extraLinks.isEmpty()) {
+			findViewById(R.id.network_book_extra_links_title).setVisibility(View.GONE);
+			findViewById(R.id.network_book_extra_links).setVisibility(View.GONE);
+		} else {
+			setTextFromResource(R.id.network_book_extra_links_title, "extraLinks");
+			final LinearLayout extraLinkSection =
+				(LinearLayout)findViewById(R.id.network_book_extra_links);
+			final LayoutInflater inflater = getLayoutInflater();
+			View linkView = null;
+			for (UrlInfo info : extraLinks) {
+				if (!(info instanceof RelatedUrlInfo)) {
+					continue;
+				}
+				final RelatedUrlInfo relatedInfo = (RelatedUrlInfo)info;
+				linkView = inflater.inflate(R.layout.extra_link_item, extraLinkSection, false);
+				linkView.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View view) {
+						final NetworkCatalogItem catalogItem =
+							myBook.createRelatedCatalogItem(relatedInfo);
+						if (catalogItem != null) {
+							new OpenCatalogAction(NetworkBookInfoActivity.this)
+								.run(NetworkLibrary.Instance().getFakeCatalogTree(catalogItem));
+						} else if (MimeType.TEXT_HTML.equals(relatedInfo.Mime)) {
+							Util.openInBrowser(NetworkBookInfoActivity.this, relatedInfo.Url);
+						}
+					}
+				});
+				((TextView)linkView.findViewById(R.id.extra_link_title)).setText(relatedInfo.Title);
+				extraLinkSection.addView(linkView);
+			}
+			linkView.findViewById(R.id.extra_link_divider).setVisibility(View.GONE);
+		}
+	}
+
+	private void setPairLabelTextFromResource(int id, String resourceKey) {
+		final LinearLayout layout = (LinearLayout)findViewById(id);
+		((TextView)layout.findViewById(R.id.book_info_key))
+			.setText(myResource.getResource(resourceKey).getValue());
+	}
+
+	private void setPairValueText(int id, CharSequence text) {
+		final LinearLayout layout = (LinearLayout)findViewById(id);
+		((TextView)layout.findViewById(R.id.book_info_value)).setText(text);
 	}
 
 	private void setupInfo() {
-		((TextView) findViewById(R.id.network_book_info_title)).setText(myResource.getResource("bookInfo").getValue());
+		setTextFromResource(R.id.network_book_info_title, "bookInfo");
 
-		((TextView) findViewById(R.id.network_book_title_key)).setText(myResource.getResource("title").getValue());
-		((TextView) findViewById(R.id.network_book_authors_key)).setText(myResource.getResource("authors").getValue());
-		((TextView) findViewById(R.id.network_book_series_key)).setText(myResource.getResource("series").getValue());
-		((TextView) findViewById(R.id.network_book_series_index_key)).setText(myResource.getResource("indexInSeries").getValue());
-		((TextView) findViewById(R.id.network_book_tags_key)).setText(myResource.getResource("tags").getValue());
+		setPairLabelTextFromResource(R.id.network_book_title, "title");
+		setPairLabelTextFromResource(R.id.network_book_authors, "authors");
+		setPairLabelTextFromResource(R.id.network_book_series_title, "series");
+		setPairLabelTextFromResource(R.id.network_book_series_index, "indexInSeries");
+		setPairLabelTextFromResource(R.id.network_book_tags, "tags");
+		setPairLabelTextFromResource(R.id.network_book_catalog, "catalog");
 
-
-		((TextView) findViewById(R.id.network_book_title_value)).setText(myBook.Title);
+		setPairValueText(R.id.network_book_title, myBook.Title);
 
 		if (myBook.Authors.size() > 0) {
 			findViewById(R.id.network_book_authors).setVisibility(View.VISIBLE);
 			final StringBuilder authorsText = new StringBuilder();
-			for (NetworkBookItem.AuthorData author: myBook.Authors) {
+			for (NetworkBookItem.AuthorData author : myBook.Authors) {
 				if (authorsText.length() > 0) {
 					authorsText.append(", ");
 				}
 				authorsText.append(author.DisplayName);
 			}
-			((TextView) findViewById(R.id.network_book_authors_value)).setText(authorsText);
+			setPairValueText(R.id.network_book_authors, authorsText);
 		} else {
 			findViewById(R.id.network_book_authors).setVisibility(View.GONE);
 		}
 
 		if (myBook.SeriesTitle != null) {
-			findViewById(R.id.network_book_series).setVisibility(View.VISIBLE);
-			((TextView) findViewById(R.id.network_book_series_value)).setText(myBook.SeriesTitle);
-			if (myBook.IndexInSeries > 0) {
-				((TextView) findViewById(R.id.network_book_series_index_value)).setText(String.valueOf(myBook.IndexInSeries));
+			findViewById(R.id.network_book_series_title).setVisibility(View.VISIBLE);
+			setPairValueText(R.id.network_book_series_title, myBook.SeriesTitle);
+			final float indexInSeries = myBook.IndexInSeries;
+			if (indexInSeries > 0) {
+				final String seriesIndexString;
+				if (Math.abs(indexInSeries - Math.round(indexInSeries)) < 0.01) {
+					seriesIndexString = String.valueOf(Math.round(indexInSeries));
+				} else {
+					seriesIndexString = String.format("%.1f", indexInSeries);
+				}
+				setPairValueText(R.id.network_book_series_index, seriesIndexString);
 				findViewById(R.id.network_book_series_index).setVisibility(View.VISIBLE);
 			} else {
 				findViewById(R.id.network_book_series_index).setVisibility(View.GONE);
 			}
 		} else {
-			findViewById(R.id.network_book_series).setVisibility(View.GONE);
+			findViewById(R.id.network_book_series_title).setVisibility(View.GONE);
 			findViewById(R.id.network_book_series_index).setVisibility(View.GONE);
 		}
 
 		if (myBook.Tags.size() > 0) {
 			findViewById(R.id.network_book_tags).setVisibility(View.VISIBLE);
 			final StringBuilder tagsText = new StringBuilder();
-			for (String tag: myBook.Tags) {
+			for (String tag : myBook.Tags) {
 				if (tagsText.length() > 0) {
 					tagsText.append(", ");
 				}
 				tagsText.append(tag);
 			}
-			((TextView) findViewById(R.id.network_book_tags_value)).setText(tagsText);
+			setPairValueText(R.id.network_book_tags, tagsText);
 		} else {
 			findViewById(R.id.network_book_tags).setVisibility(View.GONE);
 		}
+
+		setPairValueText(R.id.network_book_catalog, myBook.Link.getTitle());
 	}
 
 	private final void setupCover() {
 		final View rootView = findViewById(R.id.network_book_root);
-		final ImageView coverView = (ImageView) findViewById(R.id.network_book_cover);
+		final ImageView coverView = (ImageView)findViewById(R.id.network_book_cover);
 
-		final int maxHeight = 300; // FIXME: hardcoded constant
+		final DisplayMetrics metrics = new DisplayMetrics();
+		getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+		final int maxHeight = metrics.heightPixels * 2 / 3;
 		final int maxWidth = maxHeight * 2 / 3;
 		Bitmap coverBitmap = null;
 		final ZLImage cover = NetworkTree.createCover(myBook);
 		if (cover != null) {
 			ZLAndroidImageData data = null;
-			final ZLAndroidImageManager mgr = (ZLAndroidImageManager) ZLAndroidImageManager.Instance();
-			if (cover instanceof NetworkImage) {
-				final NetworkImage img = (NetworkImage) cover;
-				final NetworkView networkView = NetworkView.Instance();
-				if (networkView.isInitialized()
-						&& networkView.isCoverLoading(img.Url)) {
-					networkView.addCoverSynchronizationRunnable(img.Url, new Runnable() {
-						public void run() {
-							img.synchronizeFast();
-							final ZLAndroidImageData data = mgr.getImageData(img);
-							if (data != null) {
-								final Bitmap coverBitmap = data.getBitmap(maxWidth, maxHeight);
-								if (coverBitmap != null) {
-									coverView.setImageBitmap(coverBitmap);
-									coverView.setVisibility(View.VISIBLE);
-									rootView.invalidate();
-									rootView.requestLayout();
-								}
+			final ZLAndroidImageManager mgr = (ZLAndroidImageManager)ZLAndroidImageManager.Instance();
+			if (cover instanceof ZLLoadableImage) {
+				final ZLLoadableImage img = (ZLLoadableImage)cover;
+				img.startSynchronization(new Runnable() {
+					public void run() {
+						img.synchronizeFast();
+						final ZLAndroidImageData data = mgr.getImageData(img);
+						if (data != null) {
+							final Bitmap coverBitmap = data.getBitmap(maxWidth, maxHeight);
+							if (coverBitmap != null) {
+								coverView.setImageBitmap(coverBitmap);
+								coverView.setVisibility(View.VISIBLE);
+								rootView.invalidate();
+								rootView.requestLayout();
 							}
 						}
-					});
-				} else {
-					img.synchronizeFast();
-					data = mgr.getImageData(img);
-				}
+					}
+				});
 			} else {
 				data = mgr.getImageData(cover);
 			}
@@ -229,18 +346,19 @@ public class NetworkBookInfoActivity extends Activity implements NetworkView.Eve
 	}
 
 	private final void setupButtons() {
-		final ZLResource resource = ZLResource.resource("networkView");
 		final int buttons[] = new int[] {
 				R.id.network_book_button0,
 				R.id.network_book_button1,
 				R.id.network_book_button2,
 				R.id.network_book_button3,
 		};
-		final Set<NetworkBookActions.Action> actions = NetworkBookActions.getContextMenuActions(myBook, myConnection);
+		final List<NetworkBookActions.NBAction> actions = NetworkBookActions.getContextMenuActions(this, myTree, myConnection);
 
-		final boolean skipSecondButton = actions.size() < buttons.length && (actions.size() % 2) == 1;
+		final boolean skipSecondButton =
+			actions.size() < buttons.length &&
+			actions.size() % 2 == 1;
 		int buttonNumber = 0;
-		for (final NetworkBookActions.Action a: actions) {
+		for (final NetworkBookActions.NBAction a : actions) {
 			if (skipSecondButton && buttonNumber == 1) {
 				++buttonNumber;
 			}
@@ -248,24 +366,17 @@ public class NetworkBookInfoActivity extends Activity implements NetworkView.Eve
 				break;
 			}
 
-			final String text;
-			if (a.Arg == null) {
-				text = resource.getResource(a.Key).getValue();
-			} else {
-				text = resource.getResource(a.Key).getValue().replace("%s", a.Arg);
-			}
-
 			final int buttonId = buttons[buttonNumber++];
-			TextView button = (TextView) findViewById(buttonId);
-			button.setText(text);
+			TextView button = (TextView)findViewById(buttonId);
+			button.setText(a.getContextLabel(null));
 			button.setVisibility(View.VISIBLE);
 			button.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
-					NetworkBookActions.runAction(NetworkBookInfoActivity.this, myBook, a.Id);
+					a.run(myTree);
 					NetworkBookInfoActivity.this.updateView();
 				}
 			});
-			button.setEnabled(a.Id != NetworkTreeActions.TREE_NO_ACTION);
+			button.setEnabled(a.isEnabled(null));
 		}
 		findViewById(R.id.network_book_left_spacer).setVisibility(skipSecondButton ? View.VISIBLE : View.GONE);
 		findViewById(R.id.network_book_right_spacer).setVisibility(skipSecondButton ? View.VISIBLE : View.GONE);
@@ -293,38 +404,29 @@ public class NetworkBookInfoActivity extends Activity implements NetworkView.Eve
 	@Override
 	protected void onStart() {
 		super.onStart();
-		NetworkView.Instance().addEventListener(this);
+		NetworkLibrary.Instance().addChangeListener(this);
 	}
 
 	@Override
 	protected void onStop() {
-		NetworkView.Instance().removeEventListener(this);
+		NetworkLibrary.Instance().removeChangeListener(this);
 		super.onStop();
 	}
 
-	public void onModelChanged() {
-		updateView();
-	}
-
-	@Override
-	protected Dialog onCreateDialog(int id) {
-		if (!NetworkView.Instance().isInitialized()) {
-			return null;
+	public void onLibraryChanged(NetworkLibrary.ChangeListener.Code code, Object[] params) {
+		if (code == NetworkLibrary.ChangeListener.Code.InitializationFailed) {
+			// TODO: implement
+			return;
 		}
-		final NetworkDialog dlg = NetworkDialog.getDialog(id);
-		if (dlg != null) {
-			return dlg.createDialog(this);
+
+		if (myBook == null || myTree == null) {
+			return;
 		}
-		return null;
-	}
 
-	@Override
-	protected void onPrepareDialog(int id, Dialog dialog) {
-		super.onPrepareDialog(id, dialog);
-
-		final NetworkDialog dlg = NetworkDialog.getDialog(id);
-		if (dlg != null) {
-			dlg.prepareDialog(this, dialog);
-		}		
+		runOnUiThread(new Runnable() {
+			public void run() {
+				updateView();
+			}
+		});
 	}
 }

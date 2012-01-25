@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,43 +19,45 @@
 
 package org.geometerplus.zlibrary.ui.android.view;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+import java.io.File;
 
 import android.graphics.*;
 
 import org.geometerplus.zlibrary.core.image.ZLImageData;
 import org.geometerplus.zlibrary.core.util.ZLColor;
 import org.geometerplus.zlibrary.core.view.ZLPaintContext;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 
 import org.geometerplus.zlibrary.ui.android.image.ZLAndroidImageData;
+import org.geometerplus.zlibrary.ui.android.util.ZLAndroidColorUtil;
 
 public final class ZLAndroidPaintContext extends ZLPaintContext {
-	private Canvas myCanvas;
+	private final Canvas myCanvas;
 	private final Paint myTextPaint = new Paint();
 	private final Paint myLinePaint = new Paint();
 	private final Paint myFillPaint = new Paint();
 	private final Paint myOutlinePaint = new Paint();
 
-	private int myWidth;
-	private int myHeight;
-	private int myScrollbarWidth;
+	private final int myWidth;
+	private final int myHeight;
+	private final int myScrollbarWidth;
 
-	static ZLAndroidPaintContext Instance() {
-		if (ourInstance == null) {
-			ourInstance = new ZLAndroidPaintContext();
-		}
-		return ourInstance;
-	}
-
-	private static ZLAndroidPaintContext ourInstance;
+	private ZLColor myBackgroundColor = new ZLColor(0, 0, 0);
 
 	private HashMap<String,Typeface[]> myTypefaces = new HashMap<String,Typeface[]>();
 
-	private ZLAndroidPaintContext() {
+	ZLAndroidPaintContext(Canvas canvas, int width, int height, int scrollbarWidth) {
+		myCanvas = canvas;
+		myWidth = width - scrollbarWidth;
+		myHeight = height;
+		myScrollbarWidth = scrollbarWidth;
+
 		myTextPaint.setLinearText(false);
 		myTextPaint.setAntiAlias(true);
 		myTextPaint.setSubpixelText(false);
+
+		myLinePaint.setStyle(Paint.Style.STROKE);
 
 		myOutlinePaint.setColor(Color.rgb(255, 127, 0));
 		myOutlinePaint.setAntiAlias(true);
@@ -66,24 +68,81 @@ public final class ZLAndroidPaintContext extends ZLPaintContext {
 		myOutlinePaint.setMaskFilter(new EmbossMaskFilter(new float[] {1, 1, 1}, .4f, 6f, 3.5f));
 	}
 
-	void setSize(int width, int height, int scrollbarWidth) {
-		myWidth = width - scrollbarWidth;
-		myHeight = height;
-		myScrollbarWidth = scrollbarWidth;
+	private static ZLFile ourWallpaperFile;
+	private static Bitmap ourWallpaper;
+	@Override
+	public void clear(ZLFile wallpaperFile, boolean doMirror) {
+		if (!wallpaperFile.equals(ourWallpaperFile)) {
+			ourWallpaperFile = wallpaperFile;
+			ourWallpaper = null;
+			try {
+				final Bitmap fileBitmap =
+					BitmapFactory.decodeStream(wallpaperFile.getInputStream());
+				if (doMirror) {
+					final int w = fileBitmap.getWidth();
+					final int h = fileBitmap.getHeight();
+					final Bitmap wallpaper = Bitmap.createBitmap(2 * w, 2 * h, fileBitmap.getConfig());
+					for (int i = 0; i < w; ++i) {
+						for (int j = 0; j < h; ++j) {
+							int color = fileBitmap.getPixel(i, j);
+							wallpaper.setPixel(i, j, color);
+							wallpaper.setPixel(i, 2 * h - j - 1, color);
+							wallpaper.setPixel(2 * w - i - 1, j, color);
+							wallpaper.setPixel(2 * w - i - 1, 2 * h - j - 1, color);
+						}
+					}
+					ourWallpaper = wallpaper;
+				} else {
+					ourWallpaper = fileBitmap;
+				}
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+		if (ourWallpaper != null) {
+			myBackgroundColor = ZLAndroidColorUtil.getAverageColor(ourWallpaper);
+			final int w = ourWallpaper.getWidth();
+			final int h = ourWallpaper.getHeight();
+			for (int cw = 0, iw = 1; cw < myWidth; cw += w, ++iw) {
+				for (int ch = 0, ih = 1; ch < myHeight; ch += h, ++ih) {
+					myCanvas.drawBitmap(ourWallpaper, cw, ch, myFillPaint);
+				}
+			}
+		} else {
+			clear(new ZLColor(128, 128, 128));
+		}
 	}
 
-	void beginPaint(Canvas canvas) {
-		myCanvas = canvas;
-		resetFont();
-	}
-
-	void endPaint() {
-		myCanvas = null;
-	}
-
+	@Override
 	public void clear(ZLColor color) {
-		myFillPaint.setColor(Color.rgb(color.Red, color.Green, color.Blue));
+		myBackgroundColor = color;
+		myFillPaint.setColor(ZLAndroidColorUtil.rgb(color));
 		myCanvas.drawRect(0, 0, myWidth + myScrollbarWidth, myHeight, myFillPaint);
+	}
+
+	@Override
+	public ZLColor getBackgroundColor() {
+		return myBackgroundColor;
+	}
+
+	public void fillPolygon(int[] xs, int ys[]) {
+		final Path path = new Path();
+		final int last = xs.length - 1;
+		path.moveTo(xs[last], ys[last]);
+		for (int i = 0; i <= last; ++i) {
+			path.lineTo(xs[i], ys[i]);
+		}
+		myCanvas.drawPath(path, myFillPaint);
+	}
+
+	public void drawPolygonalLine(int[] xs, int ys[]) {
+		final Path path = new Path();
+		final int last = xs.length - 1;
+		path.moveTo(xs[last], ys[last]);
+		for (int i = 0; i <= last; ++i) {
+			path.lineTo(xs[i], ys[i]);
+		}
+		myCanvas.drawPath(path, myLinePaint);
 	}
 
 	public void drawOutline(int[] xs, int ys[]) {
@@ -120,34 +179,62 @@ public final class ZLAndroidPaintContext extends ZLPaintContext {
 	}
 
 	protected void setFontInternal(String family, int size, boolean bold, boolean italic, boolean underline) {
+		family = realFontFamilyName(family);
 		final int style = (bold ? Typeface.BOLD : 0) | (italic ? Typeface.ITALIC : 0);
 		Typeface[] typefaces = myTypefaces.get(family);
 		if (typefaces == null) {
 			typefaces = new Typeface[4];
 			myTypefaces.put(family, typefaces);
 		}
-		Typeface typeface = typefaces[style];
-		if (typeface == null) {
-			typeface = Typeface.create(family, style);
-			typefaces[style] = typeface;
+		Typeface tf = typefaces[style];
+		if (tf == null) {
+			File[] files = AndroidFontUtil.getFontMap(false).get(family);
+			if (files != null) {
+				try {
+					if (files[style] != null) {
+						tf = AndroidFontUtil.createFontFromFile(files[style]);
+					} else {
+						for (int i = 0; i < 4; ++i) {
+							if (files[i] != null) {
+								tf = (typefaces[i] != null) ?
+									typefaces[i] : AndroidFontUtil.createFontFromFile(files[i]);
+								typefaces[i] = tf;
+								break;
+							}
+						}
+					}
+				} catch (Throwable e) {
+				}
+			}
+			if (tf == null) {
+				tf = Typeface.create(family, style);
+			}
+			typefaces[style] = tf;
 		}
-		myTextPaint.setTypeface(typeface);
+		myTextPaint.setTypeface(tf);
 		myTextPaint.setTextSize(size);
 		myTextPaint.setUnderlineText(underline);
 	}
 
+	@Override
 	public void setTextColor(ZLColor color) {
-		myTextPaint.setColor(Color.rgb(color.Red, color.Green, color.Blue));
+		myTextPaint.setColor(ZLAndroidColorUtil.rgb(color));
 	}
 
+	@Override
 	public void setLineColor(ZLColor color, int style) {
 		// TODO: use style
-		myLinePaint.setColor(Color.rgb(color.Red, color.Green, color.Blue));
+		myLinePaint.setColor(ZLAndroidColorUtil.rgb(color));
+	}
+	@Override
+	public void setLineWidth(int width) {
+		myLinePaint.setStrokeWidth(width);
 	}
 
-	public void setFillColor(ZLColor color, int style) {
+	@Override
+	public void setFillColor(ZLColor color, int alpha, int style) {
 		// TODO: use style
-		myFillPaint.setColor(Color.rgb(color.Red, color.Green, color.Blue));
+		myFillPaint.setColor(ZLAndroidColorUtil.rgba(color, alpha));
 	}
 
 	public int getWidth() {
@@ -157,39 +244,81 @@ public final class ZLAndroidPaintContext extends ZLPaintContext {
 		return myHeight;
 	}
 	
+	@Override
 	public int getStringWidth(char[] string, int offset, int length) {
-		return (int)(myTextPaint.measureText(string, offset, length) + 0.5f);
+		boolean containsSoftHyphen = false;
+		for (int i = offset; i < offset + length; ++i) {
+			if (string[i] == (char)0xAD) {
+				containsSoftHyphen = true;
+				break;
+			}
+		}
+		if (!containsSoftHyphen) {
+			return (int)(myTextPaint.measureText(new String(string, offset, length)) + 0.5f);
+		} else {
+			final char[] corrected = new char[length];
+			int len = 0;
+			for (int o = offset; o < offset + length; ++o) {
+				final char chr = string[o];
+				if (chr != (char)0xAD) {
+					corrected[len++] = chr;
+				}
+			}
+			return (int)(myTextPaint.measureText(corrected, 0, len) + 0.5f);
+		}
 	}
+	@Override
 	protected int getSpaceWidthInternal() {
 		return (int)(myTextPaint.measureText(" ", 0, 1) + 0.5f);
 	}
+	@Override
 	protected int getStringHeightInternal() {
 		return (int)(myTextPaint.getTextSize() + 0.5f);
 	}
+	@Override
 	protected int getDescentInternal() {
 		return (int)(myTextPaint.descent() + 0.5f);
 	}
+	@Override
 	public void drawString(int x, int y, char[] string, int offset, int length) {
-		myCanvas.drawText(string, offset, length, x, y, myTextPaint);
+		boolean containsSoftHyphen = false;
+		for (int i = offset; i < offset + length; ++i) {
+			if (string[i] == (char)0xAD) {
+				containsSoftHyphen = true;
+				break;
+			}
+		}
+		if (!containsSoftHyphen) {
+			myCanvas.drawText(string, offset, length, x, y, myTextPaint);
+		} else {
+			final char[] corrected = new char[length];
+			int len = 0;
+			for (int o = offset; o < offset + length; ++o) {
+				final char chr = string[o];
+				if (chr != (char)0xAD) {
+					corrected[len++] = chr;
+				}
+			}
+			myCanvas.drawText(corrected, 0, len, x, y, myTextPaint);
+		}
 	}
 
-	public int imageWidth(ZLImageData imageData) {
-		Bitmap bitmap = ((ZLAndroidImageData)imageData).getBitmap(myWidth, myHeight);
-		return ((bitmap != null) && !bitmap.isRecycled()) ? bitmap.getWidth() : 0;
+	@Override
+	public Size imageSize(ZLImageData imageData, Size maxSize, ScalingType scaling) {
+		final Bitmap bitmap = ((ZLAndroidImageData)imageData).getBitmap(maxSize, scaling);
+		return (bitmap != null && !bitmap.isRecycled())
+			? new Size(bitmap.getWidth(), bitmap.getHeight()) : null;
 	}
 
-	public int imageHeight(ZLImageData imageData) {
-		Bitmap bitmap = ((ZLAndroidImageData)imageData).getBitmap(myWidth, myHeight);
-		return ((bitmap != null) && !bitmap.isRecycled())  ? bitmap.getHeight() : 0;
-	}
-
-	public void drawImage(int x, int y, ZLImageData imageData) {
-		Bitmap bitmap = ((ZLAndroidImageData)imageData).getBitmap(myWidth, myHeight);
-		if ((bitmap != null) && !bitmap.isRecycled()) {
+	@Override
+	public void drawImage(int x, int y, ZLImageData imageData, Size maxSize, ScalingType scaling) {
+		final Bitmap bitmap = ((ZLAndroidImageData)imageData).getBitmap(maxSize, scaling);
+		if (bitmap != null && !bitmap.isRecycled()) {
 			myCanvas.drawBitmap(bitmap, x, y - bitmap.getHeight(), myFillPaint);
 		}
 	}
 
+	@Override
 	public void drawLine(int x0, int y0, int x1, int y1) {
 		final Canvas canvas = myCanvas;
 		final Paint paint = myLinePaint;
@@ -200,6 +329,7 @@ public final class ZLAndroidPaintContext extends ZLPaintContext {
 		paint.setAntiAlias(true);
 	}
 
+	@Override
 	public void fillRectangle(int x0, int y0, int x1, int y1) {
 		if (x1 < x0) {
 			int swap = x1;
@@ -213,21 +343,18 @@ public final class ZLAndroidPaintContext extends ZLPaintContext {
 		}
 		myCanvas.drawRect(x0, y0, x1 + 1, y1 + 1, myFillPaint);
 	}
+	@Override
 	public void drawFilledCircle(int x, int y, int r) {
 		// TODO: implement
 	}
 
+	@Override
 	public String realFontFamilyName(String fontFamily) {
-		// TODO: implement
-		if ("Serif".equals(fontFamily)) {
-			return fontFamily;
-		}
-		return "Sans";
+		return AndroidFontUtil.realFontFamilyName(fontFamily);
 	}
-	
+
+	@Override
 	protected void fillFamiliesList(ArrayList<String> families) {
-		// TODO: implement
-		families.add("Sans");
-		families.add("Serif");
+		AndroidFontUtil.fillFamiliesList(families, false);
 	}
 }

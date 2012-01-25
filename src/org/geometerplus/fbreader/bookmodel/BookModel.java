@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,16 +31,12 @@ import org.geometerplus.fbreader.Paths;
 
 public final class BookModel {
 	public static BookModel createModel(Book book) {
-		BookModel result = null;
-		FormatPlugin plugin = PluginCollection.instance().getPlugin(book.File);
+        BookModel result = null;
+		FormatPlugin plugin = PluginCollection.Instance().getPlugin(book.File);
 		if (plugin == null) {
 			return null;
 		}
 		BookModel model = new BookModel(book);
-		//android.os.Debug.startMethodTracing("bookReadingLT", 1 << 25);
-		//final boolean code = plugin.readModel(model);
-		//android.os.Debug.stopMethodTracing();
-		//if (code) {
 		if (plugin.readModel(model)) {
 			result = model;
 		}
@@ -91,9 +87,7 @@ public final class BookModel {
 	private int myCurrentLinkBlockOffset;
 
 	void addHyperlinkLabel(String label, ZLTextModel model, int paragraphNumber) {
-		
-		final String modelId = model.getId();		
-
+		final String modelId = model.getId();
 		final int labelLength = label.length();
 		final int idLength = (modelId != null) ? modelId.length() : 0;
 		final int len = 4 + labelLength + idLength;
@@ -121,10 +115,32 @@ public final class BookModel {
 		myCurrentLinkBlockOffset = offset;
 	}
 
+	public interface LabelResolver {
+		List<String> getCandidates(String id);
+	}
+
+	private LabelResolver myResolver;
+
+	public void setLabelResolver(LabelResolver resolver) {
+		myResolver = resolver;
+	}
+
 	public Label getLabel(String id) {
+		Label label = getLabelInternal(id);
+		if (label == null && myResolver != null) {
+			for (String candidate : myResolver.getCandidates(id)) {
+				label = getLabelInternal(candidate);
+				if (label != null) {
+					break;
+				}
+			}
+		}
+		return label;
+	}
+
+	private Label getLabelInternal(String id) {
 		final int len = id.length();
 		final int size = myInternalHyperlinks.size();
-
 		for (int i = 0; i < size; ++i) {
 			final char[] block = myInternalHyperlinks.block(i);
 			for (int offset = 0; offset < block.length; ) {
@@ -141,7 +157,6 @@ public final class BookModel {
 				final String modelId = (idLength > 0) ? new String(block, offset, idLength) : null;
 				offset += idLength;
 				final int paragraphNumber = (((int)block[offset++]) << 16) + (int)block[offset];
-				
 				return new Label(modelId, paragraphNumber);
 			}
 		}

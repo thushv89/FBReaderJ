@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,10 +21,10 @@ package org.geometerplus.fbreader.fbreader;
 
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 
-abstract class FBAction extends ZLApplication.ZLAction {
-	protected final FBReader Reader;
+public abstract class FBAction extends ZLApplication.ZLAction {
+	protected final FBReaderApp Reader;
 
-	FBAction(FBReader fbreader) {
+	public FBAction(FBReaderApp fbreader) {
 		Reader = fbreader;
 	}
 }

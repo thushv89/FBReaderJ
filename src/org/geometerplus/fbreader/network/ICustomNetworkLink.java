@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,29 +21,19 @@ package org.geometerplus.fbreader.network;
 
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 
+import org.geometerplus.fbreader.network.urlInfo.*;
+
 public interface ICustomNetworkLink extends INetworkLink {
-
-	public static final int INVALID_ID = -1;
-
-	int getId();
-	void setId(int id);
-
-	interface SaveLinkListener {
-		void onSaveLink(ICustomNetworkLink link);
-	}
-
-	void setSaveLinkListener(SaveLinkListener listener);
-	void saveLink();
-
 	void setSiteName(String name);
 	void setTitle(String title);
 	void setSummary(String summary);
-	void setIcon(String icon);
 
-	void setLink(String urlKey, String url);
-	void removeLink(String urlKey);
+	UrlInfoCollection<UrlInfoWithDate> urlInfoMap();
+	void setUrl(UrlInfo.Type type, String url);
+	void removeUrl(UrlInfo.Type type);
 
-	void reloadInfo() throws ZLNetworkException;
+	boolean isObsolete(long milliSeconds);
+	void reloadInfo(boolean urlsOnly, boolean quietly) throws ZLNetworkException;
 
 	// returns true if next methods have changed link's data:
 	//   setSiteName, setTitle, setSummary, setIcon, setLink, removeLink

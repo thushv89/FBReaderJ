@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,19 +19,60 @@
 
 package org.geometerplus.fbreader.tree;
 
-import java.util.*;
+import java.io.Serializable;
 
 import org.geometerplus.zlibrary.core.tree.ZLTree;
 import org.geometerplus.zlibrary.core.image.ZLImage;
+import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
 
 public abstract class FBTree extends ZLTree<FBTree> implements Comparable<FBTree> {
+	public static class Key implements Serializable {
+		private static final long serialVersionUID = -6500763093522202052L;
+
+		public final Key Parent;
+		public final String Id;
+
+		private Key(Key parent, String id) {
+			if (id == null) {
+				throw new IllegalArgumentException("FBTree.Key string id must be non-null");
+			}
+			Parent = parent;
+			Id = id;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (other == this) {
+				return true;
+			}
+			if (!(other instanceof Key)) {
+				return false;
+			}
+			final Key key = (Key)other;
+			return Id.equals(key.Id) && ZLMiscUtil.equals(Parent, key.Parent);
+		}
+
+		@Override
+		public int hashCode() {
+			return Id.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return Parent == null ? Id : Parent.toString() + " :: " + Id;
+		}
+	}
+
+	public static enum Status {
+		READY_TO_OPEN,
+		WAIT_FOR_OPEN,
+		ALWAYS_RELOAD_BEFORE_OPENING,
+		CANNOT_OPEN
+	};
 
 	private ZLImage myCover;
 	private boolean myCoverRequested;
-
-	protected FBTree(int level) {
-		super(level);
-	}
+	private Key myKey;
 
 	protected FBTree() {
 		super();
@@ -45,15 +86,57 @@ public abstract class FBTree extends ZLTree<FBTree> implements Comparable<FBTree
 		super(parent, position);
 	}
 
+	public final Key getUniqueKey() {
+		if (myKey == null) {
+			myKey = new Key(Parent != null ? Parent.getUniqueKey() : null, getStringId());
+		}
+		return myKey;
+	}
+
+	/**
+	 * Returns id used as a part of unique key above. This string must be not null
+     * and be different for all children of same tree
+	 */
+	protected abstract String getStringId();
+
+	public FBTree getSubTree(String id) {
+		for (FBTree tree : subTrees()) {
+			if (id.equals(tree.getStringId())) {
+				return tree;
+			}
+		}
+		return null;
+	}
+
+	public int indexOf(FBTree tree) {
+		return subTrees().indexOf(tree);
+	}
+
 	public abstract String getName();
 
-	protected String getSortKey() {
+	public String getTreeTitle() {
 		return getName();
 	}
 
-	public int compareTo(FBTree ct) {
+	protected String getSortKey() {
+		final String sortKey = getName();
+		if (sortKey == null ||
+			sortKey.length() <= 1 ||
+			Character.isLetterOrDigit(sortKey.charAt(0))) {
+			return sortKey;
+		}
+
+		for (int i = 1; i < sortKey.length(); ++i) {
+			if (Character.isLetterOrDigit(sortKey.charAt(i))) {
+				return sortKey.substring(i);
+			}
+		}
+		return sortKey;
+	}
+
+	public int compareTo(FBTree tree) {
 		final String key0 = getSortKey();
-		final String key1 = ct.getSortKey();
+		final String key1 = tree.getSortKey();
 		if (key0 == null) {
 			return (key1 == null) ? 0 : -1;
 		}
@@ -63,33 +146,7 @@ public abstract class FBTree extends ZLTree<FBTree> implements Comparable<FBTree
 		return key0.toLowerCase().compareTo(key1.toLowerCase());
 	}
 
-	public final void sortAllChildren() {
-		List<FBTree> children = subTrees();
-		if (!children.isEmpty()) {
-			Collections.sort(children);
-			for (FBTree tree : children) {
-				tree.sortAllChildren();
-			}
-		}
-	}
-
-	private String mySecondString;
-
-	public final void invalidateChildren() {
-		mySecondString = null;
-	}
-
-	public final String getSecondString() {
-		if (mySecondString == null) {
-			mySecondString = getSummary();
-			if (mySecondString == null) {
-				mySecondString = "";
-			}
-		}
-		return mySecondString;
-	}
-
-	protected String getSummary() {
+	public String getSummary() {
 		StringBuilder builder = new StringBuilder();
 		int count = 0;
 		for (FBTree subtree : subTrees()) {
@@ -108,14 +165,29 @@ public abstract class FBTree extends ZLTree<FBTree> implements Comparable<FBTree
 		return null;
 	}
 
+	protected boolean canUseParentCover() {
+		return true;
+	}
+
 	public final ZLImage getCover() {
 		if (!myCoverRequested) {
 			myCover = createCover();
-			if (myCover == null && Parent != null) {
+			if (myCover == null && Parent != null && canUseParentCover()) {
 				myCover = Parent.getCover();
 			}
 			myCoverRequested = true;
 		}
 		return myCover;
+	}
+
+	public Status getOpeningStatus() {
+		return Status.READY_TO_OPEN;
+	}
+
+	public String getOpeningStatusMessage() {
+		return null;
+	}
+
+	public void waitForOpening() {
 	}
 }

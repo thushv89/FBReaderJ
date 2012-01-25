@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,19 +19,46 @@
 
 package org.geometerplus.fbreader.library;
 
-final class SeriesTree extends LibraryTree {
-	private final String mySeries;
+import java.util.Collections;
 
-	SeriesTree(LibraryTree parent, String series) {
-		super(parent);
-		mySeries = series;
+public final class SeriesTree extends LibraryTree {
+	public final String Series;
+
+	SeriesTree(String series) {
+		Series = series;
 	}
 
+	SeriesTree(LibraryTree parent, String series, int position) {
+		super(parent, position);
+		Series = series;
+	}
+
+	@Override
 	public String getName() {
-		return mySeries;
+		return Series;
 	}
 
-	BookTree createBookInSeriesSubTree(Book book) {
-		return new BookInSeriesTree(this, book);
+	@Override
+	protected String getStringId() {
+		return "@SeriesTree " + getName();
+	}
+
+	BookTree getBookInSeriesSubTree(Book book) {
+		final BookInSeriesTree temp = new BookInSeriesTree(book);
+		int position = Collections.binarySearch(subTrees(), temp);
+		if (position >= 0) {
+			return (BookInSeriesTree)subTrees().get(position);
+		} else {
+			return new BookInSeriesTree(this, book, - position - 1);
+		}
+	}
+
+	@Override
+	public boolean containsBook(Book book) {
+		if (book == null) {
+			return false;
+		}
+		final SeriesInfo info = book.getSeriesInfo();
+		return info != null && Series.equals(info.Name);
 	}
 }

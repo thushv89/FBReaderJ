@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import android.app.PendingIntent;
 import android.net.Uri;
 import android.content.Intent;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
@@ -40,8 +41,10 @@ import org.benetech.android.R;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.network.*;
 
-import org.geometerplus.fbreader.network.BookReference;
+import org.geometerplus.fbreader.network.urlInfo.UrlInfo;
+import org.geometerplus.fbreader.network.urlInfo.BookUrlInfo;
 
+import org.geometerplus.android.fbreader.FBReader;
 
 public class BookDownloaderService extends Service {
 
@@ -114,8 +117,12 @@ public class BookDownloaderService extends Service {
 		final int notifications = intent.getIntExtra(SHOW_NOTIFICATIONS_KEY, 0);
 
 		final String url = uri.toString();
-		final int bookFormat = intent.getIntExtra(BOOK_FORMAT_KEY, BookReference.Format.NONE);
-		final int referenceType = intent.getIntExtra(REFERENCE_TYPE_KEY, BookReference.Type.UNKNOWN);
+		final int bookFormat = intent.getIntExtra(BOOK_FORMAT_KEY, BookUrlInfo.Format.NONE);
+		UrlInfo.Type referenceType = (UrlInfo.Type)intent.getSerializableExtra(REFERENCE_TYPE_KEY);
+		if (referenceType == null) {
+			referenceType = UrlInfo.Type.Book;
+		}
+
 		String cleanURL = intent.getStringExtra(CLEAN_URL_KEY);
 		if (cleanURL == null) {
 			cleanURL = url;
@@ -131,7 +138,7 @@ public class BookDownloaderService extends Service {
 			return;
 		}
 
-		String fileName = BookReference.makeBookFileName(cleanURL, bookFormat, referenceType);
+		String fileName = BookUrlInfo.makeBookFileName(cleanURL, bookFormat, referenceType);
 		if (fileName == null) {
 			doStop();
 			return;
@@ -142,12 +149,12 @@ public class BookDownloaderService extends Service {
 			final String dir = fileName.substring(0, index);
 			final File dirFile = new File(dir);
 			if (!dirFile.exists() && !dirFile.mkdirs()) {
-				// TODO: error message
+				showMessage("cannotCreateDirectory", dirFile.getPath());
 				doStop();
 				return;
 			}
 			if (!dirFile.exists() || !dirFile.isDirectory()) {
-				// TODO: error message
+				showMessage("cannotCreateDirectory", dirFile.getPath());
 				doStop();
 				return;
 			}
@@ -156,7 +163,7 @@ public class BookDownloaderService extends Service {
 		final File fileFile = new File(fileName);
 		if (fileFile.exists()) {
 			if (!fileFile.isFile()) {
-				// TODO: error message
+				showMessage("cannotCreateFile", fileFile.getPath());
 				doStop();
 				return;
 			}
@@ -186,9 +193,24 @@ public class BookDownloaderService extends Service {
 		startFileDownload(url, sslCertificate, fileFile, title);
 	}
 
+	private void showMessage(String key) {
+		Toast.makeText(
+			getApplicationContext(),
+			getResource().getResource(key).getValue(),
+			Toast.LENGTH_SHORT
+		).show();
+	}
+
+	private void showMessage(String key, String parameter) {
+		Toast.makeText(
+			getApplicationContext(),
+			getResource().getResource(key).getValue().replace("%s", parameter),
+			Toast.LENGTH_SHORT
+		).show();
+	}
 
 	private Intent getFBReaderIntent(final File file) {
-		final Intent intent = new Intent(getApplicationContext(), org.geometerplus.android.fbreader.FBReader.class);
+		final Intent intent = new Intent(getApplicationContext(), FBReader.class);
 		if (file != null) {
 			intent.setAction(Intent.ACTION_VIEW).setData(Uri.fromFile(file));
 		}
@@ -234,7 +256,7 @@ public class BookDownloaderService extends Service {
 
 	private void sendDownloaderCallback() {
 		sendBroadcast(
-			new Intent(getApplicationContext(), BookDownloaderCallback.class)
+			new Intent(getApplicationContext(), ListenerCallback.class)
 		);
 	}
 
@@ -281,14 +303,13 @@ public class BookDownloaderService extends Service {
 			}
 		};
 
-		final ZLNetworkRequest request = new ZLNetworkRequest(urlString, sslCertificate) {
-			public void handleStream(URLConnection connection, InputStream inputStream) throws IOException, ZLNetworkException {
+		final ZLNetworkRequest request = new ZLNetworkRequest(urlString, sslCertificate, null) {
+			public void handleStream(InputStream inputStream, int length) throws IOException, ZLNetworkException {
 				final int updateIntervalMillis = 1000; // FIXME: remove hardcoded time constant
 
-				final int fileLength = connection.getContentLength();
 				int downloadedPart = 0;
 				long progressTime = System.currentTimeMillis() + updateIntervalMillis;
-				if (fileLength <= 0) {
+				if (length <= 0) {
 					progressHandler.sendEmptyMessage(-1);
 				}
 				OutputStream outStream;
@@ -305,13 +326,13 @@ public class BookDownloaderService extends Service {
 							break;
 						}
 						downloadedPart += size;
-						if (fileLength > 0) {
+						if (length > 0) {
 							final long currentTime = System.currentTimeMillis();
 							if (currentTime > progressTime) {
 								progressTime = currentTime + updateIntervalMillis;
-								progressHandler.sendEmptyMessage(downloadedPart * 100 / fileLength);
+								progressHandler.sendEmptyMessage(downloadedPart * 100 / length);
 							}
-							/*if (downloadedPart * 100 / fileLength > 95) {
+							/*if (downloadedPart * 100 / length > 95) {
 								throw new IOException("debug exception");
 							}*/
 						}
@@ -329,12 +350,16 @@ public class BookDownloaderService extends Service {
 
 		final Thread downloader = new Thread(new Runnable() {
 			public void run() {
+				boolean success = false;
 				try {
 					ZLNetworkManager.Instance().perform(request);
+					success = true;
 				} catch (ZLNetworkException e) {
 					// TODO: show error message to User
+					e.printStackTrace();
 					file.delete();
-					downloadFinishHandler.sendEmptyMessage(0);
+				} finally {
+					downloadFinishHandler.sendEmptyMessage(success ? 1 : 0);
 				}
 				downloadFinishHandler.sendEmptyMessage(1);
 			}

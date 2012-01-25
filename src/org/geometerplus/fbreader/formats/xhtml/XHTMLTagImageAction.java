@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,22 +19,25 @@
 
 package org.geometerplus.fbreader.formats.xhtml;
 
-import org.geometerplus.fbreader.formats.util.MiscUtil;
-import org.geometerplus.zlibrary.core.xml.ZLStringMap;
-import org.geometerplus.zlibrary.core.image.ZLFileImage;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.image.ZLFileImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
+import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 
+import org.geometerplus.fbreader.formats.util.MiscUtil;
 import org.geometerplus.fbreader.bookmodel.BookReader;
 
 class XHTMLTagImageAction extends XHTMLTagAction {
+	private final String myNamespace;
 	private final String myNameAttribute;
 
-	XHTMLTagImageAction(String nameAttribute) {
+	XHTMLTagImageAction(String namespace, String nameAttribute) {
+		myNamespace = namespace;
 		myNameAttribute = nameAttribute;
 	}
 
 	protected void doAtStart(XHTMLReader reader, ZLStringMap xmlattributes) {
-		String fileName = xmlattributes.getValue(myNameAttribute);
+		String fileName = reader.getAttributeValue(xmlattributes, myNamespace, myNameAttribute);
 		if (fileName != null) {
 			fileName = MiscUtil.decodeHtmlReference(fileName);
 			final ZLFile imageFile = ZLFile.createFileByPath(reader.myPathPrefix + fileName);
@@ -44,9 +47,9 @@ class XHTMLTagImageAction extends XHTMLTagAction {
 				if (flag) {
 					modelReader.endParagraph();
 				}
-				final String imageName = imageFile.getName(false);
-				modelReader.addImageReference(imageName, (short)0);
-				modelReader.addImage(imageName, new ZLFileImage("image/auto", imageFile));
+				final String imageName = imageFile.getLongName();
+				modelReader.addImageReference(imageName, (short)0, false);
+				modelReader.addImage(imageName, new ZLFileImage(MimeType.IMAGE_AUTO, imageFile));
 				if (flag) {
 					modelReader.beginParagraph();
 				}

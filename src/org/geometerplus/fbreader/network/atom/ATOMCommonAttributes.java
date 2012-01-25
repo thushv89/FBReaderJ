@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,14 +21,13 @@ package org.geometerplus.fbreader.network.atom;
 
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 
-
 abstract class ATOMCommonAttributes {
 	public static final String XML_BASE = "xml:base";
 	public static final String XML_LANG = "xml:lang";
 
 	private ZLStringMap myAttributes;
 
-	public void readAttributes(ZLStringMap source) {
+	protected ATOMCommonAttributes(ZLStringMap source) {
 		readAttribute(XML_BASE, source);
 		readAttribute(XML_LANG, source);
 	}
@@ -63,7 +62,7 @@ abstract class ATOMCommonAttributes {
 
 	// FIXME: HACK: addAttribute is used ONLY to add OPDSPrice to the ATOMLink... Must be killed + SEE NetworkOPDSFeedReader
 	// name and value MUST BE not null AND MUST BE INTERNED String objects
-	public void addAttribute(String name, String value) {
+	public final void addAttribute(String name, String value) {
 		if (value != null) {
 			value = value.trim().intern();
 			if (value.length() > 0) {

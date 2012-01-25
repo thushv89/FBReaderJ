@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,12 +19,19 @@
 
 package org.geometerplus.zlibrary.core.util;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ZLMiscUtil {
 	public static <T> boolean equals(T o0, T o1) {
-		return (o0 == null) ? (o1 == null) : o0.equals(o1);
+		return o0 == null ? o1 == null : o0.equals(o1);
+	}
+
+	public static boolean isEmptyString(String s) {
+		return s == null || "".equals(s);
+	}
+
+	public static int hashCode(Object o) {
+		return o != null ? o.hashCode() : 0;
 	}
 
 	public static <T> boolean listsEquals(List<T> list1, List<T> list2) {
@@ -58,5 +65,29 @@ public abstract class ZLMiscUtil {
 	public static boolean matchesIgnoreCase(String text, String lowerCasePattern) {
 		return (text.length() >= lowerCasePattern.length()) &&
 			   (text.toLowerCase().indexOf(lowerCasePattern) >= 0);
+	}
+
+	public static String listToString(List<String> list, String delimiter) {
+		if (list == null || list.isEmpty()) {
+			return "";
+		}
+		final StringBuilder builder = new StringBuilder();
+		boolean first = true;
+		for (String s : list) {
+			if (first) {
+				first = false;
+			} else {
+				builder.append(delimiter);
+			}
+			builder.append(s);
+		}
+		return builder.toString();
+	}
+
+	public static List<String> stringToList(String str, String delimiter) {
+		if (str == null || "".equals(str)) {
+			return Collections.emptyList();
+		}
+		return Arrays.asList(str.split(delimiter));
 	}
 }

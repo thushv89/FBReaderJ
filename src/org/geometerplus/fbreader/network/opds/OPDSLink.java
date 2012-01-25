@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,30 +23,21 @@ import java.util.Currency;
 import java.util.LinkedList;
 import java.util.Locale;
 
+import org.geometerplus.zlibrary.core.xml.ZLStringMap;
+import org.geometerplus.zlibrary.core.money.Money;
+
 import org.geometerplus.fbreader.network.atom.ATOMLink;
 
-
-class OPDSPrice {
-
-	public final String Price;
-	public final String Currency;
-
-	// @param price     price value; must be not null
-	// @param currency  currency code value; must be not null;
-	//                  http://www.iso.org/iso/en/prods-services/popstds/currencycodeslist.html
-	public OPDSPrice(String price, String currency) {
-		Price = price;
-		Currency = currency;
-	}
-}
-
 class OPDSLink extends ATOMLink {
-
-	public final LinkedList<OPDSPrice> Prices = new LinkedList<OPDSPrice>();
+	public final LinkedList<Money> Prices = new LinkedList<Money>();
 	public final LinkedList<String> Formats = new LinkedList<String>();
 
-	private OPDSPrice getPrice(String currency) {
-		for (OPDSPrice p: Prices) {
+	protected OPDSLink(ZLStringMap attributes) {
+		super(attributes);
+	}
+
+	private Money getPrice(String currency) {
+		for (Money p : Prices) {
 			if (currency.equals(p.Currency)) {
 				return p;
 			}
@@ -54,13 +45,13 @@ class OPDSLink extends ATOMLink {
 		return null;
 	}
 
-	public OPDSPrice selectBestPrice() {
+	public Money selectBestPrice() {
 		if (Prices.isEmpty()) {
 			return null;
 		} else if (Prices.size() == 1) {
 			return Prices.get(0);
 		}
-		OPDSPrice price;
+		Money price;
 		final Locale locale = Locale.getDefault();
 		if (locale.getCountry().length() == 2) {
 			final String bestCode = Currency.getInstance(locale).getCurrencyCode();

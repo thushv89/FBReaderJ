@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,19 +31,8 @@ public abstract class ZLImageManager {
 	}
 
 	public abstract ZLImageData getImageData(ZLImage image);
+	protected abstract void startImageLoading(ZLLoadableImage image, Runnable postLoadingRunnable);
 	
-/*	protected final static class Color {
-		public final byte Red;
-		public final byte Green;
-		public final byte Blue;
-		
-		public Color(final byte red, final byte green, final byte blue) {
-			Red = red;
-			Green = green;
-			Blue = blue;
-		}
-	}
-*/	
 	protected final static class PalmImageHeader {
 		public final int Width;
 		public final int Height;

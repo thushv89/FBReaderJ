@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,15 +22,15 @@ package org.geometerplus.fbreader.network.authentication.litres;
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 
-import org.geometerplus.fbreader.network.NetworkException;
-
 class LitResLoginXMLReader extends LitResAuthenticationXMLReader {
 	private static final String TAG_AUTHORIZATION_OK = "catalit-authorization-ok";
 	private static final String TAG_AUTHORIZATION_FAILED = "catalit-authorization-failed";
 
 	public String FirstName;
 	public String LastName;
+	public String UserId;
 	public String Sid;
+	public boolean CanRebill;
 
 	public LitResLoginXMLReader(String hostName) {
 		super(hostName);
@@ -40,13 +40,19 @@ class LitResLoginXMLReader extends LitResAuthenticationXMLReader {
 	public boolean startElementHandler(String tag, ZLStringMap attributes) {
 		tag = tag.toLowerCase().intern();
 		if (TAG_AUTHORIZATION_FAILED == tag) {
-			setException(new ZLNetworkException(NetworkException.ERROR_AUTHENTICATION_FAILED));
+			setException(new ZLNetworkException(ZLNetworkException.ERROR_AUTHENTICATION_FAILED));
 		} else if (TAG_AUTHORIZATION_OK == tag) {
 			FirstName = attributes.getValue("first-name");
 			LastName = attributes.getValue("first-name");
+			UserId = attributes.getValue("user-id");
 			Sid = attributes.getValue("sid");
+			String stringCanRebill = attributes.getValue("can-rebill");
+			if (stringCanRebill == null) {
+				stringCanRebill = attributes.getValue("can_rebill");
+			}
+			CanRebill = stringCanRebill != null && !"0".equals(stringCanRebill) && !"no".equalsIgnoreCase(stringCanRebill);
 		} else {
-			setException(new ZLNetworkException(NetworkException.ERROR_SOMETHING_WRONG, HostName));
+			setException(new ZLNetworkException(ZLNetworkException.ERROR_SOMETHING_WRONG, HostName));
 		}
 		return true;
 	}

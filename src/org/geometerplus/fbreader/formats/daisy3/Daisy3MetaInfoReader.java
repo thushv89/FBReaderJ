@@ -25,7 +25,7 @@ import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.xml.*;
 
 import org.geometerplus.fbreader.library.Book;
-import org.geometerplus.fbreader.constants.XMLNamespace;
+import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 
 /**
  * 
@@ -35,7 +35,7 @@ import org.geometerplus.fbreader.constants.XMLNamespace;
  * This class is very similar to OEBMetaInfoReader found in 
  * org.geometerplus.fbreader.formats.oeb
  */
-class Daisy3MetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
+class Daisy3MetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 	private final Book myBook;
 
 	private String myDCMetadataTag = "dc-metadata";

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,32 +19,38 @@
 
 package org.geometerplus.fbreader.formats.plucker;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
-import org.geometerplus.zlibrary.core.image.ZLSingleImage;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.image.ZLSingleImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 public class ZCompressedFileImage extends ZLSingleImage {
 	private final ZLFile myFile;
 	private final int myOffset;
 	private final int myCompressedSize;
 	
-	public ZCompressedFileImage(String mimeType, final ZLFile file, final int offset, final int compressedSize) {
+	public ZCompressedFileImage(MimeType mimeType, final ZLFile file, final int offset, final int compressedSize) {
 		super(mimeType);
 		myFile = file;
 		myOffset = offset;
 		myCompressedSize = compressedSize;
 	}
 
-	public byte[] byteData() {
+	public String getURI() {
+		// TODO: implement
+		return null;
+	}
+
+	@Override
+	public InputStream inputStream() {
 		try {
 			final InputStream stream = myFile.getInputStream();
 			if (stream == null) {
-				return new byte[0];
+				return null;
 			}
 			
 			final ArrayList<byte[]> data = new ArrayList<byte[]>();
@@ -68,10 +74,11 @@ public class ZCompressedFileImage extends ZLSingleImage {
 				System.arraycopy(data.get(i), 0, buffer, i * 4096, 4096);
 			}
 			System.arraycopy(data.get(dataSizeMinus1), 0, buffer, dataSizeMinus1 * 4096, sizeOfBufferData);
-			return buffer;
+			return new ByteArrayInputStream(buffer);
 		} catch (IOException e) {
+			return null;
 		} catch (DataFormatException e) {
+			return null;
 		}
-		return new byte[0];
 	}
 }

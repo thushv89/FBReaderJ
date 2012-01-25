@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@ package org.geometerplus.fbreader.formats.oeb;
 
 import java.util.*;
 
+import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.xml.*;
 
 import org.geometerplus.fbreader.library.Book;
-import org.geometerplus.fbreader.constants.XMLNamespace;
 
-class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
+class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 	private final Book myBook;
 
 	private String myDCMetadataTag = "dc-metadata";
@@ -41,7 +41,7 @@ class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	private String myMetaTag = "meta";
 
 	private String mySeriesTitle = "";
-	private int mySeriesIndex = 0;
+	private float mySeriesIndex = 0;
 	
 	private final ArrayList<String> myAuthorList = new ArrayList<String>();
 	private final ArrayList<String> myAuthorList2 = new ArrayList<String>();
@@ -83,13 +83,15 @@ class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	private int myReadState;
 	private boolean myReadMetaData;
 
-	private final StringBuffer myBuffer = new StringBuffer();
+	private final StringBuilder myBuffer = new StringBuilder();
 
+	@Override
 	public boolean processNamespaces() {
 		return true;
 	}
 
-	public void namespaceMapChangedHandler(HashMap<String,String> namespaceMap) {
+	@Override
+	public void namespaceMapChangedHandler(Map<String,String> namespaceMap) {
 		myTitleTag = null;
 		myAuthorTag = null;
 		mySubjectTag = null;
@@ -110,6 +112,7 @@ class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		}
 	}
 
+	@Override
 	public boolean startElementHandler(String tag, ZLStringMap attributes) {
 		tag = tag.toLowerCase().intern();
 		if (tag == myMetadataTag || tag == myDCMetadataTag || tag == myOpfMetadataTag) {
@@ -135,7 +138,7 @@ class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 				} else if (attributes.getValue("name").equals("calibre:series_index")) {
 					final String strIndex = attributes.getValue("content");
 					try {
-						mySeriesIndex = Integer.parseInt(strIndex);
+						mySeriesIndex = Float.parseFloat(strIndex);
 					} catch (NumberFormatException e) {
 					}
 				}
@@ -144,6 +147,7 @@ class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		return false;
 	}
 
+	@Override
 	public void characterDataHandler(char[] data, int start, int len) {
 		switch (myReadState) {
 			case READ_NONE:
@@ -158,6 +162,7 @@ class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		}
 	}
 
+	@Override
 	public boolean endElementHandler(String tag) {
 		tag = tag.toLowerCase();
 		if (tag.equals(myMetadataTagRealName)) {
@@ -195,7 +200,7 @@ class OEBMetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespace {
 			}
 		} else {
 			if (tag.equals(myMetaTag)) {
-				if (!mySeriesTitle.equals("") && mySeriesIndex > 0) {
+				if (!"".equals(mySeriesTitle) && mySeriesIndex > 0) {
 					myBook.setSeriesInfo(mySeriesTitle, mySeriesIndex);
 				}
 			}

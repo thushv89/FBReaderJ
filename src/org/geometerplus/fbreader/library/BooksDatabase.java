@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import org.geometerplus.zlibrary.text.view.ZLTextPosition;
 public abstract class BooksDatabase {
 	private static BooksDatabase ourInstance;
 
-	static BooksDatabase Instance() {
+	public static BooksDatabase Instance() {
 		return ourInstance;
 	}
 
@@ -49,15 +49,17 @@ public abstract class BooksDatabase {
 	protected void addTag(Book book, Tag tag) {
 		book.addTagWithNoCheck(tag);
 	}
-	protected void setSeriesInfo(Book book, String series, long index) {
+	protected void setSeriesInfo(Book book, String series, float index) {
 		book.setSeriesInfoWithNoCheck(series, index);
 	}
 
 	protected abstract void executeAsATransaction(Runnable actions);
 
 	// returns map fileId -> book
-	protected abstract Map<Long,Book> listBooks(FileInfoSet infos);
+	protected abstract Map<Long,Book> loadBooks(FileInfoSet infos, boolean existing);
+	protected abstract void setExistingFlag(Collection<Book> books, boolean flag);
 	protected abstract Book loadBook(long bookId);
+	protected abstract void reloadBook(Book book);
 	protected abstract Book loadBookByFile(long fileId, ZLFile file);
 
 	protected abstract List<Author> loadAuthors(long bookId);
@@ -81,15 +83,19 @@ public abstract class BooksDatabase {
 	protected abstract void removeFileInfo(long fileId);
 	protected abstract void saveFileInfo(FileInfo fileInfo);
 
-	protected abstract List<Long> listRecentBookIds();
+	protected abstract List<Long> loadRecentBookIds();
 	protected abstract void saveRecentBookIds(final List<Long> ids);
 
-	protected Bookmark createBookmark(long id, long bookId, String bookTitle, String text, Date creationDate, Date modificationDate, Date accessDate, int accessCounter, String modelId, int paragraphIndex, int wordIndex, int charIndex) {
-		return new Bookmark(id, bookId, bookTitle, text, creationDate, modificationDate, accessDate, accessCounter, modelId, paragraphIndex, wordIndex, charIndex);
+	protected abstract List<Long> loadFavoritesIds();
+	protected abstract void addToFavorites(long bookId);
+	protected abstract void removeFromFavorites(long bookId);
+
+	protected Bookmark createBookmark(long id, long bookId, String bookTitle, String text, Date creationDate, Date modificationDate, Date accessDate, int accessCounter, String modelId, int paragraphIndex, int wordIndex, int charIndex, boolean isVisible) {
+		return new Bookmark(id, bookId, bookTitle, text, creationDate, modificationDate, accessDate, accessCounter, modelId, paragraphIndex, wordIndex, charIndex, isVisible);
 	}
 
-	protected abstract List<Bookmark> listBookmarks(long bookId);
-	protected abstract List<Bookmark> listAllBookmarks();
+	protected abstract List<Bookmark> loadBookmarks(long bookId, boolean isVisible);
+	protected abstract List<Bookmark> loadAllVisibleBookmarks();
 	protected abstract long saveBookmark(Bookmark bookmark);
 	protected abstract void deleteBookmark(Bookmark bookmark);
 
@@ -99,4 +105,7 @@ public abstract class BooksDatabase {
 	protected abstract boolean insertIntoBookList(long bookId);
 	protected abstract boolean deleteFromBookList(long bookId);
 	protected abstract boolean checkBookList(long bookId);
+
+	protected abstract Collection<String> loadVisitedHyperlinks(long bookId);
+	protected abstract void addVisitedHyperlink(long bookId, String hyperlinkId);
 }

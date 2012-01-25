@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,25 +22,21 @@ package org.geometerplus.fbreader.network.opds;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
-
 class OpenSearchDescription {
-
 	public static OpenSearchDescription createDefault(String template) {
-		return new OpenSearchDescription(template, 20, -1, -1);
+		return new OpenSearchDescription(template, -1, -1);
 	}
 
 	public final String Template;
 	public final int IndexOffset;
 	public final int PageOffset;
 
-	public final int ItemsPerPage;
+	public final int ItemsPerPage = 20;
 
-	public OpenSearchDescription(String template, int itemsPerPage, int indexOffset, int pageOffset) {
+	OpenSearchDescription(String template, int indexOffset, int pageOffset) {
 		Template = template;
 		IndexOffset = indexOffset;
 		PageOffset = pageOffset;
-		ItemsPerPage = itemsPerPage;
 	}
 
 	public boolean isValid() {
@@ -50,7 +46,7 @@ class OpenSearchDescription {
 	// searchTerms -- an HTML-encoded string
 	public String makeQuery(String searchTerms) {
 		final StringBuffer query = new StringBuffer();
-		final Matcher m = Pattern.compile("\\{(.*)\\}").matcher(Template);
+		final Matcher m = Pattern.compile("\\{([^}]*)\\}").matcher(Template);
 		while (m.find()) {
 			String name = m.group(1);
 			if (name == null || name.length() == 0 || name.contains(":")) {
@@ -64,13 +60,7 @@ class OpenSearchDescription {
 			if (name == "searchTerms") {
 				m.appendReplacement(query, searchTerms);
 			} else if (name == "count") {
-				if (ItemsPerPage > 0) {
-					m.appendReplacement(query, String.valueOf(ItemsPerPage));
-				} else if (optional) {
-					m.appendReplacement(query, "");
-				} else {
-					return null;
-				}
+				m.appendReplacement(query, String.valueOf(ItemsPerPage));
 			} else if (optional) {
 				m.appendReplacement(query, "");
 			} else if (name == "startIndex") {
@@ -86,7 +76,7 @@ class OpenSearchDescription {
 					return null;
 				}
 			} else if (name == "language") {
-				m.appendReplacement(query, ZLNetworkUtil.htmlEncode("*"));
+				m.appendReplacement(query, "*");
 			} else if (name == "inputEncoding" || name == "outputEncoding") {
 				m.appendReplacement(query, "UTF-8");
 			} else {

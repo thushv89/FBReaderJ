@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,38 +19,62 @@
 
 package org.geometerplus.fbreader.network;
 
-import java.util.Set;
+import java.util.*;
 
 import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
 
 import org.geometerplus.fbreader.network.authentication.NetworkAuthenticationManager;
+import org.geometerplus.fbreader.network.urlInfo.UrlInfo;
+import org.geometerplus.fbreader.network.urlInfo.UrlInfoWithDate;
+import org.geometerplus.fbreader.network.tree.NetworkItemsLoader;
 
+public interface INetworkLink extends Comparable<INetworkLink> {
+	public enum AccountStatus {
+		NotSupported,
+		NoUserName,
+		SignedIn,
+		SignedOut,
+		NotChecked
+	};
 
-public interface INetworkLink {
+	public static final int INVALID_ID = -1;
 
-	String URL_MAIN = "main";
-	String URL_SEARCH = "search";
-	String URL_SIGN_IN = "signIn";
-	String URL_SIGN_OUT = "signOut";
-	String URL_SIGN_UP = "signUp";
-	String URL_REFILL_ACCOUNT = "refillAccount";
-	String URL_RECOVER_PASSWORD = "recoverPassword";
+	int getId();
+	void setId(int id);
 
 	String getSiteName();
 	String getTitle();
 	String getSummary();
-	String getIcon();
-	String getLink(String urlKey);
 
-	Set<String> getLinkKeys();
+	String getUrl(UrlInfo.Type type);
+	UrlInfoWithDate getUrlInfo(UrlInfo.Type type);
+	Set<UrlInfo.Type> getUrlKeys();
 
-	NetworkOperationData createOperationData(INetworkLink link,
-			NetworkOperationData.OnNewItemListener listener);
+	/**
+	 * @param force if local status is not checked then
+     *    if force is set to false, NotChecked will be returned
+     *    if force is set to true, network check will be performed;
+	 *       that will take some time and can return NotChecked (if network is not available)
+     */
+	//AccountStatus getAccountStatus(boolean force);
+
+	/**
+	 * @return 2-letters language code or special token "multi"
+	 */
+	String getLanguage();
+
+	/**
+	 * @param listener Network operation listener
+	 * @return instance, which represents the state of the network operation.
+	 */
+	NetworkOperationData createOperationData(NetworkItemsLoader loader);
+
+	BasketItem getBasketItem();
 
 	ZLNetworkRequest simpleSearchRequest(String pattern, NetworkOperationData data);
 	ZLNetworkRequest resume(NetworkOperationData data);
 
-	NetworkLibraryItem libraryItem();
+	NetworkCatalogItem libraryItem();
 	NetworkAuthenticationManager authenticationManager();
 
 	String rewriteUrl(String url, boolean isUrlExternal);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,8 +24,10 @@ import java.util.*;
 import java.util.zip.*;
 
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
-import org.geometerplus.zlibrary.core.util.ZLInputStreamWithOffset;
 import org.geometerplus.zlibrary.core.image.*;
+import org.geometerplus.zlibrary.core.util.MimeType;
+import org.geometerplus.zlibrary.core.util.ZLInputStreamWithOffset;
+
 import org.geometerplus.zlibrary.text.model.*;
 
 import org.geometerplus.fbreader.bookmodel.*;
@@ -51,12 +53,11 @@ public class PluckerBookReader extends BookReader {
 	private	ArrayList/*<Integer, Integer>*/ myParagraphVector = new ArrayList();
 	private	boolean myParagraphStored;
 	
-	public PluckerBookReader(ZLFile file, BookModel model, String encoding){
+	public PluckerBookReader(ZLFile file, BookModel model, String encoding) {
 		super(model);
 		//myConverter = new EncodedTextReader(encoding).getConverter(); 
 		myFile = file; 
 		myFileSize = (int)file.size();
-		//System.out.println(filePath + "  " + encoding);
 		myFont = FontType.FT_REGULAR;
 		myCharBuffer = new char[65535];
 		//myForcedEntry = null;
@@ -180,7 +181,6 @@ public class PluckerBookReader extends BookReader {
 						} catch (DataFormatException e) {
 							// TODO Auto-generated catch block
 							//e.printStackTrace();
-							//System.out.println(e.getMessage());
 						}
 						//doProcess =
 							//ZLZDecompressor(recordSize - 10 - 4 * paragraphs).
@@ -201,17 +201,13 @@ public class PluckerBookReader extends BookReader {
 				case 2: // image
 				case 3: // compressed image
 				{
-					final String mime = "image/palm";
 					ZLImage image = null;
 					if (type == 2) {
-						//System.out.println("non-compressed image");
-						image = new PluckerFileImage(mime, myFile, myStream.offset(), recordSize - 8);
+						image = new PluckerFileImage(MimeType.IMAGE_PALM, myFile, myStream.offset(), recordSize - 8);
 					} else if (myCompressionVersion == 1) {
-						//System.out.println("DocCompressedImage");
-						image = new DocCompressedFileImage(mime, myFile, myStream.offset(), recordSize - 8);
+						image = new DocCompressedFileImage(MimeType.IMAGE_PALM, myFile, myStream.offset(), recordSize - 8);
 					} else if (myCompressionVersion == 2) {
-						//System.out.println("ZCompressedImage");
-						image = new ZCompressedFileImage(mime, myFile, myStream.offset() + 2, recordSize - 10);
+						image = new ZCompressedFileImage(MimeType.IMAGE_PALM, myFile, myStream.offset() + 2, recordSize - 10);
 					}
 					if (image != null) {
 						addImage(fromNumber(uid), image);
@@ -234,7 +230,6 @@ public class PluckerBookReader extends BookReader {
 				{
 					short columns = (short) PdbUtil.readShort(myStream);
 					short rows = (short) PdbUtil.readShort(myStream);
-					//System.out.println("multiimage");
 					/*PluckerMultiImage image = new PluckerMultiImage(rows, columns, Model.getImageMap());
 					for (int i = 0; i < size / 2 - 2; ++i) {
 						short us = (short)myStream.read();
@@ -346,8 +341,7 @@ public class PluckerBookReader extends BookReader {
 					break;
 				case 0x1A:
 					safeBeginParagraph();
-			//		System.out.println("image ref");
-					addImageReference(fromNumber(twoBytes(ptr, cur + 1)), (short) 0);
+					addImageReference(fromNumber(twoBytes(ptr, cur + 1)), (short)0, false);
 					break;
 				case 0x22:
 					if (!myParagraphStarted) {
@@ -386,8 +380,7 @@ public class PluckerBookReader extends BookReader {
 				case 0x53: // color setting is ignored
 					break;
 				case 0x5C:
-		//			System.out.println("image ref");
-					addImageReference(fromNumber(twoBytes(ptr, cur + 3)), (short) 0);
+					addImageReference(fromNumber(twoBytes(ptr, cur + 3)), (short)0, false);
 					break;
 				case 0x60: // underlined text is ignored
 					break;

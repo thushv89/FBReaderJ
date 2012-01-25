@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -36,13 +37,13 @@ public class MenuActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog);
         resources = getApplicationContext().getResources();
         accessibilityManager =
             (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 
-        int menuItemLimit = 13;
+        int menuItemLimit = 12;
         // hide final 4 main menu items if accessibility is turned on (they only make sense for sighted users)
         if (accessibilityManager.isEnabled()) {
             menuItemLimit = 9;
@@ -137,7 +138,7 @@ public class MenuActivity extends Activity {
         	    }),
 	    tableOfContents(resources.getString(R.string.menu_toc), new MenuOperation() {
 	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SHOW_CONTENTS);
+                ZLApplication.Instance().doAction(ActionCode.SHOW_TOC);
                 activity.finish();
 	        }
 	    }),
@@ -178,12 +179,12 @@ public class MenuActivity extends Activity {
                 activity.finish();
 	        }
 	    }),
-	    rotateScreen(resources.getString(R.string.menu_rotate_screen), new MenuOperation() {
+/*	    rotateScreen(resources.getString(R.string.menu_rotate_screen), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.ROTATE);
                 activity.finish();
 	        }
-	    }),
+	    }),*/
 	    dayNightView(
             new HasLabel() {
                 public String getLabel() {

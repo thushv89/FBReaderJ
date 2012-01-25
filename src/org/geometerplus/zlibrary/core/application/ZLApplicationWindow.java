@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,8 @@
 
 package org.geometerplus.zlibrary.core.application;
 
+import org.geometerplus.zlibrary.core.view.ZLViewWidget;
+
 abstract public class ZLApplicationWindow {
 	private ZLApplication myApplication;
 
@@ -31,21 +33,14 @@ abstract public class ZLApplicationWindow {
 		return myApplication;
 	}
 
-	protected void init() {
-		initMenu();
-	}
+	abstract protected void setTitle(String title);
+	abstract protected void wait(String key, Runnable runnable);
 
-	abstract protected void initMenu();
 	abstract protected void refreshMenu();
 	
-	abstract protected void repaintView();
-	abstract protected void scrollViewTo(int viewPage, int shift);
-	abstract protected void startViewAutoScrolling(int viewPage);
-
-	abstract protected void rotate();
-	abstract protected boolean canRotate();
-	abstract protected void navigate();
-	abstract protected boolean canNavigate();
+	abstract protected ZLViewWidget getViewWidget();
 
 	abstract protected void close();
+
+	abstract protected int getBatteryLevel();
 }

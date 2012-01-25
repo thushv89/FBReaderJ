@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,12 @@ import org.geometerplus.zlibrary.core.image.ZLImage;
 
 import org.geometerplus.fbreader.network.*;
 
-
 public class NetworkBookTree extends NetworkTree {
-
 	public final NetworkBookItem Book;
 
 	private final boolean myShowAuthors;
 
-	NetworkBookTree(NetworkTree parent, NetworkBookItem book, boolean showAuthors) {
+	public NetworkBookTree(NetworkTree parent, NetworkBookItem book, boolean showAuthors) {
 		super(parent);
 		Book = book;
 		myShowAuthors = showAuthors;
@@ -43,8 +41,13 @@ public class NetworkBookTree extends NetworkTree {
 	}
 
 	@Override
+	protected boolean canUseParentCover() {
+		return false;
+	}
+
+	@Override
 	public String getName() {
-		return Book.Title;
+		return Book.Title.toString();
 	}
 
 	@Override
@@ -69,7 +72,7 @@ public class NetworkBookTree extends NetworkTree {
 	}
 
 	@Override
-	public NetworkLibraryItem getHoldedItem() {
-		return Book;
+	protected String getStringId() {
+		return Book.getStringId();
 	}
 }

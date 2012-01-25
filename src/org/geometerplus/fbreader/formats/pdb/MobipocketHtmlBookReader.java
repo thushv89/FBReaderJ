@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,10 @@ import java.util.*;
 import java.io.*;
 import java.nio.charset.CharsetDecoder;
 
-import org.geometerplus.zlibrary.core.image.ZLFileImage;
 import org.geometerplus.zlibrary.core.html.ZLByteBuffer;
 import org.geometerplus.zlibrary.core.html.ZLHtmlAttributeMap;
+import org.geometerplus.zlibrary.core.image.ZLFileImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.fbreader.formats.html.HtmlReader;
 import org.geometerplus.fbreader.formats.html.HtmlTag;
@@ -71,10 +72,10 @@ public class MobipocketHtmlBookReader extends HtmlReader {
 						final int index = Integer.parseInt(recIndex.toString());
 						if (paragraphIsOpen()) {
 							endParagraph();
-							addImageReference("" + index);
+							addImageReference("" + index, false);
 							beginParagraph();
 						} else {
-							addImageReference("" + index);
+							addImageReference("" + index, false);
 						}
 					} catch (NumberFormatException e) {
 					}
@@ -121,7 +122,7 @@ public class MobipocketHtmlBookReader extends HtmlReader {
 							}
 						}
 						myFileposReferences.add(filePosition);
-						// TODO: add hyperlink control
+						attributes.put(new ZLByteBuffer("href"), new ZLByteBuffer("&filepos" + filePosition));
 					} catch (NumberFormatException e) {
 					}
 				}
@@ -181,12 +182,21 @@ public class MobipocketHtmlBookReader extends HtmlReader {
 			if (length <= 0) {
 				break;
 			}
-			addImage("" + index, new ZLFileImage("image/auto", Model.Book.File, offset, length));
+			addImage("" + (index + 1), new ZLFileImage(MimeType.IMAGE_AUTO, Model.Book.File, offset, length));
 		}
 	}
 
 	@Override
 	public void endDocumentHandler() {
+		for (Integer entry: myFileposReferences) {
+			final SortedMap<Integer,Integer> subMap =
+				myPositionToParagraph.tailMap(entry);
+			if (subMap.isEmpty()) {
+				break;
+			}
+			addHyperlinkLabel("filepos" + entry, subMap.get(subMap.firstKey()));
+		}
+
 		for (Map.Entry<Integer,String> entry : myTocEntries.entrySet()) {
 			final SortedMap<Integer,Integer> subMap =
 				myPositionToParagraph.tailMap(entry.getKey());

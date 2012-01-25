@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import org.benetech.android.R;
 
 import org.geometerplus.zlibrary.text.view.ZLTextWordCursor;
 import org.geometerplus.fbreader.bookmodel.TOCTree;
-import org.geometerplus.fbreader.fbreader.FBReader;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
 
 public class TOCActivity extends ListActivity {
 	private TOCAdapter myAdapter;
@@ -51,7 +51,7 @@ public class TOCActivity extends ListActivity {
 
 		//requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		final FBReader fbreader = (FBReader)ZLApplication.Instance();
+		final FBReaderApp fbreader = (FBReaderApp)ZLApplication.Instance();
 		final TOCTree root = fbreader.Model.TOCTree;
 		myAdapter = new TOCAdapter(root);
 		final ZLTextWordCursor cursor = fbreader.BookTextView.getStartCursor();
@@ -59,18 +59,7 @@ public class TOCActivity extends ListActivity {
 		if (cursor.isEndOfParagraph()) {
 			++index;
 		}
-		TOCTree treeToSelect = null;
-		// TODO: process multi-model texts
-		for (TOCTree tree : root) {
-			final TOCTree.Reference reference = tree.getReference();
-			if (reference == null) {
-				continue;
-			}
-			if (reference.ParagraphIndex > index) {
-				break;
-			}
-			treeToSelect = tree;
-		}
+		TOCTree treeToSelect = fbreader.getCurrentTOCElement();
 		myAdapter.selectItem(treeToSelect);
 		mySelectedItem = treeToSelect;
 	}
@@ -110,7 +99,7 @@ public class TOCActivity extends ListActivity {
 			final int position = ((AdapterView.AdapterContextMenuInfo)menuInfo).position;
 			final TOCTree tree = (TOCTree)getItem(position);
 			if (tree.hasChildren()) {
-				menu.setHeaderTitle(tree.getText() + "(has " + tree.subTrees().size() + "children)");
+				menu.setHeaderTitle(tree.getText());
 				final ZLResource resource = ZLResource.resource("tocView");
 				menu.add(0, PROCESS_TREE_ITEM_ID, 0, resource.getResource(isOpen(tree) ? "collapseTree" : "expandTree").getValue());
 				menu.add(0, READ_BOOK_ITEM_ID, 0, resource.getResource("readText").getValue());
@@ -136,7 +125,8 @@ public class TOCActivity extends ListActivity {
 			final TOCTree.Reference reference = tree.getReference();
 			if (reference != null) {
 				finish();
-				final FBReader fbreader = (FBReader)ZLApplication.Instance();
+				final FBReaderApp fbreader = (FBReaderApp)ZLApplication.Instance();
+				fbreader.addInvisibleBookmark();
 				fbreader.BookTextView.gotoPosition(reference.ParagraphIndex, 0, 0);
 				fbreader.showBookTextView();
 			}

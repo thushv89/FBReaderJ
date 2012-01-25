@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ public interface ZLXMLReader {
 	public void characterDataHandlerFinal(char[] ch, int start, int length);
 
 	boolean processNamespaces();
-	void namespaceMapChangedHandler(HashMap<String,String> namespaces);
+	void namespaceMapChangedHandler(Map<String,String> namespaces);
 
 	void addExternalEntities(HashMap<String,char[]> entityMap);
 	List<String> externalDTDs();

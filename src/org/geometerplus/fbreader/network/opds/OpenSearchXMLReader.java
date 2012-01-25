@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,26 +19,22 @@
 
 package org.geometerplus.fbreader.network.opds;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
+import org.geometerplus.zlibrary.core.util.MimeType;
 import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
 
-import org.geometerplus.fbreader.constants.XMLNamespace;
-
 class OpenSearchXMLReader extends ZLXMLReaderAdapter {
-
 	private final List<OpenSearchDescription> myDescriptions;
-	private final int myItemsPerPage;
 
 	private final String myBaseURL;
 
-	public OpenSearchXMLReader(String baseUrl, List<OpenSearchDescription> descriptions, int itemsPerPage) {
+	public OpenSearchXMLReader(String baseUrl, List<OpenSearchDescription> descriptions) {
 		myDescriptions = descriptions;
-		myItemsPerPage = itemsPerPage;
 		myBaseURL = baseUrl;
 	}
 
@@ -57,12 +53,12 @@ class OpenSearchXMLReader extends ZLXMLReaderAdapter {
 	}
 
 	@Override
-	public void namespaceMapChangedHandler(HashMap<String, String> namespaces) {
+	public void namespaceMapChangedHandler(Map<String, String> namespaces) {
 		myOpenSearchNamespaceId = null;
 
 		for (Map.Entry<String,String> entry : namespaces.entrySet()) {
 			final String value = entry.getValue();
-			if (value == XMLNamespace.OpenSearch) {
+			if (value == XMLNamespaces.OpenSearch) {
 				myOpenSearchNamespaceId = intern(entry.getKey());
 			}
 		}
@@ -107,17 +103,17 @@ class OpenSearchXMLReader extends ZLXMLReaderAdapter {
 			break;
 		case DESCRIPTION:
 			if (tagPrefix == myOpenSearchNamespaceId && tag == TAG_URL) {
-				final String type = attributes.getValue("type");
+				final MimeType type = MimeType.get(attributes.getValue("type"));
 				final String rel = attributes.getValue("rel");
-				if (type == OPDSConstants.MIME_APP_ATOM
+				if (MimeType.APP_ATOM.equals(type)
 						&& (rel == null || rel == "results")) {
 					final String template = ZLNetworkUtil.url(myBaseURL, attributes.getValue("template"));
 					final int indexOffset = parseInt(attributes.getValue("indexOffset"));
 					final int pageOffset = parseInt(attributes.getValue("pageOffset"));
 					final OpenSearchDescription descr =
-						new OpenSearchDescription(template, myItemsPerPage, indexOffset, pageOffset);
+						new OpenSearchDescription(template, indexOffset, pageOffset);
 					if (descr.isValid()) {
-						myDescriptions.add(descr);
+						myDescriptions.add(0, descr);
 					}
 				}
 			}

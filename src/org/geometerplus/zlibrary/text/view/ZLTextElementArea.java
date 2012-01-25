@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,19 +19,21 @@
 
 package org.geometerplus.zlibrary.text.view;
 
-final class ZLTextElementArea extends ZLTextFixedPosition { 
-	final int XStart;	
-	final int XEnd;	
-	final int YStart;	
-	final int YEnd;	
-	
+final class ZLTextElementArea extends ZLTextFixedPosition {
+	final int XStart;
+	final int XEnd;
+	final int YStart;
+	final int YEnd;
+
 	final int Length;
 	final boolean AddHyphenationSign;
 	final boolean ChangeStyle;
 	final ZLTextStyle Style;
 	final ZLTextElement Element;
 
-	ZLTextElementArea(int paragraphIndex, int elementIndex, int charIndex, int length, boolean addHyphenationSign, boolean changeStyle, ZLTextStyle style, ZLTextElement element, int xStart, int xEnd, int yStart, int yEnd) {
+	private final boolean myIsLastInElement;
+
+	ZLTextElementArea(int paragraphIndex, int elementIndex, int charIndex, int length, boolean lastInElement, boolean addHyphenationSign, boolean changeStyle, ZLTextStyle style, ZLTextElement element, int xStart, int xEnd, int yStart, int yEnd) {
 		super(paragraphIndex, elementIndex, charIndex);
 
 		XStart = xStart;
@@ -40,6 +42,8 @@ final class ZLTextElementArea extends ZLTextFixedPosition {
 		YEnd = yEnd;
 
 		Length = length;
+		myIsLastInElement = lastInElement;
+
 		AddHyphenationSign = addHyphenationSign;
 		ChangeStyle = changeStyle;
 		Style = style;
@@ -48,5 +52,13 @@ final class ZLTextElementArea extends ZLTextFixedPosition {
 
 	boolean contains(int x, int y) {
 		return (y >= YStart) && (y <= YEnd) && (x >= XStart) && (x <= XEnd);
+	}
+
+	boolean isFirstInElement() {
+		return CharIndex == 0;
+	}
+
+	boolean isLastInElement() {
+		return myIsLastInElement;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,39 +20,31 @@
 package org.geometerplus.fbreader.network.opds;
 
 import java.util.*;
-import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
-import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
-import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
+import org.geometerplus.zlibrary.core.util.MimeType;
+import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
 
 import org.geometerplus.fbreader.network.*;
 import org.geometerplus.fbreader.network.authentication.NetworkAuthenticationManager;
+import org.geometerplus.fbreader.network.urlInfo.*;
+import org.geometerplus.fbreader.network.tree.NetworkItemsLoader;
 
+public abstract class OPDSNetworkLink extends AbstractNetworkLink {
+	private TreeMap<RelationAlias,String> myRelationAliases;
 
-class OPDSNetworkLink extends AbstractNetworkLink {
-
-	public interface FeedCondition {
-		int REGULAR = 0;
-		int NEVER = 1;
-		int SIGNED_IN = 2;
-	}
-
-	private TreeMap<RelationAlias, String> myRelationAliases;
-
-	private TreeMap<String, Integer> myUrlConditions;
-	private LinkedList<URLRewritingRule> myUrlRewritingRules;
+	private final LinkedList<URLRewritingRule> myUrlRewritingRules = new LinkedList<URLRewritingRule>();
+	private final Map<String,String> myExtraData = new HashMap<String,String>();
 	private NetworkAuthenticationManager myAuthenticationManager;
 
-	private final boolean myHasStableIdentifiers;
-
-	OPDSNetworkLink(String siteName, String title, String summary, String icon,
-			Map<String, String> links, boolean hasStableIdentifiers) {
-		super(siteName, title, summary, icon, links);
-		myHasStableIdentifiers = hasStableIdentifiers;
+	OPDSNetworkLink(int id, String siteName, String title, String summary, String language,
+			UrlInfoCollection<UrlInfoWithDate> infos) {
+		super(id, siteName, title, summary, language, infos);
 	}
 
 	final void setRelationAliases(Map<RelationAlias, String> relationAliases) {
@@ -63,86 +55,95 @@ class OPDSNetworkLink extends AbstractNetworkLink {
 		}
 	}
 
-	final void setUrlConditions(Map<String, Integer> conditions) {
-		if (conditions != null && conditions.size() > 0) {
-			myUrlConditions = new TreeMap<String, Integer>(conditions);
-		} else {
-			myUrlConditions = null;
-		}
+	final void setUrlRewritingRules(List<URLRewritingRule> rules) {
+		myUrlRewritingRules.clear();
+		myUrlRewritingRules.addAll(rules);
 	}
 
-	final void setUrlRewritingRules(List<URLRewritingRule> rules) {
-		if (rules != null && rules.size() > 0) {
-			myUrlRewritingRules = new LinkedList<URLRewritingRule>(rules);
-		} else {
-			myUrlRewritingRules = null;
-		}
+	final void setExtraData(Map<String,String> extraData) {
+		myExtraData.clear();
+		myExtraData.putAll(extraData);
 	}
 
 	final void setAuthenticationManager(NetworkAuthenticationManager mgr) {
 		myAuthenticationManager = mgr;
 	}
 
-	ZLNetworkRequest createNetworkData(String url, final OPDSCatalogItem.State result) {
+	/*
+	public AccountStatus getAccountStatus(boolean force) {
+		if (myAuthenticationManager == null) {
+			return AccountStatus.NotSupported;
+		}
+		if ("".equals(myAuthenticationManager.UserNameOption.getValue())) {
+			return AccountStatus.NoUserName;
+		}
+	}
+		SignedIn,
+		SignedOut,
+		NotChecked
+	*/
+
+	ZLNetworkRequest createNetworkData(final OPDSCatalogItem catalog, String url, final OPDSCatalogItem.State result) {
 		if (url == null) {
 			return null;
 		}
 		url = rewriteUrl(url, false);
 		return new ZLNetworkRequest(url) {
 			@Override
-			public void handleStream(URLConnection connection, InputStream inputStream) throws IOException, ZLNetworkException {
-				if (result.Listener.confirmInterrupt()) {
+			public void handleStream(InputStream inputStream, int length) throws IOException, ZLNetworkException {
+				if (result.Loader.confirmInterruption()) {
 					return;
 				}
 
 				new OPDSXMLReader(
-					new NetworkOPDSFeedReader(URL, result)
+					new OPDSFeedHandler(catalog, getURL(), result), false
 				).read(inputStream);
 
-				if (result.Listener.confirmInterrupt()) {
-					if (!myHasStableIdentifiers && result.LastLoadedId != null) {
-						// If current catalog doesn't have stable identifiers
-						// and catalog wasn't completely loaded (i.e. LastLoadedIdentifier is not null)
-						// then reset state to load current page from the beginning 
-						result.LastLoadedId = null;
-					} else {
-						result.Listener.commitItems(OPDSNetworkLink.this);
-					}
+				if (result.Loader.confirmInterruption() && result.LastLoadedId != null) {
+					// reset state to load current page from the beginning 
+					result.LastLoadedId = null;
 				} else {
-					result.Listener.commitItems(OPDSNetworkLink.this);
+					result.Loader.getTree().confirmAllItems();
 				}
 			}
 		};
 	}
 
-	private final String searchURL(String query) {
-		return getLink(URL_SEARCH).replace("%s", query);
-	}
-
 	@Override
-	public OPDSCatalogItem.State createOperationData(INetworkLink link,
-			NetworkOperationData.OnNewItemListener listener) {
-		return new OPDSCatalogItem.State(link, listener);
+	public OPDSCatalogItem.State createOperationData(NetworkItemsLoader loader) {
+		return new OPDSCatalogItem.State(this, loader);
 	}
 
 	public ZLNetworkRequest simpleSearchRequest(String pattern, NetworkOperationData data) {
-		if (getLink(URL_SEARCH) == null) {
+		final String url = getUrl(UrlInfo.Type.Search);
+		if (url == null) {
 			return null;
 		}
-		return createNetworkData(
-			searchURL(ZLNetworkUtil.htmlEncode(pattern)),
-			(OPDSCatalogItem.State) data
-		);
+		try {
+			pattern = URLEncoder.encode(pattern, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+		}
+		return createNetworkData(null, url.replace("%s", pattern), (OPDSCatalogItem.State)data);
 	}
 
 	public ZLNetworkRequest resume(NetworkOperationData data) {
-		return createNetworkData(data.ResumeURI, (OPDSCatalogItem.State) data);
+		return createNetworkData(null, data.ResumeURI, (OPDSCatalogItem.State)data);
 	}
 
-	public NetworkLibraryItem libraryItem() {
-		TreeMap<Integer, String> urlMap = new TreeMap<Integer, String>();
-		urlMap.put(NetworkCatalogItem.URL_CATALOG, getLink(URL_MAIN));
-		return new OPDSCatalogItem(this, getTitle(), getSummary(), getIcon(), urlMap);
+	public NetworkCatalogItem libraryItem() {
+		final UrlInfoCollection<UrlInfo> urlMap = new UrlInfoCollection<UrlInfo>();
+		urlMap.addInfo(getUrlInfo(UrlInfo.Type.Catalog));
+		urlMap.addInfo(getUrlInfo(UrlInfo.Type.Image));
+		urlMap.addInfo(getUrlInfo(UrlInfo.Type.Thumbnail));
+		return new OPDSCatalogItem(
+			this,
+			getTitle(),
+			getSummary(),
+			urlMap,
+			OPDSCatalogItem.Accessibility.ALWAYS,
+			OPDSCatalogItem.FLAGS_DEFAULT | OPDSCatalogItem.FLAG_ADD_SEARCH_ITEM,
+			myExtraData
+		);
 	}
 
 	public NetworkAuthenticationManager authenticationManager() {
@@ -150,42 +151,22 @@ class OPDSNetworkLink extends AbstractNetworkLink {
 	}
 
 	public String rewriteUrl(String url, boolean isUrlExternal) {
-		if (myUrlRewritingRules == null) {
-			return url;
-		}
+		final int apply = isUrlExternal
+			? URLRewritingRule.APPLY_EXTERNAL : URLRewritingRule.APPLY_INTERNAL;
 		for (URLRewritingRule rule: myUrlRewritingRules) {
-			if (rule.Apply != URLRewritingRule.APPLY_ALWAYS) {
-				if ((rule.Apply == URLRewritingRule.APPLY_EXTERNAL && !isUrlExternal)
-					|| (rule.Apply == URLRewritingRule.APPLY_INTERNAL && isUrlExternal)) {
-					continue;
-				}
-			}
-			switch (rule.Type) {
-			case URLRewritingRule.ADD_URL_PARAMETER:
-				url = ZLNetworkUtil.appendParameter(url, rule.Name, rule.Value);
-				break;
+			if ((rule.whereToApply() & apply) != 0) {
+				url = rule.apply(url);
 			}
 		}
 		return url;
 	}
 
-	int getCondition(String url) {
-		if (myUrlConditions == null) {
-			return FeedCondition.REGULAR;
-		}
-		Integer cond = myUrlConditions.get(url);
-		if (cond == null) {
-			return FeedCondition.REGULAR;
-		}
-		return cond.intValue();
-	}
-
 	// rel and type must be either null or interned String objects.
-	String relation(String rel, String type) {
+	String relation(String rel, MimeType type) {
 		if (myRelationAliases == null) {
 			return rel;
 		}
-		RelationAlias alias = new RelationAlias(rel, type);
+		RelationAlias alias = new RelationAlias(rel, type.Name);
 		String mapped = myRelationAliases.get(alias);
 		if (mapped != null) {
 			return mapped;
@@ -200,36 +181,23 @@ class OPDSNetworkLink extends AbstractNetworkLink {
 		return rel;
 	}
 
+	private BasketItem myBasketItem;
+
 	@Override
-	public String toString() {
-		return "OPDSNetworkLink: {super=" + super.toString()
-			+ "; stableIds=" + myHasStableIdentifiers
-			+ "; authManager=" + (myAuthenticationManager != null ? myAuthenticationManager.getClass().getName() : null)
-			+ "; relationAliases=" + myRelationAliases
-			+ "; urlConditions=" + myUrlConditions
-			+ "; rewritingRules=" + myUrlRewritingRules
-			+ "}";
+	public BasketItem getBasketItem() {
+		final String url = getUrl(UrlInfo.Type.ListBooks);
+		if (url != null && myBasketItem == null) {
+			myBasketItem = new OPDSBasketItem(this);
+		}
+		return myBasketItem;
 	}
 
 	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof OPDSNetworkLink)) {
-			return false;
-		}
-		if (!super.equals(o)) {
-			return false;
-		}
-		final OPDSNetworkLink lnk = (OPDSNetworkLink) o;
-		if (myHasStableIdentifiers != lnk.myHasStableIdentifiers
-				|| !ZLMiscUtil.mapsEquals(myRelationAliases, lnk.myRelationAliases)
-				|| !ZLMiscUtil.mapsEquals(myUrlConditions, lnk.myUrlConditions)
-				|| !ZLMiscUtil.listsEquals(myUrlRewritingRules, lnk.myUrlRewritingRules)
-				|| myAuthenticationManager != lnk.myAuthenticationManager) {
-			return false;
-		}
-		return true;
+	public String toString() {
+		return "OPDSNetworkLink: {super=" + super.toString()
+			+ "; authManager=" + (myAuthenticationManager != null ? myAuthenticationManager.getClass().getName() : null)
+			+ "; relationAliases=" + myRelationAliases
+			+ "; rewritingRules=" + myUrlRewritingRules
+			+ "}";
 	}
 }

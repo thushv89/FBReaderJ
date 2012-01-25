@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,53 +21,27 @@ package org.geometerplus.zlibrary.ui.android.application;
 
 import java.util.*;
 
+import android.app.Activity;
+
 import android.view.Menu;
 import android.view.MenuItem;
 
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.application.ZLApplicationWindow;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.core.view.ZLViewWidget;
 
-import org.geometerplus.zlibrary.ui.android.view.ZLAndroidViewWidget;
-import org.geometerplus.zlibrary.ui.android.view.ZLAndroidWidget;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidLibrary;
-import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
 
-import org.benetech.android.R;
+import org.geometerplus.android.util.UIUtil;
 
 public final class ZLAndroidApplicationWindow extends ZLApplicationWindow {
-	private final HashMap<MenuItem,ZLApplication.Menubar.PlainItem> myMenuItemMap =
-		new HashMap<MenuItem,ZLApplication.Menubar.PlainItem>();
-
-	private class MenuBuilder extends ZLApplication.MenuVisitor {
-		private int myItemCount = Menu.FIRST;
-		private final Stack<Menu> myMenuStack = new Stack<Menu>();
-
-		private MenuBuilder(Menu menu) {
-			myMenuStack.push(menu);
-		}
-		protected void processSubmenuBeforeItems(ZLApplication.Menubar.Submenu submenu) {
-			myMenuStack.push(myMenuStack.peek().addSubMenu(0, myItemCount++, Menu.NONE, submenu.getMenuName()));	
-		}
-		protected void processSubmenuAfterItems(ZLApplication.Menubar.Submenu submenu) {
-			myMenuStack.pop();
-		}
-		protected void processItem(ZLApplication.Menubar.PlainItem item) {
-			MenuItem menuItem = myMenuStack.peek().add(0, myItemCount++, Menu.NONE, item.getTitle());
-			try {
-				final String fieldName = "ic_menu_" + item.getActionId().toLowerCase();
-				menuItem.setIcon(R.drawable.class.getField(fieldName).getInt(null));
-			} catch (NoSuchFieldException e) {
-			} catch (IllegalAccessException e) {
-			}
-			menuItem.setOnMenuItemClickListener(myMenuListener);
-			myMenuItemMap.put(menuItem, item);
-		}
-	}
+	private final HashMap<MenuItem,String> myMenuItemMap = new HashMap<MenuItem,String>();
 
 	private final MenuItem.OnMenuItemClickListener myMenuListener =
 		new MenuItem.OnMenuItemClickListener() {
 			public boolean onMenuItemClick(MenuItem item) {
-				getApplication().doAction(myMenuItemMap.get(item).getActionId());
+				getApplication().doAction(myMenuItemMap.get(item));
 				return true;
 			}
 		};
@@ -76,64 +50,82 @@ public final class ZLAndroidApplicationWindow extends ZLApplicationWindow {
 		super(application);
 	}
 
-	public void buildMenu(Menu menu) {
-		new MenuBuilder(menu).processMenu(getApplication());
-		refreshMenu();
+	public Menu addSubMenu(Menu menu, String id) {
+		return menu.addSubMenu(ZLResource.resource("menu").getResource(id).getValue());
+	}
+
+	public void addMenuItem(Menu menu, String actionId, Integer iconId, String name) {
+		if (name == null) {
+			name = ZLResource.resource("menu").getResource(actionId).getValue();
+		}
+		final MenuItem menuItem = menu.add(name);
+		if (iconId != null) {
+			menuItem.setIcon(iconId);
+		}
+		menuItem.setOnMenuItemClickListener(myMenuListener);
+		myMenuItemMap.put(menuItem, actionId);
 	}
 
 	@Override
-	protected void refreshMenu() {
-		for (Map.Entry<MenuItem,ZLApplication.Menubar.PlainItem> entry : myMenuItemMap.entrySet()) {
-			final String actionId = entry.getValue().getActionId();
+	public void refreshMenu() {
+		for (Map.Entry<MenuItem,String> entry : myMenuItemMap.entrySet()) {
+			final String actionId = entry.getValue();
 			final ZLApplication application = getApplication();
-			entry.getKey().setVisible(application.isActionVisible(actionId) && application.isActionEnabled(actionId));
+			final MenuItem menuItem = entry.getKey();
+			menuItem.setVisible(application.isActionVisible(actionId) && application.isActionEnabled(actionId));
+			switch (application.isActionChecked(actionId)) {
+				case B3_TRUE:
+					menuItem.setCheckable(true);
+					menuItem.setChecked(true);
+					break;
+				case B3_FALSE:
+					menuItem.setCheckable(true);
+					menuItem.setChecked(false);
+					break;
+				case B3_UNDEFINED:
+					menuItem.setCheckable(false);
+					break;
+			}
+		}
+	}
+	
+	@Override
+	public void wait(String key, Runnable action) {
+		final Activity activity = 
+			((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).getActivity();
+		if (activity != null) {
+			UIUtil.wait(key, action, activity);
+		} else {
+			action.run();
 		}
 	}
 
-	public void initMenu() {
-		// TODO: implement
-	}
-
-	private ZLAndroidViewWidget myViewWidget;
-	protected ZLAndroidViewWidget getViewWidget() {
-		if (myViewWidget == null) {
-			myViewWidget = new ZLAndroidViewWidget();
+	@Override
+	public void setTitle(final String title) {
+		final Activity activity = 
+			((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).getActivity();
+		if (activity != null) {
+			activity.runOnUiThread(new Runnable() {
+				public void run() {
+					activity.setTitle(title);
+				}
+			});
 		}
-		return myViewWidget;
 	}
 
-	protected void repaintView() {
-		final ZLAndroidWidget widget = 
-			((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).getWidget();
-		// I'm not sure about threads, so postInvalidate() is used instead of invalidate()
-		widget.postInvalidate();
-	}
-
-	protected void scrollViewTo(int viewPage, int shift) {
-		getViewWidget().scrollTo(viewPage, shift);
-	}
-
-	protected void startViewAutoScrolling(int viewPage) {
-		getViewWidget().startAutoScrolling(viewPage);
-	}
-
-	public void rotate() {
-		((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).rotateScreen();
-	}
-
-	public boolean canRotate() {
-		return !ZLAndroidApplication.Instance().AutoOrientationOption.getValue();
-	}
-
-	public void navigate() {
-		((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).navigate();
-	}
-
-	public boolean canNavigate() {
-		return ((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).canNavigate();
+	protected ZLViewWidget getViewWidget() {
+		return ((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).getWidget();
 	}
 
 	public void close() {
 		((ZLAndroidLibrary)ZLAndroidLibrary.Instance()).finish();
+	}
+
+	private int myBatteryLevel;
+	protected int getBatteryLevel() {
+		return myBatteryLevel;
+	}
+	public void setBatteryLevel(int percent) {
+		myBatteryLevel = percent;
 	}
 }

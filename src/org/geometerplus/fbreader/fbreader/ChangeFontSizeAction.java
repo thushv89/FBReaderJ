@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,16 +25,17 @@ import org.geometerplus.zlibrary.text.view.style.ZLTextStyleCollection;
 class ChangeFontSizeAction extends FBAction {
 	private final int myDelta;
 
-	ChangeFontSizeAction(FBReader fbreader, int delta) {
+	ChangeFontSizeAction(FBReaderApp fbreader, int delta) {
 		super(fbreader);
 		myDelta = delta;
 	}
 
-	public void run() {
+	@Override
+	protected void run(Object ... params) {
 		ZLIntegerRangeOption option =
 			ZLTextStyleCollection.Instance().getBaseStyle().FontSizeOption;
 		option.setValue(option.getValue() + myDelta);
 		Reader.clearTextCaches();
-		Reader.repaintView();
+		Reader.getViewWidget().repaint();
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@ package org.geometerplus.zlibrary.core.network;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 
 public class ZLNetworkException extends Exception {
+	private static final long serialVersionUID = 4272384299121648643L;
+
 	// Messages with no parameters:
 	public static final String ERROR_UNKNOWN_ERROR = "unknownErrorMessage";
 	public static final String ERROR_TIMEOUT = "operationTimedOutMessage";
@@ -29,8 +31,6 @@ public class ZLNetworkException extends Exception {
 	public static final String ERROR_UNSUPPORTED_PROTOCOL = "unsupportedProtocol";
 	public static final String ERROR_INVALID_URL = "invalidURL";
 	public static final String ERROR_AUTHENTICATION_FAILED = "authenticationFailed";
-	public static final String ERROR_SSL_SUBSYSTEM = "sslError";
-	public static final String ERROR_SSL_PROTOCOL_ERROR = "sslProtocolError";
 
 	// Messages with one parameter:
 	public static final String ERROR_SOMETHING_WRONG = "somethingWrongMessage";
@@ -40,12 +40,6 @@ public class ZLNetworkException extends Exception {
 	public static final String ERROR_RESOLVE_HOST = "couldntResolveHostMessage";
 	public static final String ERROR_HOST_CANNOT_BE_REACHED = "hostCantBeReached";
 	public static final String ERROR_CONNECTION_REFUSED = "connectionRefused";
-	public static final String ERROR_SSL_CONNECT = "sslConnectErrorMessage";
-	public static final String ERROR_SSL_BAD_KEY = "sslBadKey";
-	public static final String ERROR_SSL_PEER_UNVERIFIED = "sslPeerUnverified";
-	public static final String ERROR_SSL_BAD_FILE = "sslBadCertificateFileMessage";
-	public static final String ERROR_SSL_EXPIRED = "sslCertificateExpired";
-	public static final String ERROR_SSL_NOT_YET_VALID = "sslCertificateNotYetValid";
 
 	private static ZLResource getResource() {
 		return ZLResource.resource("dialog").getResource("networkError");
@@ -70,13 +64,27 @@ public class ZLNetworkException extends Exception {
 
 	final private String myCode;
 
+	public ZLNetworkException(boolean useAsMessage, String str, Throwable cause) {
+		super(useAsMessage ? str : errorMessage(str), cause);
+		myCode = useAsMessage ? null : str;
+	}
+
 	public ZLNetworkException(boolean useAsMessage, String str) {
 		super(useAsMessage ? str : errorMessage(str));
 		myCode = useAsMessage ? null : str;
 	}
 
+	public ZLNetworkException(String code, Throwable cause) {
+		this(false, code, cause);
+	}
+
 	public ZLNetworkException(String code) {
 		this(false, code);
+	}
+
+	public ZLNetworkException(String code, String arg, Throwable cause) {
+		super(errorMessage(code, arg), cause);
+		myCode = code;
 	}
 
 	public ZLNetworkException(String code, String arg) {

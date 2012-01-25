@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -222,13 +222,13 @@ mainSwitchLabel:
 											{
 												ZLByteBuffer stringTagName = unique(strings, tagName);
 												processEndTag(htmlReader, stringTagName);
-												if (scriptOpened){
+												if (scriptOpened) {
 												}
 												if (stringTagName.equalsToLCString("script")) {
 													scriptOpened = false;
 												}
 											}
-										if (scriptOpened){
+										if (scriptOpened) {
 											state = SCRIPT;
 										} else {
 											state = TEXT;
@@ -280,7 +280,7 @@ mainSwitchLabel:
 											scriptOpened = false;
 										}
 									}
-									if (scriptOpened){
+									if (scriptOpened) {
 										state = SCRIPT;
 									} else {
 										state = TEXT;

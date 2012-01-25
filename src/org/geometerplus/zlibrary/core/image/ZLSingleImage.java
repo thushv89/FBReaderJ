@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,20 @@
 
 package org.geometerplus.zlibrary.core.image;
 
+import java.io.InputStream;
+
+import org.geometerplus.zlibrary.core.util.MimeType;
+
 public abstract class ZLSingleImage implements ZLImage {
-	private final String myMimeType;
+	private final MimeType myMimeType;
 	
-	public ZLSingleImage(final String mimeType) {
+	public ZLSingleImage(final MimeType mimeType) {
 		myMimeType = mimeType;
 	}
 
-	public abstract byte [] byteData();
-	
-	public final String mimeType() {
+	public abstract InputStream inputStream();
+
+	public final MimeType mimeType() {
 		return myMimeType;
 	}
 }

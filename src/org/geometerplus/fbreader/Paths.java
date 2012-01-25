@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,31 @@ import org.geometerplus.zlibrary.core.options.ZLStringOption;
 import android.os.Environment;
 
 public abstract class Paths {
-	public static final ZLStringOption BooksDirectoryOption = new ZLStringOption("Files", "BooksDirectory", Environment.getExternalStorageDirectory() + "/Books");
+	public static String cardDirectory() {
+		return Environment.getExternalStorageDirectory().getPath();
+	}
+
+	public static ZLStringOption BooksDirectoryOption() {
+		return new ZLStringOption("Files", "BooksDirectory", cardDirectory() + "/Books");
+	}
+
+	public static ZLStringOption FontsDirectoryOption() {
+		return new ZLStringOption("Files", "FontsDirectory", cardDirectory() + "/Fonts");
+	}
+
+	public static ZLStringOption WallpapersDirectoryOption() {
+		return new ZLStringOption("Files", "WallpapersDirectory", cardDirectory() + "/Wallpapers");
+	}
 
 	public static String cacheDirectory() {
-		return BooksDirectoryOption.getValue() + "/.FBReader";
+		return BooksDirectoryOption().getValue() + "/.FBReader";
 	}
 
 	public static String networkCacheDirectory() {
 		return cacheDirectory() + "/cache";
+	}
+
+	public static String systemShareDirectory() {
+		return "/system/usr/share/FBReader";
 	}
 }

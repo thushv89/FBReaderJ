@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,33 +21,23 @@ package org.geometerplus.fbreader.network;
 
 import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
 
+import org.geometerplus.fbreader.network.tree.NetworkItemsLoader;
 
 public class NetworkOperationData {
-
-	public interface OnNewItemListener {
-		void onNewItem(INetworkLink link, NetworkLibraryItem item);
-
-		void commitItems(INetworkLink link);
-
-		// returns true to confirm interrupt reading; return false to continue reading.
-		// once true has been returned, all next calls must return true.
-		boolean confirmInterrupt();
-	}
-
 	public final INetworkLink Link;
-	public OnNewItemListener Listener;
+	public NetworkItemsLoader Loader;
 	public String ResumeURI;
 
-	public NetworkOperationData(INetworkLink link, OnNewItemListener listener) {
+	public NetworkOperationData(INetworkLink link, NetworkItemsLoader loader) {
 		Link = link;
-		Listener = listener;
+		Loader = loader;
 	}
 
-	public void clear() {
+	protected void clear() {
 		ResumeURI = null;
 	}
 
-	public ZLNetworkRequest resume() {
+	public final ZLNetworkRequest resume() {
 		final ZLNetworkRequest request = Link.resume(this);
 		clear();
 		return request;

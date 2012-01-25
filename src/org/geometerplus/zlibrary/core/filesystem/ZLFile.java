@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,15 +35,15 @@ public abstract class ZLFile {
 		int	ARCHIVE = 0xff00;
 	};
 	
-	private String myNameWithoutExtension;
 	private String myExtension;
+	private String myShortName;
 	protected int myArchiveType;
 	private boolean myIsCached;
 	protected void init() {
-		final String name = getNameWithExtension();
+		final String name = getLongName();
 		final int index = name.lastIndexOf('.');
-		myNameWithoutExtension = (index != -1) ? name.substring(0, index) : name;
-		myExtension = (index != -1) ? name.substring(index + 1).toLowerCase().intern() : "";
+		myExtension = (index > 0) ? name.substring(index + 1).toLowerCase().intern() : "";
+		myShortName = name.substring(name.lastIndexOf('/') + 1);
 
 		/*
 		if (lowerCaseName.endsWith(".gz")) {
@@ -88,6 +88,8 @@ public abstract class ZLFile {
 		} else if ((parent instanceof ZLPhysicalFile) && (parent.getParent() == null)) {
 			// parent is a directory
 			file = new ZLPhysicalFile(parent.getPath() + '/' + name);
+		} else if (parent instanceof ZLResourceFile) {
+			file = ZLResourceFile.createResourceFile((ZLResourceFile)parent, name);
 		} else {
 			file = ZLArchiveEntryFile.createArchiveEntryFile(parent, name);
 		}
@@ -130,6 +132,10 @@ public abstract class ZLFile {
 	public abstract ZLPhysicalFile getPhysicalFile();
 	public abstract InputStream getInputStream() throws IOException;
 
+	public boolean isReadable() {
+		return true;
+	}
+
 	public final boolean isCompressed() {
 		return (0 != (myArchiveType & ArchiveType.COMPRESSED)); 
 	}
@@ -138,11 +144,12 @@ public abstract class ZLFile {
 		return (0 != (myArchiveType & ArchiveType.ARCHIVE));
 	}
 
-	protected abstract String getNameWithExtension();
-	public final String getName(boolean hideExtension) {
-		return hideExtension ? myNameWithoutExtension : getNameWithExtension();
+	public abstract String getLongName();
+
+	public final String getShortName() {
+		return myShortName;
 	}
-	
+
 	public final String getExtension() {
 		return myExtension;
 	}

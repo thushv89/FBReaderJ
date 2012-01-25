@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,14 @@
 
 package org.geometerplus.fbreader.network.atom;
 
-public class ATOMUpdated extends ATOMDateConstruct {
+import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 
-	public ATOMUpdated() {
+public class ATOMUpdated extends ATOMDateConstruct {
+	public ATOMUpdated(ZLStringMap attributes) {
+		super(attributes);
 	}
 
+	/*
 	public ATOMUpdated(int year) {
 		super(year);
 	}
@@ -43,4 +46,5 @@ public class ATOMUpdated extends ATOMDateConstruct {
 	public ATOMUpdated(int year, int month, int day, int hour, int minutes, int seconds, float sfract, int tzhour, int tzminutes) {
 		super(year, month, day, hour, minutes, seconds, sfract, tzhour, tzminutes);
 	}
+	*/
 }

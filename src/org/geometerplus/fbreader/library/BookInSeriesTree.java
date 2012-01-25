@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,21 @@ package org.geometerplus.fbreader.library;
 import org.geometerplus.fbreader.tree.FBTree;
 
 public final class BookInSeriesTree extends BookTree {
-	BookInSeriesTree(LibraryTree parent, Book book) {
-		super(parent, book, false);
+	BookInSeriesTree(Book book) {
+		super(book, false);
+	}
+
+	BookInSeriesTree(LibraryTree parent, Book book, int position) {
+		super(parent, book, false, position);
 	}
 
 	@Override
 	public int compareTo(FBTree tree) {
 		if (tree instanceof BookInSeriesTree) {
-			final long difference =
+			final float difference =
 				Book.getSeriesInfo().Index - ((BookTree)tree).Book.getSeriesInfo().Index;
 			if (difference != 0) {
-				return (int)difference;
+				return difference > 0 ? 1 : -1;
 			}
 		}
 		return super.compareTo(tree);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,13 +54,13 @@ public class NetworkSeriesTree extends NetworkTree {
 		int count = 0;
 
 		Set<NetworkBookItem.AuthorData> authorSet = new TreeSet<NetworkBookItem.AuthorData>();
-		for (FBTree tree: subTrees()) {
+		for (FBTree tree : subTrees()) {
 			if (!(tree instanceof NetworkBookTree)) {
 				continue;
 			}
-			final NetworkBookItem book = ((NetworkBookTree) tree).Book;
+			final NetworkBookItem book = ((NetworkBookTree)tree).Book;
 
-			for (NetworkBookItem.AuthorData author: book.Authors) {
+			for (NetworkBookItem.AuthorData author : book.Authors) {
 				if (!authorSet.contains(author)) {
 					authorSet.add(author);
 					if (count++ > 0) {
@@ -78,24 +78,24 @@ public class NetworkSeriesTree extends NetworkTree {
 
 	@Override
 	protected ZLImage createCover() {
-		for (FBTree tree: subTrees()) {
+		for (FBTree tree : subTrees()) {
 			if (tree instanceof NetworkBookTree) {
-				return ((NetworkBookTree) tree).createCover();
+				return ((NetworkBookTree)tree).createCover();
 			}
 		}
 		return null;
 	}
 
 	@Override
-	public NetworkLibraryItem getHoldedItem() {
-		return null;
-	}
-
-	@Override
-	public void removeItems(Set<NetworkLibraryItem> items) {
-		super.removeItems(items);
+	public void removeTrees(Set<NetworkTree> trees) {
+		super.removeTrees(trees);
 		if (subTrees().isEmpty()) {
 			removeSelf();
 		}
+	}
+
+	@Override
+	protected String getStringId() {
+		return "@Series:" + SeriesTitle;
 	}
 }

@@ -9,8 +9,9 @@ import java.util.TreeMap;
 import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.bookmodel.BookReader;
 import org.geometerplus.fbreader.bookmodel.FBTextKind;
-import org.geometerplus.fbreader.constants.XMLNamespace;
+import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 import org.geometerplus.fbreader.formats.util.MiscUtil;
+import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
@@ -19,7 +20,7 @@ import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
  * Serves as entry point for reading the Daisy3 file.
  * Locates the XML and NCX files.
  */
-class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
+class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 	private static final char[] Dots = new char[] {'.', '.', '.'};
 
 	private final BookReader myModelReader;
@@ -49,17 +50,17 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
 
 		// Get the xml file to be read
 		final String extension = file.getExtension().intern();
-		String name = file.getName(true);
+		String name = file.getShortName();
 		if(extension == "opf" && !name.startsWith("._")){
 			ZLFile parentDirectory = file.getParent();
 			List<ZLFile> children =  parentDirectory.children();
 			for(ZLFile daisy3content : children){
-				String str = daisy3content.getName(true);
+				String str = daisy3content.getShortName();
 				
 				// Get the NCX file name
 				if(daisy3content.getExtension() == "ncx"){
 					if(!str.startsWith("._")){
-						myNCXTOCFileName = daisy3content.getName(false);
+						myNCXTOCFileName = daisy3content.getLongName();
 					}
 				}
 				
@@ -67,7 +68,7 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespace {
 				if(daisy3content.getExtension() == "xml"){
 					if(!str.startsWith("._"))
 					{
-						daisy3XMLFileName = daisy3content.getName(false);
+						daisy3XMLFileName = daisy3content.getLongName();
 						final ZLFile daisy3XmlFile = ZLFile.createFileByPath(myFilePrefix + daisy3XMLFileName);
 						reader = new Daisy3XMLReader(myModelReader, myFileNumbers);
 						final String referenceName = "daisy3";

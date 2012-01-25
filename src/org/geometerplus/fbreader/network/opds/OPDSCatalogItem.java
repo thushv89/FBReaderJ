@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,65 +19,69 @@
 
 package org.geometerplus.fbreader.network.opds;
 
-import java.util.Map;
-import java.util.HashSet;
+import java.util.*;
 
-import org.geometerplus.zlibrary.core.network.ZLNetworkManager;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
 
 import org.geometerplus.fbreader.network.*;
+import org.geometerplus.fbreader.network.urlInfo.*;
+import org.geometerplus.fbreader.network.tree.NetworkItemsLoader;
 
-class OPDSCatalogItem extends NetworkCatalogItem {
-
+public class OPDSCatalogItem extends NetworkURLCatalogItem {
 	static class State extends NetworkOperationData {
 		public String LastLoadedId;
 		public final HashSet<String> LoadedIds = new HashSet<String>();
 
-		public State(INetworkLink link, OnNewItemListener listener) {
-			super(link, listener);
+		public State(OPDSNetworkLink link, NetworkItemsLoader loader) {
+			super(link, loader);
 		}
 	}
 	private State myLoadingState;
+	private final Map<String,String> myExtraData;
 
-	OPDSCatalogItem(INetworkLink link, String title, String summary, String cover, Map<Integer, String> urlByType) {
-		super(link, title, summary, cover, urlByType);
+	OPDSCatalogItem(OPDSNetworkLink link, RelatedUrlInfo info) {
+		this(link, info.Title, null, createSimpleCollection(info.Url));
 	}
 
-	OPDSCatalogItem(INetworkLink link, String title, String summary, String cover, Map<Integer, String> urlByType, int visibility) {
-		super(link, title, summary, cover, urlByType, visibility);
+	OPDSCatalogItem(OPDSNetworkLink link, CharSequence title, CharSequence summary, UrlInfoCollection<?> urls) {
+		this(link, title, summary, urls, Accessibility.ALWAYS, FLAGS_DEFAULT, null);
 	}
 
-	OPDSCatalogItem(INetworkLink link, String title, String summary, String cover, Map<Integer, String> urlByType, int visibility, int catalogType) {
-		super(link, title, summary, cover, urlByType, visibility, catalogType);
+	protected OPDSCatalogItem(OPDSNetworkLink link, CharSequence title, CharSequence summary, UrlInfoCollection<?> urls, Accessibility accessibility, int flags, Map<String,String> extraData) {
+		super(link, title, summary, urls, accessibility, flags);
+		myExtraData = extraData;
 	}
 
-	private void doLoadChildren(NetworkOperationData.OnNewItemListener listener,
-			ZLNetworkRequest networkRequest) throws ZLNetworkException {
-		while (networkRequest != null) {
-			try {
-				ZLNetworkManager.Instance().perform(networkRequest);
-			} catch (ZLNetworkException e) {
-				myLoadingState = null;
-				throw e;
-			}
-			if (listener.confirmInterrupt()) {
-				return;
-			}
-			networkRequest = myLoadingState.resume();
+	private static UrlInfoCollection<UrlInfo> createSimpleCollection(String url) {
+		final UrlInfoCollection<UrlInfo> collection = new UrlInfoCollection<UrlInfo>();
+		collection.addInfo(new UrlInfo(UrlInfo.Type.Catalog, url));
+		return collection;
+	}
+
+	private void doLoadChildren(ZLNetworkRequest networkRequest) throws ZLNetworkException {
+		try {
+			super.doLoadChildren(myLoadingState, networkRequest);
+		} catch (ZLNetworkException e) {
+			myLoadingState = null;
+			throw e;
 		}
 	}
 
 	@Override
-	public final void loadChildren(NetworkOperationData.OnNewItemListener listener) throws ZLNetworkException {
-		OPDSNetworkLink opdsLink = (OPDSNetworkLink) Link;
+	public final Map<String,String> extraData() {
+		return myExtraData;
+	}
 
-		myLoadingState = opdsLink.createOperationData(Link, listener);
+	@Override
+	public final void loadChildren(NetworkItemsLoader loader) throws ZLNetworkException {
+		final OPDSNetworkLink opdsLink = (OPDSNetworkLink)Link;
 
-		ZLNetworkRequest networkRequest =
-			opdsLink.createNetworkData(URLByType.get(URL_CATALOG), myLoadingState);
+		myLoadingState = opdsLink.createOperationData(loader);
 
-		doLoadChildren(listener, networkRequest);
+		doLoadChildren(
+			opdsLink.createNetworkData(this, getCatalogUrl(), myLoadingState)
+		);
 	}
 
 	@Override
@@ -86,11 +90,11 @@ class OPDSCatalogItem extends NetworkCatalogItem {
 	}
 
 	@Override
-	public final void resumeLoading(NetworkOperationData.OnNewItemListener listener) throws ZLNetworkException {
+	public final void resumeLoading(NetworkItemsLoader loader) throws ZLNetworkException {
 		if (myLoadingState != null) {
-			myLoadingState.Listener = listener;
+			myLoadingState.Loader = loader;
 			ZLNetworkRequest networkRequest = myLoadingState.resume();
-			doLoadChildren(listener, networkRequest);
+			doLoadChildren(networkRequest);
 		}
 	}
 }

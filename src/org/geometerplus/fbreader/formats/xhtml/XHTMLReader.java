@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,8 @@ import java.util.*;
 
 import org.geometerplus.zlibrary.core.xml.*;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.filesystem.ZLArchiveEntryFile;
+import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 
 import org.geometerplus.fbreader.bookmodel.*;
 import org.geometerplus.fbreader.formats.util.MiscUtil;
@@ -82,8 +84,9 @@ public class XHTMLReader extends ZLXMLReaderAdapter {
 
 		addAction("a", new XHTMLTagHyperlinkAction());
 
-		addAction("img", new XHTMLTagImageAction("src"));
-		addAction("object", new XHTMLTagImageAction("data"));
+		addAction("img", new XHTMLTagImageAction(null, "src"));
+		addAction("image", new XHTMLTagImageAction(XMLNamespaces.XLink, "href"));
+		addAction("object", new XHTMLTagImageAction(null, "data"));
 
 		//addAction("area", new XHTMLTagAction());
 		//addAction("map", new XHTMLTagAction());
@@ -133,6 +136,7 @@ public class XHTMLReader extends ZLXMLReaderAdapter {
 
 	public final String getFileAlias(String fileName) {
 		fileName = MiscUtil.decodeHtmlReference(fileName);
+		fileName = ZLArchiveEntryFile.normalizeEntryName(fileName);
 		Integer num = myFileNumbers.get(fileName);
 		if (num == null) {
 			num = myFileNumbers.size();
@@ -155,6 +159,7 @@ public class XHTMLReader extends ZLXMLReaderAdapter {
 		return read(file);
 	}
 
+	@Override
 	public boolean startElementHandler(String tag, ZLStringMap attributes) {
 		String id = attributes.getValue("id");
 		if (id != null) {
@@ -168,6 +173,7 @@ public class XHTMLReader extends ZLXMLReaderAdapter {
 		return false;
 	}
 
+	@Override
 	public boolean endElementHandler(String tag) {
 		XHTMLTagAction action = (XHTMLTagAction)ourTagActions.get(tag.toLowerCase());
 		if (action != null) {
@@ -176,6 +182,7 @@ public class XHTMLReader extends ZLXMLReaderAdapter {
 		return false;
 	}
 
+	@Override
 	public void characterDataHandler(char[] data, int start, int len) {
 		if (myPreformatted) {
 			final char first = data[start]; 
@@ -218,25 +225,25 @@ cycle:
 
 	public static List<String> xhtmlDTDs() {
 		if (ourExternalDTDs.isEmpty()) {
-			ourExternalDTDs.add("data/formats/xhtml/xhtml-lat1.ent");
-			ourExternalDTDs.add("data/formats/xhtml/xhtml-special.ent");
-			ourExternalDTDs.add("data/formats/xhtml/xhtml-symbol.ent");
+			ourExternalDTDs.add("formats/xhtml/xhtml-lat1.ent");
+			ourExternalDTDs.add("formats/xhtml/xhtml-special.ent");
+			ourExternalDTDs.add("formats/xhtml/xhtml-symbol.ent");
 		}
 		return ourExternalDTDs;
 	}
 
+	@Override
 	public List<String> externalDTDs() {
 		return xhtmlDTDs();
 	}
 
+	@Override
 	public boolean dontCacheAttributeValues() {
 		return true;
 	}
 
+	@Override
 	public boolean processNamespaces() {
 		return true;
-	}
-
-	public void namespaceMapChangedHandler(HashMap<String,String> namespaceMap) {
 	}
 }

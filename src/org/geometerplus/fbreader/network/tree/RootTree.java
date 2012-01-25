@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,17 +19,25 @@
 
 package org.geometerplus.fbreader.network.tree;
 
-import org.geometerplus.fbreader.network.NetworkLibraryItem;
-import org.geometerplus.fbreader.network.NetworkTree;
+import org.geometerplus.fbreader.network.*;
 
 public final class RootTree extends NetworkTree {
-	@Override
-	public String getName() {
-		return null;
+	public final boolean IsFake;
+
+	private final String myId;
+
+	public RootTree(String id, boolean isFake) {
+		IsFake = isFake;
+		myId = id;
 	}
 
 	@Override
-	public NetworkLibraryItem getHoldedItem() {
-		return null;
+	public String getName() {
+		return NetworkLibrary.resource().getValue();
+	}
+
+	@Override
+	protected String getStringId() {
+		return myId;
 	}
 }

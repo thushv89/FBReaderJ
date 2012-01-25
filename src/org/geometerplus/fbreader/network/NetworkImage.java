@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,23 +20,22 @@
 package org.geometerplus.fbreader.network;
 
 import java.io.*;
-import java.net.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-import org.geometerplus.zlibrary.core.image.ZLSingleImage;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.image.ZLFileImage;
+import org.geometerplus.zlibrary.core.image.ZLLoadableImage;
 import org.geometerplus.zlibrary.core.network.ZLNetworkManager;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.fbreader.Paths;
 
-public final class NetworkImage extends ZLSingleImage {
-	public static final String MIME_PNG = "image/png";
-	public static final String MIME_JPEG = "image/jpeg";
-
+public final class NetworkImage extends ZLLoadableImage {
 	public final String Url;
-	private volatile boolean mySynchronized;
 
-	// mimeType string MUST be interned
-	public NetworkImage(String url, String mimeType) {
+	public NetworkImage(String url, MimeType mimeType) {
 		super(mimeType);
 		Url = url;
 		new File(Paths.networkCacheDirectory()).mkdirs();
@@ -44,12 +43,11 @@ public final class NetworkImage extends ZLSingleImage {
 
 	private static final String TOESCAPE = "<>:\"|?*\\";
 
-	// mimeType string MUST be interned
-	public static String makeImageFileName(String url, String mimeType) {
+	public static String makeImageFilePath(String url, MimeType mimeType) {
 		URI uri;
 		try {
 			uri = new URI(url);
-		} catch (java.net.URISyntaxException ex) {
+		} catch (URISyntaxException ex) {
 			return null;
 		}
 
@@ -84,9 +82,9 @@ public final class NetworkImage extends ZLSingleImage {
 		}
 
 		String ext = null;
-		if (mimeType == MIME_PNG) {
+		if (MimeType.IMAGE_PNG.equals(mimeType)) {
 			ext = ".png";
-		} else if (mimeType == MIME_JPEG) {
+		} else if (MimeType.IMAGE_JPEG.equals(mimeType)) {
 			if (path.length() > 5 && path.substring(path.length() - 5).equals(".jpeg")) {
 				ext = ".jpeg";
 			} else {
@@ -134,35 +132,48 @@ public final class NetworkImage extends ZLSingleImage {
 		return path.append(ext).toString();
 	}
 
-	public String getFileName() {
-		return makeImageFileName(Url, mimeType());
+	public String getFilePath() {
+		return makeImageFilePath(Url, mimeType());
 	}
 
-	public boolean isSynchronized() {
-		return mySynchronized;
+	@Override
+	public int sourceType() {
+		return SourceType.NETWORK;
 	}
 
+	@Override
+	public String getId() {
+		return Url;
+	}
+
+	public String getURI() {
+		// TODO: implement
+		return null;
+	}
+
+	@Override
 	public void synchronize() {
 		synchronizeInternal(false);
 	}
 
+	@Override
 	public void synchronizeFast() {
 		synchronizeInternal(true);
 	}
 
 	private final void synchronizeInternal(boolean doFast) {
-		if (mySynchronized) {
+		if (isSynchronized()) {
 			return;
 		}
 		try {
-			final String fileName = getFileName();
-			if (fileName == null) {
+			final String path = getFilePath();
+			if (path == null) {
 				// TODO: error message ???
 				return;
 			}
-			final int index = fileName.lastIndexOf(File.separator);
+			final int index = path.lastIndexOf(File.separator);
 			if (index != -1) {
-				final String dir = fileName.substring(0, index);
+				final String dir = path.substring(0, index);
 				final File dirFile = new File(dir);
 				if (!dirFile.exists() && !dirFile.mkdirs()) {
 					// TODO: error message ???
@@ -173,7 +184,7 @@ public final class NetworkImage extends ZLSingleImage {
 					return;
 				}
 			}
-			final File imageFile = new File(fileName);
+			final File imageFile = new File(path);
 			if (imageFile.exists()) {
 				final long diff = System.currentTimeMillis() - imageFile.lastModified();
 				final long valid = 7 * 24 * 60 * 60 * 1000; // one week in milliseconds; FIXME: hardcoded const
@@ -191,32 +202,27 @@ public final class NetworkImage extends ZLSingleImage {
 			} catch (ZLNetworkException e) {
 			}
 		} finally {
-			mySynchronized = true;
+			setSynchronized();
 		}
 	}
 
+	private ZLFileImage myFileImage;
 	@Override
-	public byte [] byteData() {
-		if (!mySynchronized) {
-			return null;
+	public InputStream inputStream() {
+		if (myFileImage == null) {
+			if (!isSynchronized()) {
+				return null;
+			}
+			final String path = getFilePath();
+			if (path == null) {
+				return null;
+			}
+			final ZLFile file = ZLFile.createFileByPath(path);
+			if (file == null) {
+				return null;
+			}
+			myFileImage = new ZLFileImage(mimeType(), file);
 		}
-		final String fileName = getFileName();
-		if (fileName == null) {
-			return null;
-		}
-		final File imageFile = new File(fileName);
-		if (!imageFile.exists()) {
-			return null;
-		}
-		try {
-			final byte[] data = new byte[(int)imageFile.length()];
-			final FileInputStream stream = new FileInputStream(imageFile);
-			stream.read(data);
-			stream.close();
-			return data;
-		} catch (IOException e) {
-			return null;
-		}
+		return myFileImage.inputStream();
 	}
-
 }

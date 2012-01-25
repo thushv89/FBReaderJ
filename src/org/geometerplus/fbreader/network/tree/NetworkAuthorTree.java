@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ public class NetworkAuthorTree extends NetworkTree {
 	private int myBooksNumber;
 	private HashMap<String, Integer> mySeriesMap;
 
-	public NetworkAuthorTree(NetworkTree parent, NetworkBookItem.AuthorData author) {
+	NetworkAuthorTree(NetworkTree parent, NetworkBookItem.AuthorData author) {
 		super(parent);
 		Author = author;
 	}
@@ -69,7 +69,6 @@ public class NetworkAuthorTree extends NetworkTree {
 		if (myBooksNumber >= books.size()) {
 			return;
 		}
-		invalidateChildren(); // call to update secondString
 
 		ListIterator<NetworkBookItem> booksIterator = books.listIterator(myBooksNumber);
 		while (booksIterator.hasNext()) {
@@ -108,7 +107,6 @@ public class NetworkAuthorTree extends NetworkTree {
 						}
 						++insertAt;
 					}
-					seriesTree.invalidateChildren(); // call to update secondString
 					new NetworkBookTree(seriesTree, book, insertAt, false);
 				}
 			} else {
@@ -120,7 +118,7 @@ public class NetworkAuthorTree extends NetworkTree {
 	}
 
 	@Override
-	public NetworkLibraryItem getHoldedItem() {
-		return null;
+	protected String getStringId() {
+		return "@Author:" + Author.DisplayName + ":" + Author.SortKey;
 	}
 }

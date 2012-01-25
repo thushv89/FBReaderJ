@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,22 +22,23 @@ package org.geometerplus.fbreader.network;
 import java.util.Comparator;
 import java.util.LinkedList;
 
-
-public final class NetworkBookItemComparator implements Comparator<NetworkLibraryItem> {
-
-	public int compare(NetworkLibraryItem item0, NetworkLibraryItem item1) {
+public final class NetworkBookItemComparator implements Comparator<NetworkItem> {
+	public int compare(NetworkItem item0, NetworkItem item1) {
 		final boolean item0isABook = item0 instanceof NetworkBookItem;
 		final boolean item1isABook = item1 instanceof NetworkBookItem;
 
+		final String title0 = item0.Title.toString();
+		final String title1 = item1.Title.toString();
+
 		if (!item0isABook && !item1isABook) {
-			return item0.Title.compareTo(item1.Title);
+			return title0.compareTo(title1);
 		}
 		if (!item0isABook || !item1isABook) {
 			return item0isABook ? 1 : -1;
 		}
 
-		final NetworkBookItem book0 = (NetworkBookItem) item0;
-		final NetworkBookItem book1 = (NetworkBookItem) item1;
+		final NetworkBookItem book0 = (NetworkBookItem)item0;
+		final NetworkBookItem book1 = (NetworkBookItem)item1;
 
 		final LinkedList<NetworkBookItem.AuthorData> authors0 = book0.Authors;
 		final LinkedList<NetworkBookItem.AuthorData> authors1 = book1.Authors;
@@ -70,16 +71,16 @@ public final class NetworkBookItemComparator implements Comparator<NetworkLibrar
 			if (comp != 0) {
 				return comp;
 			} else {
-				final int diff = book0.IndexInSeries - book1.IndexInSeries;
+				final float diff = book0.IndexInSeries - book1.IndexInSeries;
 				if (diff != 0) {
-					return diff;
+					return diff > 0 ? 1 : -1;
 				}
 			}
-			return book0.Title.compareTo(book1.Title);
+			return title0.compareTo(title1);
 		}
 
-		final String book0Key = book0HasSeriesTitle ? book0.SeriesTitle : book0.Title;
-		final String book1Key = book1HasSeriesTitle ? book1.SeriesTitle : book1.Title;
+		final String book0Key = book0HasSeriesTitle ? book0.SeriesTitle : title0;
+		final String book1Key = book1HasSeriesTitle ? book1.SeriesTitle : title1;
 		final int comp = book0Key.compareTo(book1Key);
 		if (comp != 0) {
 			return comp;

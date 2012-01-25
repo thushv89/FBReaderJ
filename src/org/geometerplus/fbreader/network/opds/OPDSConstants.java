@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,15 +19,16 @@
 
 package org.geometerplus.fbreader.network.opds;
 
+import org.geometerplus.fbreader.network.atom.ATOMConstants;
 
-interface OPDSConstants {
-
+interface OPDSConstants extends ATOMConstants {
 	// Feed level
-	String REL_BOOKSHELF = "http://opds-spec.org/bookshelf";
+	String REL_BOOKSHELF = "http://data.fbreader.org/rel/bookshelf";
+	String REL_RECOMMENDATIONS = "http://data.fbreader.org/rel/recommendations";
+	String REL_TOPUP = "http://data.fbreader.org/rel/topup";
 	//String REL_SUBSCRIPTIONS = "http://opds-spec.org/subscriptions";
 
 	// Entry level / catalog types
-	String REL_CATALOG_AUTHOR = "http://data.fbreader.org/catalog/author";
 	String REL_SUBSECTION = "subsection";
 
 	// Entry level / acquisition links
@@ -49,31 +50,13 @@ interface OPDSConstants {
 	// FIXME: This relations have been removed from OPDS-1.0 standard. Use RelationAlias instead???
 	String REL_COVER = "http://opds-spec.org/cover";
 	String REL_THUMBNAIL = "http://opds-spec.org/thumbnail";
+	String REL_CONTENTS = "contents"; // Book TOC
+	String REL_REPLIES = "replies";
 
 	// Entry level / OPDS Link Relations
 	String REL_LINK_SIGN_IN = "http://data.fbreader.org/catalog/sign-in";
 	String REL_LINK_SIGN_OUT = "http://data.fbreader.org/catalog/sign-out";
 	String REL_LINK_SIGN_UP = "http://data.fbreader.org/catalog/sign-up";
-	String REL_LINK_REFILL_ACCOUNT = "http://data.fbreader.org/catalog/refill-account";
+	String REL_LINK_TOPUP = "http://data.fbreader.org/catalog/refill-account";
 	String REL_LINK_RECOVER_PASSWORD = "http://data.fbreader.org/catalog/recover-password";
-
-	// Entry level / OPDS Link Conditions
-	String REL_CONDITION_NEVER = "http://data.fbreader.org/condition/never";
-	String REL_CONDITION_SIGNED_IN = "http://data.fbreader.org/condition/signed-in";
-
-	// MIME types / application
-	String MIME_APP_FB2ZIP = "application/fb2+zip";
-	String MIME_APP_EPUB = "application/epub+zip";
-	String MIME_APP_MOBI = "application/x-mobipocket-ebook";
-	String MIME_APP_PDF = "application/pdf";
-	String MIME_APP_ATOM = "application/atom+xml";
-
-	// MIME type for Opensearch Description XML document
-	String MIME_APP_OPENSEARCHDESCRIPTION = "application/opensearchdescription+xml";
-
-	// a special MIME type for the litres OPDS catalog
-	String MIME_APP_LITRES = "application/litres+xml";
-
-	// MIME types / text
-	String MIME_TEXT_HTML = "text/html";
 }

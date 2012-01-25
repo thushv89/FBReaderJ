@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,19 +19,14 @@
 
 package org.geometerplus.fbreader.network;
 
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
+
+import org.geometerplus.zlibrary.core.image.ZLImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.fbreader.tree.FBTree;
 
-import org.geometerplus.zlibrary.core.image.ZLImage;
-
 public abstract class NetworkTree extends FBTree {
-
-	protected NetworkTree(int level) {
-		super(level);
-	}
-
 	protected NetworkTree() {
 		super();
 	}
@@ -44,34 +39,43 @@ public abstract class NetworkTree extends FBTree {
 		super(parent, position);
 	}
 
-	public static ZLImage createCover(NetworkLibraryItem item) {
-		if (item.Cover == null) {
-			return null;
-		}
-		return createCover(item.Cover, null);
+	public INetworkLink getLink() {
+		final NetworkTree parent = (NetworkTree)Parent;
+		return parent != null ? parent.getLink() : null;
 	}
 
-	public static ZLImage createCover(String url, String mimeType) {
+	public static ZLImage createCover(NetworkItem item) {
+		final String imageUrl = item.getImageUrl();
+		if (imageUrl == null) {
+			return null;
+		}
+		return createCover(imageUrl, null);
+	}
+
+	private static final String DATA_PREFIX = "data:";
+
+	public static ZLImage createCover(String url, MimeType mimeType) {
 		if (url == null) {
 			return null;
 		}
 		if (mimeType == null) {
-			mimeType = "image/auto";
+			mimeType = MimeType.IMAGE_AUTO;
 		}
 		if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("ftp://")) {
 			return new NetworkImage(url, mimeType);
-		} else if (url.startsWith("data:")) {
+		} else if (url.startsWith(DATA_PREFIX)) {
 			int commaIndex = url.indexOf(',');
 			if (commaIndex == -1) {
 				return null;
 			}
-			if (mimeType == "image/auto") {
+			if (mimeType == MimeType.IMAGE_AUTO) {
 				int index = url.indexOf(';');
 				if (index == -1 || index > commaIndex) {
 					index = commaIndex;
 				}
-				if (url.startsWith("image/", 5)) { // 11 -- length of "data:image/"; 5 -- length of "data:"
-					mimeType = url.substring(5, index);
+	 			// string starts with "data:image/"
+				if (url.startsWith(MimeType.IMAGE_PREFIX, DATA_PREFIX.length())) {
+					mimeType = MimeType.get(url.substring(DATA_PREFIX.length(), index));
 				}
 			}
 			int key = url.indexOf("base64");
@@ -84,32 +88,27 @@ public abstract class NetworkTree extends FBTree {
 		return null;
 	}
 
-
-	public abstract NetworkLibraryItem getHoldedItem();
-
-	public void removeItems(Set<NetworkLibraryItem> items) {
-		if (items.isEmpty() || subTrees().isEmpty()) {
+	public void removeTrees(Set<NetworkTree> trees) {
+		if (trees.isEmpty() || subTrees().isEmpty()) {
 			return;
 		}
-		final LinkedList<FBTree> treesList = new LinkedList<FBTree>();
-		for (FBTree tree: subTrees()) {
-			final NetworkLibraryItem treeItem = ((NetworkTree)tree).getHoldedItem();
-			if (treeItem != null && items.contains(treeItem)) {
-				treesList.add(tree);
-				items.remove(treeItem);
+		final LinkedList<FBTree> toRemove = new LinkedList<FBTree>();
+		for (FBTree t : subTrees()) {
+			if (trees.contains(t)) {
+				toRemove.add(t);
+				trees.remove(t);
 			}
 		}
-		for (FBTree tree: treesList) {
+		for (FBTree tree : toRemove) {
 			tree.removeSelf();
 		}
-		if (items.isEmpty()) {
+		if (trees.isEmpty()) {
 			return;
 		}
-		treesList.clear();
-		treesList.addAll(subTrees());
-		while (!treesList.isEmpty()) {
-			final NetworkTree tree = (NetworkTree) treesList.remove(treesList.size() - 1);
-			tree.removeItems(items);
+
+		final LinkedList<FBTree> toProcess = new LinkedList<FBTree>(subTrees());
+		while (!toProcess.isEmpty()) {
+			((NetworkTree)toProcess.remove(toProcess.size() - 1)).removeTrees(trees);
 		}
 	}
 }

@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.geometerplus.fbreader.bookmodel.BookModel;
-import org.geometerplus.fbreader.fbreader.FBReader;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.fbreader.library.Book;
 import org.geometerplus.fbreader.library.BookTree;
 import org.geometerplus.fbreader.library.Library;
@@ -45,6 +45,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -87,20 +88,21 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 	}
 
 	private void setCurrentBook() {
-		final BookModel model = ((FBReader)FBReader.Instance()).Model;
+		final BookModel model = ((FBReaderApp)FBReaderApp.Instance()).Model;
 		myCurrentBook = (model != null) ? model.Book : null;
 	}
 
 	private void createDefaultTabs() {		
 		AccessibilityManager accessibilityManager =
 	        (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
-
+        //todo - Rom - need to reimplement tabs with new code base
+/*
 		// Add tabs in the order "By title", "By author", "Recent", "By tag"
 		new LibraryAdapter(createTab("byTitle", R.id.by_title, R.drawable.ic_tab_library_title), Library.Instance().byTitle(), Type.FLAT);
 
 		// Depending on accessibility status, turn on the hierarchical nature of the "By author" list
 		if(accessibilityManager.isEnabled()){
-			LibraryTree libraryByAuthor = Library.Instance().byAuthor();			
+			LibraryTree libraryByAuthor = Library.Instance().byAuthor();
 			ArrayList<AccessibilityLibraryTreeBean> objects = new ArrayList<AccessibilityLibraryTreeBean>();
 			// Create a custom data source for the author tab to be shown in flat (non-hierarchical) view
 			for(FBTree treeItem : libraryByAuthor){
@@ -132,7 +134,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		}
 		else{
 			new LibraryAdapter(createTab("byTag", R.id.by_tag, R.drawable.ic_tab_library_tag), Library.Instance().byTag(), Type.TREE);
-		}
+		}*/
 		findViewById(R.id.search_results).setVisibility(View.GONE);
 	}
 
@@ -144,7 +146,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 
 		setCurrentBook();
 
-		//requestWindowFeature(Window.FEATURE_NO_TITLE);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
 
 		final TabHost host = getTabHost();
@@ -157,13 +159,13 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 
 	private LibraryAdapter mySearchResultsAdapter;
 	void showSearchResultsTab(LibraryTree tree) {
-		if (mySearchResultsAdapter == null) {
+/*		if (mySearchResultsAdapter == null) {
 			mySearchResultsAdapter =
 				new LibraryAdapter(createTab("searchResults", R.id.search_results, R.drawable.ic_tab_library_results), tree, Type.FLAT);
 		} else {
 			mySearchResultsAdapter.resetTree(tree);
 		}
-		getTabHost().setCurrentTabByTag("searchResults");
+		getTabHost().setCurrentTabByTag("searchResults");*/
 	}
 
 	@Override
@@ -186,7 +188,8 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 
 	@Override
 	public void onDestroy() {
-		Library.Instance().clear();
+        // todo - Rom - need to reimplement next line based on new code base
+		//Library.Instance().clear();
 		super.onDestroy();
 	}
 
@@ -214,11 +217,13 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 		}
 	}
 
+    static final ZLStringOption BookSearchPatternOption =
+    		new ZLStringOption("BookSearch", "Pattern", "");
+
 	@Override
 	public boolean onSearchRequested() {
-		final FBReader fbreader = (FBReader)FBReader.Instance();
-		startSearch(fbreader.BookSearchPatternOption.getValue(), true, null, false);
-		return true;
+        startSearch(BookSearchPatternOption.getValue(), true, null, false);
+        return true;
 	}
 
 	//By default these int values are public, static and final, since inside an interface
@@ -259,7 +264,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			finish();
 			if (!tree.book.equals(myCurrentBook)) {
 				Library.Instance().addBookToRecentList(tree.book);
-				((FBReader)FBReader.Instance()).openBook(tree.book, null);
+				((FBReaderApp)FBReaderApp.Instance()).openBook(tree.book, null);
 			}
 		}
 
@@ -363,7 +368,8 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 					break;
 			}
 			((TextView)view.findViewById(R.id.library_tree_item_name)).setText(tree.getName());
-			((TextView)view.findViewById(R.id.library_tree_item_childrenlist)).setText(tree.getSecondString());
+            // todo - Rom - need to reimplement following line based on new code base
+			//((TextView)view.findViewById(R.id.library_tree_item_childrenlist)).setText(tree.getSecondString());
 			return view;
 		}
 
@@ -376,7 +382,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 			final Book book = ((BookTree)tree).Book;
 			if (!book.equals(myCurrentBook)) {
 				Library.Instance().addBookToRecentList(book);
-				((FBReader)FBReader.Instance()).openBook(book, null);
+				((FBReaderApp)FBReaderApp.Instance()).openBook(book, null);
 			}
 			return true;
 		}
@@ -398,7 +404,7 @@ public class LibraryTabActivity extends TabActivity implements MenuItem.OnMenuIt
 				finish();
 				if (!tree.book.equals(myCurrentBook)) {
 					Library.Instance().addBookToRecentList(tree.book);
-					((FBReader)FBReader.Instance()).openBook(tree.book, null);
+					((FBReaderApp)FBReaderApp.Instance()).openBook(tree.book, null);
 				}
 				return true;
 			case DELETE_BOOK_ITEM_ID:

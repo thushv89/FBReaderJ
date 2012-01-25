@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -259,6 +259,9 @@ public class HtmlReader extends BookReader implements ZLHtmlReader {
 					if (ref.charAt(0) == '#') {
 						myHyperlinkType = FBTextKind.FOOTNOTE;
 						ref = ref.substring(1);
+					} else if (ref.charAt(0) == '&') {
+						myHyperlinkType = FBTextKind.INTERNAL_HYPERLINK;
+						ref = ref.substring(1);
 					} else {
 						myHyperlinkType = FBTextKind.EXTERNAL_HYPERLINK;
 					}
@@ -279,7 +282,7 @@ public class HtmlReader extends BookReader implements ZLHtmlReader {
 						filePath = Model.Book.File.getPath();
 						filePath = filePath.substring(0, filePath.lastIndexOf('\\') + 1) + ref;
 					}
-					addImage(ref, new ZLFileImage("image/auto", ZLFile.createFileByPath(filePath)));
+					addImage(ref, new ZLFileImage(MimeTypes.MIME_IMAGE_AUTO, ZLFile.createFileByPath(filePath)));
 				}
 				*/
 				break;

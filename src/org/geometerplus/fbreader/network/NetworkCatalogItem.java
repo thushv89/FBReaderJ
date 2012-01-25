@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,104 +22,131 @@ package org.geometerplus.fbreader.network;
 import java.util.*;
 
 import org.geometerplus.zlibrary.core.util.ZLBoolean3;
+import org.geometerplus.zlibrary.core.network.ZLNetworkManager;
+import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
 
-public abstract class NetworkCatalogItem extends NetworkLibraryItem {
+import org.geometerplus.fbreader.network.authentication.NetworkAuthenticationManager;
+import org.geometerplus.fbreader.network.urlInfo.UrlInfoCollection;
+import org.geometerplus.fbreader.network.tree.NetworkItemsLoader;
 
-	// catalog types:
-	public static final int CATALOG_OTHER = 0;
-	public static final int CATALOG_BY_AUTHORS = 1;
+public abstract class NetworkCatalogItem extends NetworkItem {
+	// bit mask for flags parameter
+	public static final int FLAG_SHOW_AUTHOR                              = 1 << 0;
+	public static final int FLAG_GROUP_BY_AUTHOR                          = 1 << 1;
+	public static final int FLAG_GROUP_BY_SERIES                          = 1 << 2;
+	public static final int FLAG_GROUP_MORE_THAN_1_BOOK_BY_SERIES         = 1 << 3;
+	public static final int FLAG_ADD_SEARCH_ITEM                          = 1 << 4;
 
-	// catalog visibility types:
-	public static final int VISIBLE_ALWAYS = 1;
-	public static final int VISIBLE_LOGGED_USER = 2;
+	public static final int FLAGS_DEFAULT =
+		FLAG_SHOW_AUTHOR |
+		FLAG_GROUP_MORE_THAN_1_BOOK_BY_SERIES;
+	public static final int FLAGS_GROUP =
+		FLAG_GROUP_BY_AUTHOR |
+		FLAG_GROUP_BY_SERIES |
+		FLAG_GROUP_MORE_THAN_1_BOOK_BY_SERIES;
 
-	// URL type values:
-	public static final int URL_NONE = 0;
-	public static final int URL_CATALOG = 1;
-	public static final int URL_HTML_PAGE = 2;
-
-	public final int Visibility;
-	public final int CatalogType;
-	public final TreeMap<Integer, String> URLByType;
-
-	/**
-	 * Creates new NetworkCatalogItem instance with <code>VISIBLE_ALWAYS</code> visibility and <code>CATALOG_OTHER</code> type.
-	 *
-	 * @param link       corresponding NetworkLink object. Must be not <code>null</code>.
-	 * @param title      title of this library item. Must be not <code>null</code>.
-	 * @param summary    description of this library item. Can be <code>null</code>.
-	 * @param cover      cover url. Can be <code>null</code>.
-	 * @param urlByType  map contains URLs and their types. Must be not <code>null</code>.
-	 */
-	public NetworkCatalogItem(INetworkLink link, String title, String summary, String cover, Map<Integer, String> urlByType) {
-		this(link, title, summary, cover, urlByType, VISIBLE_ALWAYS, CATALOG_OTHER);
+	// catalog accessibility types:
+	public static enum Accessibility {
+		NEVER,
+		ALWAYS,
+		SIGNED_IN,
+		HAS_BOOKS
 	}
 
-	/**
-	 * Creates new NetworkCatalogItem instance with specified visibility and <code>CATALOG_OTHER</code> type.
-	 *
-	 * @param link       corresponding NetworkLink object. Must be not <code>null</code>.
-	 * @param title      title of this library item. Must be not <code>null</code>.
-	 * @param summary    description of this library item. Can be <code>null</code>.
-	 * @param cover      cover url. Can be <code>null</code>.
-	 * @param urlByType  map contains URLs and their types. Must be not <code>null</code>.
-	 * @param visibility value defines when this library item will be shown in the network library. 
-	 *                   Can be one of the VISIBLE_* values.
-	 */
-	public NetworkCatalogItem(INetworkLink link, String title, String summary, String cover, Map<Integer, String> urlByType, int visibility) {
-		this(link, title, summary, cover, urlByType, visibility, CATALOG_OTHER);
-	}
+	private final Accessibility myAccessibility;
+	private int myFlags;
 
 	/**
-	 * Creates new NetworkCatalogItem instance with specified visibility and type.
+	 * Creates new NetworkCatalogItem instance with specified accessibility and type.
 	 *
-	 * @param link       corresponding NetworkLink object. Must be not <code>null</code>.
-	 * @param title      title of this library item. Must be not <code>null</code>.
-	 * @param summary    description of this library item. Can be <code>null</code>.
-	 * @param cover      cover url. Can be <code>null</code>.
-	 * @param urlByType  map contains URLs and their types. Must be not <code>null</code>.
-	 * @param visibility value defines when this library item will be shown in the network library. 
-	 *                   Can be one of the VISIBLE_* values.
-	 * @param catalogType value defines type of this catalog. Can be one of the CATALOG_* values.
+	 * @param link          corresponding NetworkLink object. Must be not <code>null</code>.
+	 * @param title         title of this library item. Must be not <code>null</code>.
+	 * @param summary       description of this library item. Can be <code>null</code>.
+	 * @param urls          collection of item-related URLs. Can be <code>null</code>.
+	 * @param accessibility value defines when this library item will be accessible
+	 *                      in the network library view. 
+	 * @param flags         describes how to show book items inside this catalog
 	 */
-	public NetworkCatalogItem(INetworkLink link, String title, String summary, String cover, Map<Integer, String> urlByType, int visibility, int catalogType) {
-		super(link, title, summary, cover);
-		Visibility = visibility;
-		CatalogType = catalogType;
-		URLByType = new TreeMap<Integer, String>(urlByType);
+	public NetworkCatalogItem(INetworkLink link, CharSequence title, CharSequence summary, UrlInfoCollection<?> urls, Accessibility accessibility, int flags) {
+		super(link, title, summary, urls);
+		myAccessibility = accessibility;
+		myFlags = flags;
 	}
 
-	public abstract void loadChildren(NetworkOperationData.OnNewItemListener listener) throws ZLNetworkException;
+	public Map<String,String> extraData() {
+		return Collections.emptyMap();
+	}
+
+	public abstract boolean canBeOpened();
+
+	public abstract void loadChildren(NetworkItemsLoader loader) throws ZLNetworkException;
 
 	public boolean supportsResumeLoading() {
 		return false;
 	}
 
-	public void resumeLoading(NetworkOperationData.OnNewItemListener listener) throws ZLNetworkException {
+	public void resumeLoading(NetworkItemsLoader loader) throws ZLNetworkException {
 		throw new ZLNetworkException(NetworkException.ERROR_UNSUPPORTED_OPERATION);
 	}
 
-
-	/**
-	 * Method is called each time this item is displayed to the user.
-	 *
-	 * This method is called when UI-element corresponding to this item is shown to the User.
-	 */
-	public void onDisplayItem() {
+	public int getFlags() {
+		return myFlags;
 	}
 
-	public int getVisibility() {
-		if (Visibility == VISIBLE_ALWAYS) {
+	public void setFlags(int flags) {
+		myFlags = flags;
+	}
+
+	public ZLBoolean3 getVisibility() {
+		if (Link == null) {
 			return ZLBoolean3.B3_TRUE;
 		}
-		if (Visibility == VISIBLE_LOGGED_USER) {
-			if (Link.authenticationManager() == null) {
+
+		final NetworkAuthenticationManager mgr = Link.authenticationManager();
+		switch (myAccessibility) {
+			default:
 				return ZLBoolean3.B3_FALSE;
-			}
-			return (Link.authenticationManager().isAuthorised(false).Status == ZLBoolean3.B3_TRUE) ?
-				ZLBoolean3.B3_TRUE : ZLBoolean3.B3_UNDEFINED;
+			case ALWAYS:
+				return ZLBoolean3.B3_TRUE;
+			case SIGNED_IN:
+				if (mgr == null) {
+					return ZLBoolean3.B3_FALSE;
+				}
+				try {
+					return mgr.isAuthorised(false) ?
+							ZLBoolean3.B3_TRUE : ZLBoolean3.B3_UNDEFINED;
+				} catch (ZLNetworkException e) {
+					return ZLBoolean3.B3_UNDEFINED;
+				}
+			case HAS_BOOKS:
+				if ((Link.getBasketItem() != null && Link.getBasketItem().bookIds().size() > 0) ||
+					(mgr != null && mgr.purchasedBooks().size() > 0)) {
+					return ZLBoolean3.B3_TRUE;
+				} else {
+					return ZLBoolean3.B3_FALSE;
+				}
 		}
-		return ZLBoolean3.B3_FALSE;
+	}
+
+	public abstract String getStringId();
+
+	/**
+	 * Performs all necessary operations with NetworkOperationData and NetworkRequest
+	 * to complete loading children items.
+	 * 
+	 * @param data Network operation data instance
+	 * @param networkRequest initial network request
+	 *  
+	 * @throws ZLNetworkException when network operation couldn't be completed
+	 */
+	protected final void doLoadChildren(NetworkOperationData data, ZLNetworkRequest networkRequest) throws ZLNetworkException {
+		while (networkRequest != null) {
+			ZLNetworkManager.Instance().perform(networkRequest);
+			if (data.Loader.confirmInterruption()) {
+				return;
+			}
+			networkRequest = data.resume();
+		}
 	}
 }

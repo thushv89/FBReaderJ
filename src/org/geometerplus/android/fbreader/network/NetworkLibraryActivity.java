@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,274 +19,426 @@
 
 package org.geometerplus.android.fbreader.network;
 
-import org.geometerplus.fbreader.network.NetworkLibrary;
-import org.geometerplus.fbreader.network.NetworkTree;
-import org.geometerplus.zlibrary.core.network.ZLNetworkException;
-import org.geometerplus.zlibrary.core.resources.ZLResource;
-import org.benetech.android.R;
-import org.geometerplus.zlibrary.ui.android.dialogs.ZLAndroidDialogManager;
+import java.util.*;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import android.view.*;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
+import org.geometerplus.zlibrary.core.network.ZLNetworkManager;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.core.util.ZLBoolean3;
 
-public class NetworkLibraryActivity extends NetworkBaseActivity {
+import org.geometerplus.zlibrary.ui.android.network.SQLiteCookieDatabase;
 
-	private NetworkTree myTree;
+import org.geometerplus.fbreader.tree.FBTree;
+import org.geometerplus.fbreader.network.*;
+import org.geometerplus.fbreader.network.tree.*;
+
+import org.geometerplus.android.fbreader.tree.TreeActivity;
+import org.geometerplus.android.fbreader.network.action.*;
+
+import org.geometerplus.android.util.UIUtil;
+
+public abstract class NetworkLibraryActivity extends TreeActivity implements NetworkLibrary.ChangeListener {
+	static final String OPEN_CATALOG_ACTION = "android.fbreader.action.OPEN_NETWORK_CATALOG";
+
+	BookDownloaderServiceConnection Connection;
+
+	final List<Action> myOptionsMenuActions = new ArrayList<Action>();
+	final List<Action> myContextMenuActions = new ArrayList<Action>();
+	final List<Action> myListClickActions = new ArrayList<Action>();
+	private Intent myDeferredIntent;
+	private boolean mySingleCatalog;
 
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 
-		//requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
-	}
+		AuthenticationActivity.initCredentialsCreator(this);
 
-	private void prepareView() {
-		if (myTree == null) {
-			myTree = NetworkLibrary.Instance().getTree();
-			setListAdapter(new LibraryAdapter());
-			getListView().invalidateViews();
+		SQLiteCookieDatabase.init(this);
+
+		Connection = new BookDownloaderServiceConnection();
+		bindService(
+			new Intent(getApplicationContext(), BookDownloaderService.class),
+			Connection,
+			BIND_AUTO_CREATE
+		);
+
+		setListAdapter(new NetworkLibraryAdapter(this));
+		final Intent intent = getIntent();
+		init(intent);
+		myDeferredIntent = null;
+
+		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
+
+		if (getCurrentTree() instanceof RootTree) {
+			mySingleCatalog = intent.getBooleanExtra("SingleCatalog", false);
+			if (!NetworkLibrary.Instance().isInitialized()) {
+				Util.initLibrary(this);
+				myDeferredIntent = intent;
+			} else {
+				NetworkLibrary.Instance().fireModelChangedEvent(NetworkLibrary.ChangeListener.Code.SomeCode);
+				openTreeByIntent(intent);
+			}
 		}
 	}
 
-	private static Initializator myInitializator; 
+	@Override
+	protected NetworkTree getTreeByKey(FBTree.Key key) {
+		final NetworkLibrary library = NetworkLibrary.Instance();
+		final NetworkTree tree = library.getTreeByKey(key);
+		return tree != null ? tree : library.getRootTree();
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		NetworkLibrary.Instance().addChangeListener(this);
+	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (!NetworkView.Instance().isInitialized()) {
-			if (myInitializator == null) {
-				myInitializator = new Initializator(this);
-				myInitializator.start();
-			} else {
-				myInitializator.setActivity(this);
-			}
-		} else {
-			prepareView();
-		}
+		getListView().setOnCreateContextMenuListener(this);
+		NetworkLibrary.Instance().fireModelChangedEvent(NetworkLibrary.ChangeListener.Code.SomeCode);
+	}
+
+	@Override
+	protected void onStop() {
+		NetworkLibrary.Instance().removeChangeListener(this);
+		super.onStop();
 	}
 
 	@Override
 	public void onDestroy() {
-		if (!NetworkView.Instance().isInitialized()
-				&& myInitializator != null) {
-			myInitializator.setActivity(null);
+		if (Connection != null) {
+			unbindService(Connection);
+			Connection = null;
 		}
 		super.onDestroy();
 	}
 
-	private static class Initializator extends Handler {
-
-		private NetworkLibraryActivity myActivity;
-
-		public Initializator(NetworkLibraryActivity activity) {
-			myActivity = activity;
-		}
-
-		public void setActivity(NetworkLibraryActivity activity) {
-			myActivity = activity;
-		}
-
-		final DialogInterface.OnClickListener myListener = new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
-				if (which == DialogInterface.BUTTON_POSITIVE) {
-					Initializator.this.start();
-				} else if (myActivity != null) {
-					myActivity.finish();
+	private boolean openTreeByIntent(Intent intent) {
+		if (OPEN_CATALOG_ACTION.equals(intent.getAction())) {
+			final Uri uri = intent.getData();
+			if (uri != null) {
+				final NetworkTree tree =
+					NetworkLibrary.Instance().getCatalogTreeByUrl(uri.toString());
+				if (tree != null) {
+					checkAndRun(new OpenCatalogAction(this), tree);
+					return true;
 				}
 			}
-		};
+		}
+		return false;
+	}
 
-		// run this method only if myActivity != null
-		private void runInitialization() {
-			((ZLAndroidDialogManager)ZLAndroidDialogManager.Instance()).wait("loadingNetworkLibrary", new Runnable() {
-				public void run() {
-					String error = null;
-					try {
-						NetworkView.Instance().initialize();
-					} catch (ZLNetworkException e) {
-						error = e.getMessage();
-					}
-					Initializator.this.end(error);
+	@Override
+	protected void onNewIntent(Intent intent) {
+		if (!openTreeByIntent(intent)) {
+			super.onNewIntent(intent);
+		}
+	}
+
+	@Override
+	public boolean onSearchRequested() {
+		final NetworkTree tree = (NetworkTree)getCurrentTree();
+		final RunSearchAction action = new RunSearchAction(this, false);
+		if (action.isVisible(tree) && action.isEnabled(tree)) {
+			action.run(tree);
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isTreeSelected(FBTree tree) {
+		return false;
+	}
+
+	@Override
+	protected boolean isTreeInvisible(FBTree tree) {
+		return tree instanceof RootTree && (mySingleCatalog || ((RootTree)tree).IsFake);
+	}
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event)  {
+		if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+			final NetworkItemsLoader loader =
+				NetworkLibrary.Instance().getStoredLoader((NetworkTree)getCurrentTree());
+			if (loader != null) {
+				loader.interrupt();
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
+	private void fillOptionsMenuList() {
+		myOptionsMenuActions.add(new RunSearchAction(this, false));
+		myOptionsMenuActions.add(new AddCustomCatalogAction(this));
+		myOptionsMenuActions.add(new RefreshRootCatalogAction(this));
+		myOptionsMenuActions.add(new LanguageFilterAction(this));
+		myOptionsMenuActions.add(new ReloadCatalogAction(this));
+		myOptionsMenuActions.add(new SignInAction(this));
+		myOptionsMenuActions.add(new SignUpAction(this));
+		myOptionsMenuActions.add(new SignOutAction(this));
+		myOptionsMenuActions.add(new TopupAction(this));
+		myOptionsMenuActions.add(new BuyBasketBooksAction(this));
+		myOptionsMenuActions.add(new ClearBasketAction(this));
+	}
+
+	private void fillContextMenuList() {
+		myContextMenuActions.add(new OpenCatalogAction(this));
+		myContextMenuActions.add(new OpenInBrowserAction(this));
+		myContextMenuActions.add(new RunSearchAction(this, true));
+		myContextMenuActions.add(new AddCustomCatalogAction(this));
+		myContextMenuActions.add(new SignOutAction(this));
+		myContextMenuActions.add(new TopupAction(this));
+		myContextMenuActions.add(new SignInAction(this));
+		myContextMenuActions.add(new EditCustomCatalogAction(this));
+		myContextMenuActions.add(new RemoveCustomCatalogAction(this));
+		myContextMenuActions.add(new BuyBasketBooksAction(this));
+		myContextMenuActions.add(new ClearBasketAction(this));
+	}
+
+	private void fillListClickList() {
+		myListClickActions.add(new OpenCatalogAction(this));
+		myListClickActions.add(new OpenInBrowserAction(this));
+		myListClickActions.add(new RunSearchAction(this, true));
+		myListClickActions.add(new AddCustomCatalogAction(this));
+		myListClickActions.add(new TopupAction(this));
+		myListClickActions.add(new ShowBookInfoAction(this));
+	}
+
+	private List<? extends Action> getContextMenuActions(NetworkTree tree) {
+		return tree instanceof NetworkBookTree
+			? NetworkBookActions.getContextMenuActions(this, (NetworkBookTree)tree, Connection)
+			: myContextMenuActions;
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View view, ContextMenu.ContextMenuInfo menuInfo) {
+		if (myContextMenuActions.isEmpty()) {
+			fillContextMenuList();
+		}
+
+		final int position = ((AdapterView.AdapterContextMenuInfo)menuInfo).position;
+		final NetworkTree tree = (NetworkTree)getListAdapter().getItem(position);
+		if (tree != null) {
+			menu.setHeaderTitle(tree.getName());
+			for (Action a : getContextMenuActions(tree)) {
+				if (a.isVisible(tree) && a.isEnabled(tree)) {
+					menu.add(0, a.Code, 0, a.getContextLabel(tree));
 				}
-			}, myActivity);
+			}
+		}
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		final int position = ((AdapterView.AdapterContextMenuInfo)item.getMenuInfo()).position;
+		final NetworkTree tree = (NetworkTree)getListAdapter().getItem(position);
+		if (tree != null) {
+			for (Action a : getContextMenuActions(tree)) {
+				if (a.Code == item.getItemId()) {
+					checkAndRun(a, tree);
+					return true;
+				}
+			}
+		}
+		return super.onContextItemSelected(item);
+	}
+
+	@Override
+	public void onListItemClick(ListView listView, View view, int position, long rowId) {
+		if (myListClickActions.isEmpty()) {
+			fillListClickList();
 		}
 
-		// run this method only if myActivity != null
-		private void processResults(String error) {
-			final ZLResource dialogResource = ZLResource.resource("dialog");
-			final ZLResource boxResource = dialogResource.getResource("networkError");
-			final ZLResource buttonResource = dialogResource.getResource("button");
-			new AlertDialog.Builder(myActivity)
-				.setTitle(boxResource.getResource("title").getValue())
-				.setMessage(error)
-				.setIcon(0)
-				.setPositiveButton(buttonResource.getResource("tryAgain").getValue(), myListener)
-				.setNegativeButton(buttonResource.getResource("cancel").getValue(), myListener)
-				.setOnCancelListener(new DialogInterface.OnCancelListener() {
-					public void onCancel(DialogInterface dialog) {
-						myListener.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
-					}
-				})
-				.create().show();
-		}
-
-		@Override
-		public void handleMessage(Message message) {
-			if (myActivity == null) {
+		final NetworkTree tree = (NetworkTree)getListAdapter().getItem(position);
+		for (Action a : myListClickActions) {
+			if (a.isVisible(tree) && a.isEnabled(tree)) {
+				checkAndRun(a, tree);
 				return;
-			} else if (message.what == 0) {
-				runInitialization(); // run initialization process
-			} else if (message.obj == null) {
-				myActivity.startService(new Intent(myActivity.getApplicationContext(), LibraryInitializationService.class));
-				myActivity.prepareView(); // initialization is complete successfully
-			} else {
-				processResults((String) message.obj); // handle initialization error
 			}
 		}
 
-		public void start() {
-			sendEmptyMessage(0);
-		}
-
-		private void end(String error) {
-			sendMessage(obtainMessage(1, error));
-		}
+		listView.showContextMenuForChild(view);
 	}
-
-
-	private final class LibraryAdapter extends BaseAdapter {
-
-		public final int getCount() {
-			if (!NetworkView.Instance().isInitialized()) {
-				return 0;
-			}
-			return myTree.subTrees().size() + 2; // subtrees + <search item>
-		}
-
-		public final NetworkTree getItem(int position) {
-			final int size = myTree.subTrees().size();
-			if (position == 0) {
-				return NetworkView.Instance().getSearchItemTree();
-			} else if (position > 0 && position <= size) {
-				return (NetworkTree) myTree.subTrees().get(position - 1);
-			} else if (position == size + 1) {
-				return NetworkView.Instance().getAddCustomCatalogItemTree();
-			}
-			return null;
-		}
-
-		public final long getItemId(int position) {
-			return position;
-		}
-
-		public View getView(int position, View convertView, final ViewGroup parent) {
-			final NetworkTree tree = getItem(position);
-			return setupNetworkTreeItemView(convertView, parent, tree);
-		}
-	}
-
-
-	protected MenuItem addMenuItem(Menu menu, int index, String resourceKey, int iconId) {
-		final String label = myResource.getResource("menu").getResource(resourceKey).getValue();
-		return menu.add(0, index, Menu.NONE, label).setIcon(iconId);
-	}
-
-
-	private static final int MENU_SEARCH = 1;
-	private static final int MENU_REFRESH = 2;
-	private static final int MENU_ADD_CATALOG = 3;
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		addMenuItem(menu, MENU_SEARCH, "networkSearch", R.drawable.ic_menu_networksearch);
-		addMenuItem(menu, MENU_ADD_CATALOG, "addCustomCatalog", android.R.drawable.ic_menu_add);
-		addMenuItem(menu, MENU_REFRESH, "refreshCatalogsList", R.drawable.ic_menu_refresh);
+
+		if (myOptionsMenuActions.isEmpty()) {
+			fillOptionsMenuList();
+		}
+
+//		final NetworkTree tree = (NetworkTree)getCurrentTree();
+		for (Action a : myOptionsMenuActions) {
+			final MenuItem item = menu.add(0, a.Code, Menu.NONE, "");
+			if (a.IconId != -1) {
+				item.setIcon(a.IconId);
+			}
+		}
 		return true;
 	}
 
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		super.onPrepareOptionsMenu(menu);
-		final boolean searchInProgress = NetworkView.Instance().containsItemsLoadingRunnable(NetworkSearchActivity.SEARCH_RUNNABLE_KEY);
-		menu.findItem(MENU_SEARCH).setEnabled(!searchInProgress);
+
+		final NetworkTree tree = (NetworkTree)getCurrentTree();
+		for (Action a : myOptionsMenuActions) {
+			final MenuItem item = menu.findItem(a.Code);
+			if (a.isVisible(tree)) {
+				item.setVisible(true);
+				item.setEnabled(a.isEnabled(tree));
+				item.setTitle(a.getOptionsLabel(tree));
+			} else {
+				item.setVisible(false);
+			}
+		}
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case MENU_SEARCH:
-				return onSearchRequested();
-			case MENU_ADD_CATALOG:
-				AddCustomCatalogItemActions.addCustomCatalog(this);
-				return true;
-			case MENU_REFRESH:
-				refreshCatalogsList();
-				return true;
-			default:
-				return true;
+		final NetworkTree tree = (NetworkTree)getCurrentTree();
+		for (Action a : myOptionsMenuActions) {
+			if (a.Code == item.getItemId()) {
+				checkAndRun(a, tree);
+				break;
+			}
 		}
-	}
-
-	@Override
-	public boolean onSearchRequested() {
-		if (NetworkView.Instance().containsItemsLoadingRunnable(NetworkSearchActivity.SEARCH_RUNNABLE_KEY)) {
-			return false;
-		}
-		final NetworkLibrary library = NetworkLibrary.Instance();
-		startSearch(library.NetworkSearchPatternOption.getValue(), true, null, false);
 		return true;
 	}
 
-	@Override
-	public void onModelChanged() {
-		getListView().invalidateViews();
+	private void updateLoadingProgress() {
+		final NetworkTree tree = (NetworkTree)getCurrentTree();
+		final NetworkTree lTree = getLoadableNetworkTree(tree);
+		final NetworkTree sTree = RunSearchAction.getSearchTree(tree);
+		setProgressBarIndeterminateVisibility(
+			NetworkLibrary.Instance().isUpdateInProgress() ||
+			NetworkLibrary.Instance().getStoredLoader(lTree) != null ||
+			NetworkLibrary.Instance().getStoredLoader(sTree) != null
+		);
 	}
 
-	private void refreshCatalogsList() {
-		final NetworkView view = NetworkView.Instance();
+	// method from NetworkLibrary.ChangeListener
+	public void onLibraryChanged(final NetworkLibrary.ChangeListener.Code code, final Object[] params) {
+		runOnUiThread(new Runnable() {
+			public void run() {
+				switch (code) {
+					default:
+						updateLoadingProgress();
+						getListAdapter().replaceAll(getCurrentTree().subTrees());
+						getListView().invalidateViews();
+						break;
+					case InitializationFailed:
+						showInitLibraryDialog((String)params[0]);
+						break;
+					case InitializationFinished:
+						NetworkLibrary.Instance().runBackgroundUpdate(false);
+						if (myDeferredIntent != null) {
+							openTreeByIntent(myDeferredIntent);
+							myDeferredIntent = null;
+						}
+						break;
+					case Found:
+						openTree((NetworkTree)params[0]);
+						break;
+					case NotFound:
+						UIUtil.showErrorMessage(NetworkLibraryActivity.this, "emptyNetworkSearchResults");
+						break;
+					case EmptyCatalog:
+						UIUtil.showErrorMessage(NetworkLibraryActivity.this, "emptyCatalog");
+						break;
+					case NetworkError:
+						UIUtil.showMessageText(NetworkLibraryActivity.this, (String)params[0]);
+						break;
+				}
+			}
+		});
+	}
 
-		final Handler handler = new Handler() {
-			@Override
-			public void handleMessage(Message msg) {
-				if (msg.obj == null) {
-					view.finishBackgroundUpdate();
+	private static NetworkTree getLoadableNetworkTree(NetworkTree tree) {
+		while (tree instanceof NetworkAuthorTree || tree instanceof NetworkSeriesTree) {
+			if (tree.Parent instanceof NetworkTree) {
+				tree = (NetworkTree)tree.Parent;
+			} else {
+				return null;
+			}
+		}
+		return tree;
+	}
+
+	@Override
+	protected void onCurrentTreeChanged() {
+		NetworkLibrary.Instance().fireModelChangedEvent(NetworkLibrary.ChangeListener.Code.SomeCode);
+	}
+
+	private void showInitLibraryDialog(String error) {
+		final DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				if (which == DialogInterface.BUTTON_POSITIVE) {
+					Util.initLibrary(NetworkLibraryActivity.this);
 				} else {
-					final ZLResource dialogResource = ZLResource.resource("dialog");
-					final ZLResource boxResource = dialogResource.getResource("networkError");
-					final ZLResource buttonResource = dialogResource.getResource("button");
-					new AlertDialog.Builder(NetworkLibraryActivity.this)
-						.setTitle(boxResource.getResource("title").getValue())
-						.setMessage((String) msg.obj)
-						.setIcon(0)
-						.setPositiveButton(buttonResource.getResource("ok").getValue(), null)
-						.create().show();
+					finish();
 				}
 			}
 		};
 
-		((ZLAndroidDialogManager)ZLAndroidDialogManager.Instance()).wait("updatingCatalogsList", new Runnable() {
-			public void run() {
-				String error = null;
-				try {
-					view.runBackgroundUpdate(true);
-				} catch (ZLNetworkException e) {
-					error = e.getMessage();
+		final ZLResource dialogResource = ZLResource.resource("dialog");
+		final ZLResource boxResource = dialogResource.getResource("networkError");
+		final ZLResource buttonResource = dialogResource.getResource("button");
+		new AlertDialog.Builder(this)
+			.setTitle(boxResource.getResource("title").getValue())
+			.setMessage(error)
+			.setIcon(0)
+			.setPositiveButton(buttonResource.getResource("tryAgain").getValue(), listener)
+			.setNegativeButton(buttonResource.getResource("cancel").getValue(), listener)
+			.setOnCancelListener(new DialogInterface.OnCancelListener() {
+				public void onCancel(DialogInterface dialog) {
+					listener.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
 				}
-				handler.sendMessage(handler.obtainMessage(0, error));
+			})
+			.create().show();
+	}
+
+	private void checkAndRun(final Action action, final NetworkTree tree) {
+		if (tree instanceof NetworkCatalogTree) {
+			final NetworkCatalogTree catalogTree = (NetworkCatalogTree)tree;
+			switch (catalogTree.getVisibility()) {
+				case B3_FALSE:
+					break;
+				case B3_TRUE:
+					action.run(tree);
+					break;
+				case B3_UNDEFINED:
+					Util.runAuthenticationDialog(this, tree.getLink(), new Runnable() {
+						public void run() {
+							if (catalogTree.getVisibility() != ZLBoolean3.B3_TRUE) {
+								return;
+							}
+							if (action.Code != ActionCode.SIGNIN) {
+								action.run(tree);
+							}
+						}
+					});
+					break;
 			}
-		}, this);
+		} else {
+			action.run(tree);
+		}
 	}
 }

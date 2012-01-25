@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ public class BookReader {
 			flushTextBufferToParagraph();
 			myCurrentTextModel.addControl(kind, start);
 		}
-		if (!start && (myHyperlinkReference.length() != 0) && (kind == myHyperlinkKind)) {
+		if (!start && myHyperlinkReference.length() != 0 && kind == myHyperlinkKind) {
 			myHyperlinkReference = "";
 		}
 	}
@@ -113,6 +113,7 @@ public class BookReader {
 	}
 
 	public final void beginParagraph(byte kind) {
+		endParagraph();
 		final ZLTextWritableModel textModel = myCurrentTextModel;
 		if (textModel != null) {
 			textModel.createParagraph(kind);
@@ -138,9 +139,9 @@ public class BookReader {
 	
 	private final void insertEndParagraph(byte kind) {
 		final ZLTextWritableModel textModel = myCurrentTextModel;
-		if ((textModel != null) && mySectionContainsRegularContents) {
+		if (textModel != null && mySectionContainsRegularContents) {
 			int size = textModel.getParagraphsNumber();
-			if ((size > 0) && (textModel.getParagraph(size-1).getKind() != kind)) {
+			if (size > 0 && textModel.getParagraph(size - 1).getKind() != kind) {
 				textModel.createParagraph(kind);
 				mySectionContainsRegularContents = false;
 			}
@@ -171,14 +172,14 @@ public class BookReader {
 	}
 	
 	public final void setMainTextModel() {
-		if ((myCurrentTextModel != null) && (myCurrentTextModel != Model.BookTextModel)) {
+		if (myCurrentTextModel != null && myCurrentTextModel != Model.BookTextModel) {
 			myCurrentTextModel.stopReading();
 		}
 		myCurrentTextModel = (ZLTextWritableModel)Model.BookTextModel;
 	}
 	
 	public final void setFootnoteTextModel(String id) {
-		if ((myCurrentTextModel != null) && (myCurrentTextModel != Model.BookTextModel)) {
+		if (myCurrentTextModel != null && myCurrentTextModel != Model.BookTextModel) {
 			myCurrentTextModel.stopReading();
 		}
 		myCurrentTextModel = (ZLTextWritableModel)Model.getFootnoteModel(id);
@@ -189,12 +190,22 @@ public class BookReader {
 	}
 
 	public final void addData(char[] data, int offset, int length, boolean direct) {
-		if (!myTextParagraphExists || (length == 0)) {
+		if (!myTextParagraphExists || length == 0) {
 			return;
 		}
+		if (!myInsideTitle && !mySectionContainsRegularContents) {
+			while (length > 0 && Character.isWhitespace(data[offset])) {
+				--length;
+				++offset;
+			}
+			if (length == 0) {
+				return;
+			}
+		}
+
 		myTextParagraphIsNonEmpty = true;
 
-		if (direct && (myTextBufferLength == 0) && !myInsideTitle) {
+		if (direct && myTextBufferLength == 0 && !myInsideTitle) {
 			myCurrentTextModel.addText(data, offset, length);
 		} else {
 			final int oldLength = myTextBufferLength;
@@ -217,7 +228,7 @@ public class BookReader {
 	private int myUnderflowLength;
 
 	public final void addByteData(byte[] data, int start, int length) {
-		if (!myTextParagraphExists || (length == 0)) {
+		if (!myTextParagraphExists || length == 0) {
 			return;
 		}
 		myTextParagraphIsNonEmpty = true;
@@ -230,7 +241,7 @@ public class BookReader {
 
 		if (myUnderflowLength > 0) {
 			int l = myUnderflowLength;
-			while (length-- > 0) {
+			while (length-- > 0 && l < 4) {
 				myUnderflowByteBuffer[l++] = data[start++];
 				final ByteBuffer ubb = ByteBuffer.wrap(myUnderflowByteBuffer);
 				myByteDecoder.decode(ubb, cb, false);
@@ -300,6 +311,10 @@ public class BookReader {
 		if ((length != 0) && (myCurrentContentsTree != null)) {
 			myContentsBuffer.append(data, offset, length);
 		}
+	}
+
+	public final boolean hasContentsData() {
+		return myContentsBuffer.length() > 0;
 	}
 	
 	public final void beginContentsParagraph(int referenceNumber) {
@@ -373,21 +388,21 @@ public class BookReader {
 		beginContentsParagraph(-1);
 	}
 	
-	public final void addImageReference(String ref) {
-		addImageReference(ref, (short)0);
+	public final void addImageReference(String ref, boolean isCover) {
+		addImageReference(ref, (short)0, isCover);
 	}
 
-	public final void addImageReference(String ref, short vOffset) {
+	public final void addImageReference(String ref, short vOffset, boolean isCover) {
 		final ZLTextWritableModel textModel = myCurrentTextModel;
 		if (textModel != null) {
 			mySectionContainsRegularContents = true;
 			if (myTextParagraphExists) {
 				flushTextBufferToParagraph();
-				textModel.addImage(ref, vOffset);
+				textModel.addImage(ref, vOffset, isCover);
 			} else {
 				beginParagraph(ZLTextParagraph.Kind.TEXT_PARAGRAPH);
 				textModel.addControl(FBTextKind.IMAGE, true);
-				textModel.addImage(ref, vOffset);
+				textModel.addImage(ref, vOffset, isCover);
 				textModel.addControl(FBTextKind.IMAGE, false);
 				endParagraph();
 			}

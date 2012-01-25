@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,28 +19,38 @@
 
 package org.geometerplus.fbreader.library;
 
-import org.geometerplus.zlibrary.core.resources.ZLResource;
-
 public class AuthorTree extends LibraryTree {
-	private final Author myAuthor;
+	public final Author Author;
 
-	AuthorTree(LibraryTree parent, Author author) {
-		super(parent);
-		myAuthor = author;
+	AuthorTree(Author author) {
+		Author = author;
 	}
 
-	SeriesTree createSeriesSubTree(String series) {
-		return new SeriesTree(this, series);
+	AuthorTree(LibraryTree parent, Author author, int position) {
+		super(parent, position);
+		Author = author;
 	}
 
+	@Override
 	public String getName() {
 		return
-			(myAuthor != null) ?
-				myAuthor.DisplayName :
-				ZLResource.resource("library").getResource("unknownAuthor").getValue();
+			Author != null ?
+				Author.DisplayName :
+				Library.resource().getResource("unknownAuthor").getValue();
 	}
 
+	@Override
+	protected String getStringId() {
+		return "@AuthorTree" + getSortKey();
+	}
+
+	@Override
 	protected String getSortKey() {
-		return (myAuthor != null) ? myAuthor.SortKey : null;
+		return Author != null ? Author.SortKey + ":" + Author.DisplayName : null;
+	}
+
+	@Override
+	public boolean containsBook(Book book) {
+		return book != null && book.authors().contains(Author);
 	}
 }

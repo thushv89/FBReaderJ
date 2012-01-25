@@ -61,7 +61,18 @@ public class Daisy3Plugin extends FormatPlugin {
 		return (opfFile != null) ? new Daisy3OPFReader(model).readBook(opfFile) : false;
 	}
 
-	@Override
+    @Override
+    public ZLImage readCover(ZLFile file) {
+        //todo:
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public String readAnnotation(ZLFile file) {
+        //todo:
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
 	public ZLImage readCover(Book book) {
 		final ZLFile opfFile = getOpfFile(book.File);
 //		return (opfFile != null) ? new OEBCoverReader().readCover(opfFile) : null;

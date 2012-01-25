@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,9 @@
  */
 
 package org.geometerplus.zlibrary.core.util;
+
+import java.net.URLEncoder;
+import java.io.UnsupportedEncodingException;
 
 import org.geometerplus.zlibrary.core.library.ZLibrary;
 
@@ -51,36 +54,6 @@ public class ZLNetworkUtil {
 		}
 	}
 
-	private static final char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-	public static String htmlEncode(String stringToEncode) {
-		if (stringToEncode == null) {
-			return null;
-		}
-		StringBuilder encodedString = new StringBuilder();
-		for (int i = 0; i < stringToEncode.length(); ++i) {
-			final char ch = stringToEncode.charAt(i);
-			if ((ch >= '0' && ch <= '9') ||
-					(ch >= 'a' && ch <= 'z') ||
-					(ch >= 'A' && ch <= 'Z') ||
-					(ch == '.') ||
-					(ch == '~') ||
-					(ch == '-') ||
-					(ch == '_')) {
-				encodedString.append(ch);
-			} else {
-				try {
-					byte[] bytes = String.valueOf(ch).getBytes("UTF-8");
-					for (byte b: bytes) {
-						encodedString.append('%').append(hexDigits[(b >>> 4) & 15]).append(hexDigits[b & 15]);
-					}
-				} catch (java.io.UnsupportedEncodingException ex) {
-				}
-			}
-		}
-		return encodedString.toString();
-	}
-
 	public static boolean hasParameter(String url, String name) {
 		int index = url.lastIndexOf('/') + 1;
 		if (index == -1 || index >= url.length()) {
@@ -112,7 +85,10 @@ public class ZLNetworkUtil {
 		if (value.length() == 0) {
 			return url;
 		}
-		value = htmlEncode(value);
+		try {
+			value = URLEncoder.encode(value, "utf-8");
+		} catch (UnsupportedEncodingException e) {
+		}
 		int index = url.indexOf('?', url.lastIndexOf('/') + 1);
 		char delimiter = (index == -1) ? '?' : '&';
 		while (index != -1) {
@@ -146,16 +122,5 @@ public class ZLNetworkUtil {
 
 	public static String getUserAgent() {
 		return "FBReader/" + ZLibrary.Instance().getVersionName() + "(java)";
-	}
-
-	public static String filterMimeType(String mime) {
-		if (mime == null) {
-			return null;
-		}
-		final int index = mime.indexOf(';');
-		if (index != -1) {
-			return mime.substring(0, index).intern();
-		}
-		return mime.intern();
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,8 +64,8 @@ public class ZLLanguageDetector {
 		};
 
 	public ZLLanguageDetector() {
-		for (ZLFile file : ZLLanguageList.patternsFile().children()) {
-			final String name = file.getName(true);
+		for (ZLFile file : ZLLanguageUtil.patternsFile().children()) {
+			final String name = file.getShortName();
 			final int index = name.indexOf('_');
 			if (index != -1) {
 				final String language = name.substring(0, index);
@@ -86,7 +86,7 @@ public class ZLLanguageDetector {
 		//myChineseMatchers.add(new ZLChineseGBKMatcher());
 	}
 
-	enum EncodingType { ASCII, UTF8, OTHER 
+	static enum EncodingType { ASCII, UTF8, OTHER 
 	};
 	
 	public LanguageInfo findInfo(byte[] buffer, int length, int matchingCriterion) {

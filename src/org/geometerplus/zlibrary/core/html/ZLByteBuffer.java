@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,11 @@ public final class ZLByteBuffer {
 
 	public ZLByteBuffer() {
 		this(20);
+	}
+
+	public ZLByteBuffer(String value) {
+		myLength = value.length();
+		myData = value.getBytes();
 	}
 
 	ZLByteBuffer(ZLByteBuffer container) {

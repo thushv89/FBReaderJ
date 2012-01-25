@@ -27,13 +27,25 @@ import org.geometerplus.zlibrary.core.image.ZLImage;
 
 public class OEBPlugin extends FormatPlugin {
 	public boolean acceptsFile(ZLFile file) {
-		final String extension = file.getExtension().intern();
-		return (extension == "oebzip") || (extension == "epub");
+		final String extension = file.getExtension();
+		return
+			"oebzip".equals(extension) ||
+			"epub".equals(extension);
 	}
 
 	private ZLFile getOpfFile(ZLFile oebFile) {
-		if (oebFile.getExtension().equals("opf")) {
+		if ("opf".equals(oebFile.getExtension())) {
 			return oebFile;
+		}
+
+		final ZLFile containerInfoFile = ZLFile.createFile(oebFile, "META-INF/container.xml");
+		if (containerInfoFile.exists()) {
+			final ContainerFileReader reader = new ContainerFileReader();
+			reader.read(containerInfoFile);
+			final String opfPath = reader.getRootPath();
+			if (opfPath != null) {
+				return ZLFile.createFile(oebFile, opfPath);
+			}
 		}
 
 		for (ZLFile child : oebFile.children()) {
@@ -58,8 +70,14 @@ public class OEBPlugin extends FormatPlugin {
 	}
 
 	@Override
-	public ZLImage readCover(Book book) {
-		final ZLFile opfFile = getOpfFile(book.File);
+	public ZLImage readCover(ZLFile file) {
+		final ZLFile opfFile = getOpfFile(file);
 		return (opfFile != null) ? new OEBCoverReader().readCover(opfFile) : null;
+	}
+
+	@Override
+	public String readAnnotation(ZLFile file) {
+		final ZLFile opfFile = getOpfFile(file);
+		return (opfFile != null) ? new OEBAnnotationReader().readAnnotation(opfFile) : null;
 	}
 }

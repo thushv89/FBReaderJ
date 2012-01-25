@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@ package org.geometerplus.fbreader.library;
 
 public final class SeriesInfo {
 	public final String Name;
-	public final long Index;
+	public final float Index;
 
-	public SeriesInfo(String name, long index) {
+	public SeriesInfo(String name, float index) {
 		Name = name;
 		Index = index;
 	}

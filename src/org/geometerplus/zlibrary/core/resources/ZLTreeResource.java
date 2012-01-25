@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,23 +26,86 @@ import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
 import org.geometerplus.zlibrary.core.filesystem.*;
 
 final class ZLTreeResource extends ZLResource {
+	private static interface Condition {
+		abstract boolean accepts(int number);
+	}
+
+	private static class ValueCondition implements Condition {
+		private final int myValue;
+
+		ValueCondition(int value) {
+			myValue = value;
+		}
+
+		@Override
+		public boolean accepts(int number) {
+			return myValue == number;
+		}
+	}
+
+	private static class RangeCondition implements Condition {
+		private final int myMin;
+		private final int myMax;
+
+		RangeCondition(int min, int max) {
+			myMin = min;
+			myMax = max;
+		}
+
+		@Override
+		public boolean accepts(int number) {
+			return myMin <= number && number <= myMax;
+		}
+	}
+
+	private static class ModCondition implements Condition {
+		private final int myMod;
+		private final int myBase;
+
+		ModCondition(int mod, int base) {
+			myMod = mod;
+			myBase = base;
+		}
+
+		@Override
+		public boolean accepts(int number) {
+			return number % myBase == myMod;
+		}
+	}
+
+	static private Condition parseCondition(String description) {
+		final String[] parts = description.split(" ");
+		try {
+			if ("range".equals(parts[0])) {
+				return new RangeCondition(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+			} else if ("mod".equals(parts[0])) {
+				return new ModCondition(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+			} else if ("value".equals(parts[0])) {
+				return new ValueCondition(Integer.parseInt(parts[1]));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	static ZLTreeResource ourRoot;
 
     private static long ourTimeStamp = 0;
     private static String ourLanguage = null;
+    private static String ourCountry = null;
 
 	private boolean myHasValue;
 	private	String myValue;
 	private HashMap<String,ZLTreeResource> myChildren;
+	private LinkedHashMap<Condition,String> myConditionalValues;
 	
 	public static void buildTree() {
 		if (ourRoot == null) {
 			ourRoot = new ZLTreeResource("", null);
-			loadData("en");
-			ourLanguage = Locale.getDefault().getLanguage();
-			if (!"en".equals(ourLanguage)) {
-				loadData(ourLanguage);
-			}
+			ourLanguage = "en";
+			ourCountry = "UK";
+			loadData();
 		}
 	}
 
@@ -53,20 +116,27 @@ final class ZLTreeResource extends ZLResource {
                 if (timeStamp > ourTimeStamp + 1000) {
 					ourTimeStamp = timeStamp;
         			final String language = Locale.getDefault().getLanguage();
-					if (language != null && !language.equals(ourLanguage)) {
+        			final String country = Locale.getDefault().getCountry();
+					if ((language != null && !language.equals(ourLanguage)) ||
+						(country != null && !country.equals(ourCountry))) {
 						ourLanguage = language;
-						loadData(ourLanguage);
+						ourCountry = country;
+						loadData();
 					}
 				}
 			}
 		}
     }
 	
-	public static void loadData(String language) {
-		final String fileName = language + ".xml";
+	private static void loadData(ResourceTreeReader reader, String fileName) {
+		reader.readDocument(ourRoot, ZLResourceFile.createResourceFile("resources/zlibrary/" + fileName));
+		reader.readDocument(ourRoot, ZLResourceFile.createResourceFile("resources/application/" + fileName));
+	}
+
+	private static void loadData() {
 		ResourceTreeReader reader = new ResourceTreeReader();
-		reader.readDocument(ourRoot, ZLResourceFile.createResourceFile("data/resources/zlibrary/" + fileName));
-		reader.readDocument(ourRoot, ZLResourceFile.createResourceFile("data/resources/application/" + fileName));
+		loadData(reader, ourLanguage + ".xml");
+		loadData(reader, ourLanguage + "_" + ourCountry + ".xml");
 	}
 
 	private	ZLTreeResource(String name, String value) {
@@ -79,15 +149,31 @@ final class ZLTreeResource extends ZLResource {
 		myValue = value;
 	}
 	
+	@Override
 	public boolean hasValue() {
 		return myHasValue;
 	}
 	
+	@Override
 	public String getValue() {
 		updateLanguage();
 		return myHasValue ? myValue : ZLMissingResource.Value;
 	}
 
+	@Override
+	public String getValue(int number) {
+		updateLanguage();
+		if (myConditionalValues != null) {
+			for (Map.Entry<Condition,String> entry: myConditionalValues.entrySet()) {
+				if (entry.getKey().accepts(number)) {
+					return entry.getValue();
+				}
+			}
+		}
+		return myHasValue ? myValue : ZLMissingResource.Value;
+	}
+
+	@Override
 	public ZLResource getResource(String key) {
 		final HashMap<String,ZLTreeResource> children = myChildren;
 		if (children != null) {
@@ -118,10 +204,11 @@ final class ZLTreeResource extends ZLResource {
 		public boolean startElementHandler(String tag, ZLStringMap attributes) {
 			final ArrayList<ZLTreeResource> stack = myStack;
 			if (!stack.isEmpty() && (NODE.equals(tag))) {
-				String name = attributes.getValue("name");
+				final String name = attributes.getValue("name");
+				final String condition = attributes.getValue("condition");
+				final String value = attributes.getValue("value");
+				final ZLTreeResource peek = stack.get(stack.size() - 1);
 				if (name != null) {
-					String value = attributes.getValue("value");
-					ZLTreeResource peek = stack.get(stack.size() - 1);
 					ZLTreeResource node;
 					HashMap<String,ZLTreeResource> children = peek.myChildren;
 					if (children == null) {
@@ -140,6 +227,15 @@ final class ZLTreeResource extends ZLResource {
 						}
 					}
 					stack.add(node);
+				} else if (condition != null && value != null) {
+					final Condition compiled = parseCondition(condition);
+					if (compiled != null) {
+						if (peek.myConditionalValues == null) {
+							peek.myConditionalValues = new LinkedHashMap<Condition,String>();
+						}
+						peek.myConditionalValues.put(compiled, value);
+					}
+					stack.add(peek);
 				}
 			}
 			return false;

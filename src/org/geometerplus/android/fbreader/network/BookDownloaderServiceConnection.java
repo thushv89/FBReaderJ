@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import android.os.IBinder;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
 
-class BookDownloaderServiceConnection implements ServiceConnection {
+public class BookDownloaderServiceConnection implements ServiceConnection {
 
 	private BookDownloaderInterface myInterface;
 

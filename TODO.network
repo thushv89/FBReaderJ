@@ -1,25 +1,37 @@
-NP: оповещение об изменениях в namespace'ах происходит после того,
-    как был обработан тег, объявляющий эти namespace'ы... Нужно сделать:
-    1) вызов namespaceMapChangedHandler перед вызовом startElementHandler
-    2) вызов namespaceMapChangedHandler после вызова endElementHandler
-    3) вызов namespaceMapChangedHandler для пустых тегов <tagname />
+* 'sign out' feature for basic-auth
 
-** синхронизация ресурсов (последняя - 1700)
-** Записать изменения в ChangeLog
+DONE show 'empty basket' message without opening of catalog
+DONE update basket view if basket content is changed
+DONE basket summary
+DONE show recommendation item if basket is not empty
+DONE new actions in main menu: clear; buy all
+* update recommendations list after each basket updating/purchasing/signing in/out
+* update recommendations list visibility after each basket updating/purchasing/signing in/out
+* remove book from basket on purchasing
 
-DONE Network library: Объединять книги по сериям
-	** в сериях книги нужно сортировать по индексу
-		NP: а где это происходит???
+* search item behaviour like search item in local library
+DONE separate search for each catalog (if search URL is presented)
+DONE menu search button should be available for all catalog levels
 
-DONE Возможность открывать локальные файлы из всяких файл-менеджеров
-DONE На этой странице есть ссылка на epub-файл "для ПК". http://www.zone4iphone.ru/index.php?p_id=7&b_id=18413
-     Проверить скачивание книги браузером и возможность чтения из папки, куда файл был скачан.
-	DONE добавлять в библиотеку (сделать таблицу добавленных вручную книг)
+DONE float point numbers as series index
+DONE replace AuthenticationCatalog by AuthenticationActivity
+* 'recently visited catalogs' item
+* load search URL for catalogs from these catalogs, not from our generic file
+DONE show library name in network book activity
+
+DONE litres: credit card top up
+* litres: self-service kiosk top up
+DONE litres: similar books link
 
 ------------------------------
 
-** пополнение счета в litres с помощью sms
-	** сделать как "подкаталог" для элемента "пополнить счет"
+NP: оповещение об изменениях в namespace'ах происходит после того,
+    как был обработан тег, объявляющий эти namespace'ы... Нужно сделать:
+    DONE 1) вызов namespaceMapChangedHandler перед вызовом startElementHandler
+    DONE 2) вызов namespaceMapChangedHandler после вызова endElementHandler
+    3) вызов namespaceMapChangedHandler для пустых тегов <tagname />
+
+------------------------------
 
 ** восстановление пароля (use default e-mail)
 ** сделать отдельную ветку (?) для скачанных samples
@@ -35,9 +47,6 @@ DONE На этой странице есть ссылка на epub-файл "д
 * Убирать notification'ы для тех книжек, файлы которых были удалены
 
 библиотека:
-*	иконки
-*	в отдельный процесс
-*	сделать BookInfoActivity
 * возможность перечитать из файла метаинформацию для отдельной книги
 
 ------------------------------
@@ -57,5 +66,4 @@ DELAYED что делать, когда мало памяти???
 -----------------------------
 
 другое:
-DONE layout для китайских текстов
 * поддержка hufdic в mobipocket

@@ -21,18 +21,39 @@ package org.geometerplus.fbreader.network;
 
 import java.util.*;
 
+import org.geometerplus.zlibrary.core.library.ZLibrary;
 import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
-import org.geometerplus.zlibrary.core.network.ZLNetworkManager;
 import org.geometerplus.zlibrary.core.network.ZLNetworkException;
-import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
+import org.geometerplus.zlibrary.core.language.ZLLanguageUtil;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
 
 import org.geometerplus.fbreader.tree.FBTree;
 import org.geometerplus.fbreader.network.tree.*;
 import org.geometerplus.fbreader.network.opds.OPDSLinkReader;
-
+import org.geometerplus.fbreader.network.urlInfo.UrlInfo;
 
 public class NetworkLibrary {
+	public interface ChangeListener {
+		public enum Code {
+			InitializationFinished,
+			InitializationFailed,
+			SomeCode,
+			/*
+			ItemAdded,
+			ItemRemoved,
+			StatusChanged,
+			*/
+			SignedIn,
+			Found,
+			NotFound,
+			EmptyCatalog,
+			NetworkError
+		}
+
+		void onLibraryChanged(Code code, Object[] params);
+	}
+
 	private static NetworkLibrary ourInstance;
 	private boolean bookshareLinkAdded = false;
 
@@ -43,238 +64,179 @@ public class NetworkLibrary {
 		return ourInstance;
 	}
 
-	private static class CompositeList extends AbstractSequentialList<INetworkLink> {
-
-		private final ArrayList<ArrayList<? extends INetworkLink>> myLists;
-		private Comparator<INetworkLink> myComparator;
-
-		public CompositeList(ArrayList<ArrayList<? extends INetworkLink>> lists,
-				Comparator<INetworkLink> comparator) {
-			myLists = lists;
-			myComparator = comparator;
-		}
-
-		private class Iterator implements ListIterator<INetworkLink> {
-			private int myIndex;
-			private ArrayList<Integer> myPositions;
-
-			private final INetworkLink getNextByIndex(int index) {
-				final int position = myPositions.get(index);
-				return (position < myLists.get(index).size()) ?
-						myLists.get(index).get(position) :
-						null;
-			}
-
-			private final INetworkLink getPrevByIndex(int index) {
-				final int position = myPositions.get(index);
-				return (position > 0) ?
-						myLists.get(index).get(position - 1) :
-						null;
-			}
-
-			public Iterator() {
-				myPositions = new ArrayList<Integer>(Collections.nCopies(myLists.size(), 0));
-			}
-
-			public Iterator(Iterator it) {
-				myIndex = it.myIndex;
-				myPositions = new ArrayList<Integer>(it.myPositions);
-			}
-
-			public boolean hasNext() {
-				return myIndex < size();
-			}
-
-			public boolean hasPrevious() {
-				return myIndex > 0;
-			}
-
-			public int nextIndex() {
-				return myIndex;
-			}
-
-			public int previousIndex() {
-				return myIndex - 1;
-			}
-
-			public INetworkLink next() {
-				final int size = myLists.size();
-				if (size == 0) {
-					throw new NoSuchElementException();
-				}
-				int nextIndex = -1;
-				INetworkLink nextLink = null;;
-				for (nextIndex = 0; nextIndex < size; ++nextIndex) {
-					nextLink = getNextByIndex(nextIndex);
-					if (nextLink != null) {
-						break;
-					}
-				}
-				if (nextLink == null) {
-					throw new NoSuchElementException();
-				}
-				for (int i = nextIndex + 1; i < size; ++i) {
-					INetworkLink link = getNextByIndex(i);
-					if (link != null && myComparator.compare(link, nextLink) < 0) {
-						nextLink = link;
-						nextIndex = i;
-					}
-				}
-				myPositions.set(nextIndex, myPositions.get(nextIndex) + 1);
-				++myIndex;
-				return nextLink;
-			}
-
-			public INetworkLink previous() {
-				final int size = myLists.size();
-				if (size == 0) {
-					throw new NoSuchElementException();
-				}
-				int prevIndex = -1;
-				INetworkLink prevLink = null;;
-				for (prevIndex = 0; prevIndex < size; ++prevIndex) {
-					prevLink = getPrevByIndex(prevIndex);
-					if (prevLink != null) {
-						break;
-					}
-				}
-				if (prevLink == null) {
-					throw new NoSuchElementException();
-				}
-				for (int i = prevIndex + 1; i < size; ++i) {
-					INetworkLink link = getPrevByIndex(i);
-					if (link != null && myComparator.compare(link, prevLink) >= 0) {
-						prevLink = link;
-						prevIndex = i;
-					}
-				}
-				myPositions.set(prevIndex, myPositions.get(prevIndex) - 1);
-				--myIndex;
-				return prevLink;
-			}
-
-			public void add(INetworkLink arg0) { throw new UnsupportedOperationException(); }
-			public void remove() { throw new UnsupportedOperationException(); }
-			public void set(INetworkLink arg0) { throw new UnsupportedOperationException(); }
-		};
-
-		@Override
-		public ListIterator<INetworkLink> listIterator(int location) {
-			if (location < 0 || location > size()) {
-				throw new IndexOutOfBoundsException();
-			}
-			Iterator it = new Iterator();
-			while (location-- > 0) {
-				it.next();
-			}
-			return it;
-		}
-
-		// returns a copy of iterator
-		public ListIterator<INetworkLink> listIterator(ListIterator<INetworkLink> it) {
-			return new Iterator((Iterator)it);
-		}
-
-		@Override
-		public int size() {
-			int size = 0;
-			for (ArrayList<? extends INetworkLink> list: myLists) {
-				size += list.size();
-			}
-			return size;
-		}
+	public static ZLResource resource() {
+		return ZLResource.resource("networkLibrary");
 	}
 
-	private static class LinksComparator implements Comparator<INetworkLink> {
-		private static String filterLinkTitle(String title) {
-			for (int index = 0; index < title.length(); ++index) {
-				final char ch = title.charAt(index);
-				if (ch < 128 && Character.isLetter(ch)) {
-					return title.substring(index);
-				}
-			}
-			return title;
-		}
-
-		public int compare(INetworkLink link1, INetworkLink link2) {
-			final String title1 = filterLinkTitle(link1.getTitle());
-			final String title2 = filterLinkTitle(link2.getTitle());
-			return title1.compareToIgnoreCase(title2);
-		}
-	}
-
-	
 	public interface OnNewLinkListener {
 		void onNewLink(INetworkLink link);
 	}
 
+	public final ZLStringOption NetworkSearchPatternOption =
+		new ZLStringOption("NetworkSearch", "Pattern", "");
 
-	public final ZLStringOption NetworkSearchPatternOption = new ZLStringOption("NetworkSearch", "Pattern", "");
+	// that's important to keep this list synchronized
+	// it can be used from background thread
+	private final List<INetworkLink> myLinks =
+		Collections.synchronizedList(new ArrayList<INetworkLink>());
+	private final Set<ChangeListener> myListeners =
+		Collections.synchronizedSet(new HashSet<ChangeListener>());
+	private final Map<NetworkTree,NetworkItemsLoader> myLoaders =
+		Collections.synchronizedMap(new HashMap<NetworkTree,NetworkItemsLoader>());
 
-	private final ArrayList<INetworkLink> myLoadedLinks = new ArrayList<INetworkLink>();
-	private final ArrayList<ICustomNetworkLink> myCustomLinks = new ArrayList<ICustomNetworkLink>();
-	private final CompositeList myLinks;
-
-	private final RootTree myRootTree = new RootTree();
-
-	private boolean myUpdateChildren = true;
-	private boolean myInvalidateChildren;
-	private boolean myUpdateVisibility;
-
-	private NetworkLibrary() {
-		ArrayList<ArrayList<? extends INetworkLink>> linksList = new ArrayList<ArrayList<? extends INetworkLink>>();
-		linksList.add(myLoadedLinks);
-		linksList.add(myCustomLinks);
-		myLinks = new CompositeList(linksList, new LinksComparator());
+	public List<String> languageCodes() {
+		final TreeSet<String> languageSet = new TreeSet<String>();
+		synchronized (myLinks) {
+			for (INetworkLink link : myLinks) {
+				languageSet.add(link.getLanguage());
+			}
+		}
+		return new ArrayList<String>(languageSet);
 	}
 
-	public void initialize() throws ZLNetworkException {
-		final LinksComparator comparator = new LinksComparator(); 
+	private ZLStringOption myActiveLanguageCodesOption;
+	private ZLStringOption activeLanguageCodesOption() {
+ 		if (myActiveLanguageCodesOption == null) {
+			final TreeSet<String> defaultCodes = new TreeSet<String>(new ZLLanguageUtil.CodeComparator());
+			defaultCodes.addAll(ZLibrary.Instance().defaultLanguageCodes());
+			myActiveLanguageCodesOption =
+				new ZLStringOption(
+					"Options",
+					"ActiveLanguages",
+					commaSeparatedString(defaultCodes)
+				);
+		}
+		return myActiveLanguageCodesOption;
+	}
 
-		try {
-			OPDSLinkReader.loadOPDSLinks(OPDSLinkReader.CACHE_LOAD, new OnNewLinkListener() {
-				public void onNewLink(INetworkLink link) {
-					addLinkInternal(myLoadedLinks, link, comparator);
+	public Collection<String> activeLanguageCodes() {
+		return Arrays.asList(activeLanguageCodesOption().getValue().split(","));
+	}
+
+	public void setActiveLanguageCodes(Collection<String> codes) {
+		final TreeSet<String> allCodes = new TreeSet<String>(new ZLLanguageUtil.CodeComparator());
+		allCodes.addAll(ZLibrary.Instance().defaultLanguageCodes());
+		allCodes.removeAll(languageCodes());
+		allCodes.addAll(codes);
+		activeLanguageCodesOption().setValue(commaSeparatedString(allCodes));
+		invalidateChildren();
+	}
+
+	private String commaSeparatedString(Collection<String> codes) {
+		final StringBuilder builder = new StringBuilder();
+		for (String code : codes) {
+			builder.append(code);
+			builder.append(",");
+		}
+		if (builder.length() > 0) {
+			builder.delete(builder.length() - 1, builder.length());
+		}
+		return builder.toString();
+	}
+
+	List<INetworkLink> activeLinks() {
+		final LinkedList<INetworkLink> filteredList = new LinkedList<INetworkLink>();
+		final Collection<String> codes = activeLanguageCodes();
+		synchronized (myLinks) {
+			for (INetworkLink link : myLinks) {
+				if (link instanceof ICustomNetworkLink ||
+					codes.contains(link.getLanguage())) {
+					filteredList.add(link);
 				}
-			});
-		} catch (ZLNetworkException e) {
-			synchronized (myLinks) {
-				myLoadedLinks.clear();
 			}
-			throw e;
+		}
+		return filteredList;
+	}
+
+	public INetworkLink getLinkByUrl(String url) {
+		if (url == null) {
+			return null;
+		}
+		synchronized (myLinks) {
+			for (INetworkLink link : myLinks) {
+				if (url.equals(link.getUrlInfo(UrlInfo.Type.Catalog).Url)) {
+					return link;
+				}
+			}
+		}
+		return null;
+	}
+
+	public NetworkTree getCatalogTreeByUrl(String url) {
+		for (FBTree tree : getRootTree().subTrees()) {
+			if (tree instanceof NetworkCatalogRootTree) {
+				final String cUrl =
+					((NetworkCatalogTree)tree).getLink().getUrlInfo(UrlInfo.Type.Catalog).Url;
+				if (url.equals(cUrl)) {
+					return (NetworkTree)tree;
+				}
+			}
+		}
+		return null;
+	}
+
+	public INetworkLink getLinkBySiteName(String siteName) {
+		synchronized (myLinks) {
+			for (INetworkLink link : myLinks) {
+				if (siteName.equals(link.getSiteName())) {
+					return link;
+				}
+			}
+		}
+		return null;
+	}
+
+	private final RootTree myRootTree = new RootTree("@Root", false);
+	private final RootTree myFakeRootTree = new RootTree("@FakeRoot", true);
+
+	private boolean myChildrenAreInvalid = true;
+	private boolean myUpdateVisibility;
+
+	private volatile boolean myIsInitialized;
+
+	private final SearchItem mySearchItem = new AllCatalogsSearchItem();
+
+	private NetworkLibrary() {
+	}
+
+	public boolean isInitialized() {
+		return myIsInitialized;
+	}
+
+	public synchronized void initialize() {
+		if (myIsInitialized) {
+			return;
 		}
 
-		NetworkDatabase.Instance().loadCustomLinks(
-			new NetworkDatabase.ICustomLinksHandler() {
-				public void handleCustomLinkData(int id, String siteName,
-						String title, String summary, String icon, Map<String, String> links) {
-					final ICustomNetworkLink link = OPDSLinkReader.createCustomLink(id, siteName, title, summary, icon, links);
-					if (link != null) {
-						addLinkInternal(myCustomLinks, link, comparator);
-						link.setSaveLinkListener(myChangesListener);
-					}
+		try {
+			myLinks.addAll(OPDSLinkReader.loadOPDSLinks(OPDSLinkReader.CacheMode.LOAD));
+		} catch (ZLNetworkException e) {
+			removeAllLoadedLinks();
+			fireModelChangedEvent(ChangeListener.Code.InitializationFailed, e.getMessage());
+			return;
+		}
+
+		final NetworkDatabase db = NetworkDatabase.Instance();
+		if (db != null) {
+			myLinks.addAll(db.listLinks());
+		}
+
+		synchronize();
+
+		myIsInitialized = true;
+		fireModelChangedEvent(ChangeListener.Code.InitializationFinished);
+	}
+
+	private void removeAllLoadedLinks() {
+		final LinkedList<INetworkLink> toRemove = new LinkedList<INetworkLink>();
+		synchronized (myLinks) {
+			for (INetworkLink link : myLinks) {
+				if (!(link instanceof ICustomNetworkLink)) {
+					toRemove.add(link);
 				}
 			}
-		);
-
-		/*testDate(new ATOMUpdated(2010,  1,  1,  1,  0,  0,  0,  2,  0),
-				 new ATOMUpdated(2009, 12, 31, 23,  0,  0,  0,  0,  0));
-		testDate(new ATOMUpdated(2010, 12, 31, 23, 40,  0,  0, -1, -30),
-				 new ATOMUpdated(2011,  1,  1,  1, 10,  0,  0,  0,  0));
-		testDate(new ATOMUpdated(2010,  1, 31, 23, 40,  0,  0, -1, -30),
-				 new ATOMUpdated(2010,  2,  1,  1, 10,  0,  0,  0,  0));
-		testDate(new ATOMUpdated(2010,  2, 28, 23, 40,  0,  0, -1, -30),
-				 new ATOMUpdated(2010,  3,  1,  1, 10,  0,  0,  0,  0));
-		testDate(new ATOMUpdated(2012,  2, 28, 23, 40,  0,  0, -1, -30),
-				 new ATOMUpdated(2012,  2, 29,  1, 10,  0,  0,  0,  0));
-		testDate(new ATOMUpdated(2012,  2, 15, 23, 40,  0,  0, -1, -30),
-				 new ATOMUpdated(2012,  2, 16,  1, 10,  0,  0,  0,  0));
-		testDate(new ATOMUpdated(2012,  2, 15, 23, 40,  1,  0,  3, 30),
-				 new ATOMUpdated(2012,  2, 15, 23, 40,  0,  0,  3, 30));
-		testDate(new ATOMUpdated(2012,  2, 15, 23, 40,  0,  0,  3, 30),
-				 new ATOMUpdated(2012,  2, 15, 23, 40,  1,  0,  3, 30));
-		testDate(new ATOMUpdated(2012,  2, 15, 23, 40,  0,  0.001f,  3, 30),
-				 new ATOMUpdated(2012,  2, 15, 23, 40,  0,  0,  3, 30));*/
+		}
+		myLinks.removeAll(toRemove);
 	}
 
 	/*private void testDate(ATOMDateConstruct date1, ATOMDateConstruct date2) {
@@ -288,58 +250,67 @@ public class NetworkLibrary {
 		Log.w("FBREADER", "" + date1 + sign + date2);
 	}*/
 
-	private ArrayList<INetworkLink> myBackgroundLinks;
-	private Object myBackgroundLock = new Object();
+	private volatile boolean myUpdateInProgress;
+	private Object myUpdateLock = new Object();
 
-	// This method must be called from background thread
-	public void runBackgroundUpdate(boolean clearCache) throws ZLNetworkException {
-		synchronized (myBackgroundLock) {
-			myBackgroundLinks = new ArrayList<INetworkLink>();
+	public void runBackgroundUpdate(final boolean clearCache) {
+		if (!isInitialized()) {
+			return;
+		}
 
-			final int cacheMode = clearCache ? OPDSLinkReader.CACHE_CLEAR : OPDSLinkReader.CACHE_UPDATE;
-			try {
-				OPDSLinkReader.loadOPDSLinks(cacheMode, new OnNewLinkListener() {
-					public void onNewLink(INetworkLink link) {
-						myBackgroundLinks.add(link);
-					}
-				});
-			} catch (ZLNetworkException e) {
-				myBackgroundLinks = null;
-				throw e;
-			} finally {
-				if (myBackgroundLinks != null) {
-					if (myBackgroundLinks.isEmpty()) {
-						myBackgroundLinks = null;
-					} else {
-						Collections.sort(myBackgroundLinks, new LinksComparator());
+		final Thread thread = new Thread(new Runnable() {
+			public void run() {
+				try {
+					myUpdateInProgress = true;
+					fireModelChangedEvent(ChangeListener.Code.SomeCode);
+					runBackgroundUpdateInternal(clearCache);
+				} catch (ZLNetworkException e) {
+					fireModelChangedEvent(ChangeListener.Code.NetworkError, e.getMessage());
+				} finally {
+					myUpdateInProgress = false;
+					fireModelChangedEvent(ChangeListener.Code.SomeCode);
+				}
+			}
+		});
+		thread.setPriority(Thread.MIN_PRIORITY);
+		thread.start();
+	}
+
+	private void runBackgroundUpdateInternal(boolean clearCache) throws ZLNetworkException {
+		synchronized (myUpdateLock) {
+			final OPDSLinkReader.CacheMode mode =
+				clearCache ? OPDSLinkReader.CacheMode.CLEAR : OPDSLinkReader.CacheMode.UPDATE;
+			final List<INetworkLink> loadedLinks = OPDSLinkReader.loadOPDSLinks(mode);
+			if (!loadedLinks.isEmpty()) {
+				removeAllLoadedLinks();
+				myLinks.addAll(loadedLinks);
+			}
+			invalidateChildren();
+
+			// we create this copy to prevent long operations on synchronized list
+			final List<INetworkLink> linksCopy = new ArrayList<INetworkLink>(myLinks);
+			for (INetworkLink link : linksCopy) {
+				if (link instanceof ICustomNetworkLink) {
+					final ICustomNetworkLink customLink = (ICustomNetworkLink)link;
+					if (customLink.isObsolete(12 * 60 * 60 * 1000)) { // 12 hours
+						try {
+							customLink.reloadInfo(true, true);
+							NetworkDatabase.Instance().saveLink(customLink);
+						} catch (Throwable t) {
+							// ignore
+						}
 					}
 				}
 			}
+
+			synchronize();
 		}
 	}
-
-	// This method MUST be called from main thread
-	// This method has effect only when runBackgroundUpdate method has returned null.
-	//
-	// synchronize() method MUST be called after this method
-	public void finishBackgroundUpdate() {
-		synchronized (myBackgroundLock) {
-			if (myBackgroundLinks == null) {
-				return;
-			}
-			synchronized (myLinks) {
-				myLoadedLinks.clear();
-				myLoadedLinks.addAll(myBackgroundLinks);
-				updateChildren();
-			}
-		}
-	}
-
 
 	public String rewriteUrl(String url, boolean externalUrl) {
 		final String host = ZLNetworkUtil.hostFromUrl(url).toLowerCase();
 		synchronized (myLinks) {
-			for (INetworkLink link: myLinks) {
+			for (INetworkLink link : myLinks) {
 				if (host.contains(link.getSiteName())) {
 					url = link.rewriteUrl(url, externalUrl);
 				}
@@ -348,158 +319,104 @@ public class NetworkLibrary {
 		return url;
 	}
 
-	public void invalidateChildren() {
-		myInvalidateChildren = true;
-	}
-
-	public void updateChildren() {
-		myUpdateChildren = true;
+	private void invalidateChildren() {
+		myChildrenAreInvalid = true;
 	}
 
 	public void invalidateVisibility() {
 		myUpdateVisibility = true;
 	}
 
-
-	private static boolean linksEqual(INetworkLink l1, INetworkLink l2) {
-		return l1 == l2 || l1.getSiteName().equals(l2.getSiteName());
-	}
-
-	private static boolean linkIsInvalid(INetworkLink link, INetworkLink nodeLink) {
-		if (link instanceof ICustomNetworkLink) {
-			if (link != nodeLink) {
-				throw new RuntimeException("Two equal custom links!!! That's impossible");
-			}
-			return ((ICustomNetworkLink) link).hasChanges();
-		}
-		return !link.equals(nodeLink);
-	}
-
-	private static void makeValid(INetworkLink link) {
-		if (link instanceof ICustomNetworkLink) {
-			((ICustomNetworkLink) link).resetChanges();
-		}
-	}
-
 	private void makeUpToDate() {
+		final SortedSet<INetworkLink> linkSet = new TreeSet<INetworkLink>(activeLinks());
+
 		final LinkedList<FBTree> toRemove = new LinkedList<FBTree>();
 
-		ListIterator<FBTree> nodeIterator = myRootTree.subTrees().listIterator();
-		FBTree currentNode = null;
-		int nodeCount = 0;
-
-		synchronized (myLinks) {
-			ListIterator<INetworkLink> it = myLinks.listIterator();
-			while (it.hasNext()) {
-				INetworkLink link = it.next();
-				/*if (!link.OnOption.getValue()) {
-					continue;
-				}*/
-				boolean processed = false;
-				while (currentNode != null || nodeIterator.hasNext()) {
-					if (currentNode == null) {
-						currentNode = nodeIterator.next();
-					}
-					if (!(currentNode instanceof NetworkCatalogTree)) {
-						currentNode = null;
-						++nodeCount;
-						continue;
-					}
-					final INetworkLink nodeLink = ((NetworkCatalogTree) currentNode).Item.Link;
-					if (linksEqual(link, nodeLink)) {
-						if (linkIsInvalid(link, nodeLink)) {
-							toRemove.add(currentNode);
-						} else {
-							processed = true;
-						}
-						currentNode = null;
-						++nodeCount;
-						break;
+		// we do remove sum tree items:
+		for (FBTree t : myRootTree.subTrees()) {
+			if (t instanceof NetworkCatalogTree) {
+				final INetworkLink link = ((NetworkCatalogTree)t).getLink();
+				if (link != null) {
+					if (!linkSet.contains(link)) {
+                        // 1. links not listed in activeLinks list right now
+						toRemove.add(t);
+					} else if (link instanceof ICustomNetworkLink &&
+								((ICustomNetworkLink)link).hasChanges()) {
+                        // 2. custom links that were changed
+						toRemove.add(t);
 					} else {
-						INetworkLink newNodeLink = null;
-						ListIterator<INetworkLink> jt = myLinks.listIterator(it);
-						while (jt.hasNext()) {
-							final INetworkLink jlnk = jt.next();
-							if (linksEqual(nodeLink, jlnk)) {
-								newNodeLink = jlnk;
-								break;
-							}
-						}
-						if (newNodeLink == null || linkIsInvalid(newNodeLink, nodeLink)) {
-							toRemove.add(currentNode);
-							currentNode = null;
-							++nodeCount;
-						} else {
-							break;
-						}
+						linkSet.remove(link);
 					}
+				} else {
+					// 3. search item
+					toRemove.add(t);
 				}
-				if (!processed) {
-					makeValid(link);
-					final int nextIndex = nodeIterator.nextIndex();
-					new NetworkCatalogRootTree(myRootTree, link, nodeCount++).Item.onDisplayItem();
-					nodeIterator = myRootTree.subTrees().listIterator(nextIndex + 1);
-				}
+			} else {
+				// 4. non-catalog nodes
+				toRemove.add(t);
 			}
 		}
-
-		while (currentNode != null || nodeIterator.hasNext()) {
-			if (currentNode == null) {
-				currentNode = nodeIterator.next();
-			}
-			if (currentNode instanceof NetworkCatalogTree) {
-				toRemove.add(currentNode);
-			}
-			currentNode = null;
-		}
-
-		for (FBTree tree: toRemove) {
+		for (FBTree tree : toRemove) {
 			tree.removeSelf();
 		}
+
+		// we do add new network catalog items
+		for (INetworkLink link : linkSet) {
+			int index = 0;
+			for (FBTree t : myRootTree.subTrees()) {
+				final INetworkLink l = ((NetworkTree)t).getLink();
+				if (l != null && link.compareTo(l) <= 0) {
+					break;
+				}
+				++index;
+			}
+			new NetworkCatalogRootTree(myRootTree, link, index);
+		}
+		// we do add non-catalog items
+		new SearchCatalogTree(myRootTree, mySearchItem, 0);
+		new AddCustomCatalogItemTree(myRootTree);
+
+		fireModelChangedEvent(ChangeListener.Code.SomeCode);
 	}
 
 	private void updateVisibility() {
-		for (FBTree tree: myRootTree.subTrees()) {
-			if (!(tree instanceof NetworkCatalogTree)) {
-				continue;
+		for (FBTree tree : myRootTree.subTrees()) {
+			if (tree instanceof NetworkCatalogTree) {
+				((NetworkCatalogTree)tree).updateVisibility();
 			}
-			((NetworkCatalogTree) tree).updateVisibility();
 		}
+		fireModelChangedEvent(ChangeListener.Code.SomeCode);
 	}
 
 	public void synchronize() {
-		if(!bookshareLinkAdded){
-			// Add bookshare link
-			String myUrl = "https://api.bookshare.org";
-			String myTitle = "Bookshare";
-			String mySummary = "Daisy 3 Books Collection";
-			String bookshareSiteName = "https://api.bookshare.org";
-	
-			INetworkLink myLink = OPDSLinkReader.createCustomLinkWithoutInfo(bookshareSiteName, myUrl);
-			final ICustomNetworkLink custom_link = (ICustomNetworkLink) myLink;
-			custom_link.setSiteName(bookshareSiteName);
-			custom_link.setTitle(myTitle);
-			custom_link.setSummary(mySummary);
-			custom_link.setLink(INetworkLink.URL_MAIN, myUrl);
-
-			final int index = Collections.binarySearch(myCustomLinks, custom_link, new LinksComparator());
-			// Add the link only if it does not exist in myCustomLinks
-			if(index < 0){
-				addLinkInternal(myCustomLinks, custom_link, new LinksComparator());
-				custom_link.setSaveLinkListener(myChangesListener);
-				custom_link.saveLink();
-			}
-			bookshareLinkAdded = true;
-		}
-
-		if (myUpdateChildren || myInvalidateChildren) {
-			if (myInvalidateChildren) {
-				final LinksComparator cmp = new LinksComparator();
-				//Collections.sort(myLoadedLinks, cmp); // this collection is always sorted
-				Collections.sort(myCustomLinks, cmp);
-			}
-			myUpdateChildren = false;
-			myInvalidateChildren = false;
+        //todo: need to auto add Bookshare
+/*        if(!bookshareLinkAdded){
+        			// Add bookshare link
+        			String myUrl = "https://api.bookshare.org";
+        			String myTitle = "Bookshare";
+        			String mySummary = "Daisy 3 Books Collection";
+        			String bookshareSiteName = "https://api.bookshare.org";
+        	
+        			INetworkLink myLink = OPDSLinkReader.createCustomLinkWithoutInfo(bookshareSiteName, myUrl);
+        			final ICustomNetworkLink custom_link = (ICustomNetworkLink) myLink;
+        			custom_link.setSiteName(bookshareSiteName);
+        			custom_link.setTitle(myTitle);
+        			custom_link.setSummary(mySummary);
+        			custom_link.setLink(INetworkLink.URL_MAIN, myUrl);
+        
+        			final int index = Collections.binarySearch(myCustomLinks, custom_link, new LinksComparator());
+        			// Add the link only if it does not exist in myCustomLinks
+        			if(index < 0){
+        				addLinkInternal(myCustomLinks, custom_link, new LinksComparator());
+        				custom_link.setSaveLinkListener(myChangesListener);
+        				custom_link.saveLink();
+        			}
+        			bookshareLinkAdded = true;
+        		}*/
+        
+        
+		if (myChildrenAreInvalid) {
+			myChildrenAreInvalid = false;
 			makeUpToDate();
 		}
 		if (myUpdateVisibility) {
@@ -508,112 +425,118 @@ public class NetworkLibrary {
 		}
 	}
 
-	public NetworkTree getTree() {
+	public NetworkTree getRootTree() {
 		return myRootTree;
 	}
 
-
-	public void simpleSearch(String pattern, final NetworkOperationData.OnNewItemListener listener) throws ZLNetworkException {
-		LinkedList<ZLNetworkRequest> requestList = new LinkedList<ZLNetworkRequest>();
-		LinkedList<NetworkOperationData> dataList = new LinkedList<NetworkOperationData>();
-
-		final NetworkOperationData.OnNewItemListener synchronizedListener = new NetworkOperationData.OnNewItemListener() {
-			public synchronized void onNewItem(INetworkLink link, NetworkLibraryItem item) {
-				listener.onNewItem(link, item);
-			}
-			public synchronized boolean confirmInterrupt() {
-				return listener.confirmInterrupt();
-			}
-			public synchronized void commitItems(INetworkLink link) {
-				listener.commitItems(link);
-			}
-		};
-
-		synchronized (myLinks) {
-			for (INetworkLink link: myLinks) {
-				//if (link.OnOption.getValue()) {
-				// execute next code only if link is enabled
-				//}
-				final NetworkOperationData data = link.createOperationData(link, synchronizedListener);
-				final ZLNetworkRequest request = link.simpleSearchRequest(pattern, data);
-				if (request != null) {
-					dataList.add(data);
-					requestList.add(request);
-				}
+	public NetworkBookTree getFakeBookTree(NetworkBookItem book) {
+		final String id = book.getStringId();
+		for (FBTree tree : myFakeRootTree.subTrees()) {
+			if (tree instanceof NetworkBookTree &&
+				id.equals(tree.getUniqueKey().Id)) {
+				return (NetworkBookTree)tree;
 			}
 		}
-
-		while (requestList.size() != 0) {
-			ZLNetworkManager.Instance().perform(requestList);
-
-			requestList.clear();
-
-			if (listener.confirmInterrupt()) {
-				return;
-			}
-			for (NetworkOperationData data: dataList) {
-				ZLNetworkRequest request = data.resume();
-				if (request != null) {
-					requestList.add(request);
-				}
-			}
-		}
+		return new NetworkBookTree(myFakeRootTree, book, true);
 	}
 
-	private ICustomNetworkLink.SaveLinkListener myChangesListener = new ICustomNetworkLink.SaveLinkListener() {
-		public void onSaveLink(ICustomNetworkLink link) {
-			NetworkDatabase.Instance().saveCustomLink(link);
-		}
-	};
-
-	private <T extends INetworkLink> void addLinkInternal(ArrayList<T> list, T link, LinksComparator comparator) {
-		synchronized (myLinks) {
-			final int index = Collections.binarySearch(list, link, comparator);
-			if (index >= 0) {
-				throw new RuntimeException("Unable to add link with duplicated title to the library");
+	public BasketCatalogTree getFakeBasketTree(BasketItem item) {
+		final String id = item.getStringId();
+		for (FBTree tree : myFakeRootTree.subTrees()) {
+			if (tree instanceof BasketCatalogTree &&
+				id.equals(tree.getUniqueKey().Id)) {
+				return (BasketCatalogTree)tree;
 			}
-			final int insertAt = -index - 1;
-			list.add(insertAt, link);
 		}
+		return new BasketCatalogTree(myFakeRootTree, item);
+	}
+
+	public NetworkCatalogTree getFakeCatalogTree(NetworkCatalogItem item) {
+		final String id = item.getStringId();
+		for (FBTree tree : myFakeRootTree.subTrees()) {
+			if (tree instanceof NetworkCatalogTree &&
+				id.equals(tree.getUniqueKey().Id)) {
+				return (NetworkCatalogTree)tree;
+			}
+		}
+		return new NetworkCatalogTree(myFakeRootTree, item.Link, item, 0);
+	}
+
+	public NetworkTree getTreeByKey(NetworkTree.Key key) {
+		if (key == null) {
+			return null;
+		}
+		if (key.Parent == null) {
+			if (key.equals(myRootTree.getUniqueKey())) {
+				return myRootTree;
+			}
+			if (key.equals(myFakeRootTree.getUniqueKey())) {
+				return myFakeRootTree;
+			}
+			return null;
+		}
+		final NetworkTree parentTree = getTreeByKey(key.Parent);
+		if (parentTree == null) {
+			return null;
+		}
+		return parentTree != null ? (NetworkTree)parentTree.getSubTree(key.Id) : null;
 	}
 
 	public void addCustomLink(ICustomNetworkLink link) {
-		addLinkInternal(myCustomLinks, link, new LinksComparator());
-		link.setSaveLinkListener(myChangesListener);
-		link.saveLink();
+		final int id = link.getId();
+		if (id == ICustomNetworkLink.INVALID_ID) {
+			myLinks.add(link);
+		} else {
+			synchronized (myLinks) {
+				for (int i = myLinks.size() - 1; i >= 0; --i) {
+					final INetworkLink l = myLinks.get(i);
+					if (l instanceof ICustomNetworkLink && ((ICustomNetworkLink)l).getId() == id) {
+						myLinks.set(i, link);
+						break;
+					}
+				}
+			}
+		}
+		NetworkDatabase.Instance().saveLink(link);
+		invalidateChildren();
 	}
 
 	public void removeCustomLink(ICustomNetworkLink link) {
-		synchronized (myLinks) {
-			final int index = Collections.binarySearch(myCustomLinks, link, new LinksComparator());
-			if (index < 0) {
-				return;
-			}
-			myCustomLinks.remove(index);
-		}
-		NetworkDatabase.Instance().deleteCustomLink(link);
-		link.setSaveLinkListener(null);
+		myLinks.remove(link);
+		NetworkDatabase.Instance().deleteLink(link);
+		invalidateChildren();
 	}
 
-	public boolean hasCustomLinkTitle(String title, ICustomNetworkLink exeptFor) {
-		synchronized (myLinks) {
-			for (INetworkLink link: myLinks) {
-				if (link != exeptFor && link.getTitle().equals(title)) {
-					return true;
-				}
-			}
-		}
-		return false;
+	public void addChangeListener(ChangeListener listener) {
+		myListeners.add(listener);
 	}
 
-	public boolean hasCustomLinkSite(String siteName, ICustomNetworkLink exeptFor) {
-		synchronized (myLinks) {
-			for (INetworkLink link: myLinks) {
-				if (link != exeptFor && link.getSiteName().equals(siteName)) {
-					return true;
-				}
+	public void removeChangeListener(ChangeListener listener) {
+		myListeners.remove(listener);
+	}
+
+	// TODO: change to private
+	/*private*/ public void fireModelChangedEvent(ChangeListener.Code code, Object ... params) {
+		synchronized (myListeners) {
+			for (ChangeListener l : myListeners) {
+				l.onLibraryChanged(code, params);
 			}
 		}
-		return false;
+	}
+
+	public final void storeLoader(NetworkTree tree, NetworkItemsLoader loader) {
+		myLoaders.put(tree, loader);
+	}
+
+	public final NetworkItemsLoader getStoredLoader(NetworkTree tree) {
+		return tree != null ? myLoaders.get(tree) : null;
+	}
+
+	public final boolean isUpdateInProgress() {
+		return myUpdateInProgress;
+	}
+
+	public final void removeStoredLoader(NetworkTree tree) {
+		myLoaders.remove(tree);
 	}
 }

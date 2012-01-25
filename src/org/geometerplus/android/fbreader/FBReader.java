@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,567 +19,547 @@
 
 package org.geometerplus.android.fbreader;
 
+import java.util.*;
 
+import android.app.SearchManager;
+import android.content.*;
+import android.content.res.Resources;
+import android.net.Uri;
+import android.os.Bundle;
+import android.view.*;
+import android.view.accessibility.AccessibilityManager;
+import android.widget.RelativeLayout;
 
-import java.util.LinkedList;
-import java.util.List;
-
+import org.benetech.android.R;
 import org.accessibility.VoiceableDialog;
-import org.geometerplus.fbreader.bookmodel.BookModel;
-import org.geometerplus.fbreader.fbreader.ActionCode;
-import org.geometerplus.fbreader.library.Book;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
-import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.library.ZLibrary;
+
 import org.geometerplus.zlibrary.core.view.ZLView;
-import org.geometerplus.zlibrary.text.model.ZLTextModel;
-import org.geometerplus.zlibrary.text.view.ZLTextFixedPosition;
-import org.geometerplus.zlibrary.text.view.ZLTextPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
+import org.geometerplus.zlibrary.text.hyphenation.ZLTextHyphenator;
+
 import org.benetech.android.R;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
+import org.geometerplus.zlibrary.ui.android.library.ZLAndroidLibrary;
 
-import android.app.Dialog;
-import android.app.SearchManager;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.PowerManager;
-import android.view.GestureDetector.OnDoubleTapListener;
-import android.view.GestureDetector.OnGestureListener;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
-import android.view.WindowManager;
-import android.view.accessibility.AccessibilityManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
+import org.geometerplus.fbreader.fbreader.ActionCode;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
+import org.geometerplus.fbreader.bookmodel.BookModel;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.tips.TipsManager;
 
-public final class FBReader extends ZLAndroidActivity implements OnGestureListener, OnDoubleTapListener	 {
-	static FBReader Instance;
-	
-	//Added for the detecting whether the talkback is on
-	private final static String SCREENREADER_INTENT_ACTION = "android.accessibilityservice.AccessibilityService";
-    private final static String SCREENREADER_INTENT_CATEGORY = "android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_SPOKEN";
+import org.geometerplus.android.fbreader.library.SQLiteBooksDatabase;
+import org.geometerplus.android.fbreader.library.KillerCallback;
+import org.geometerplus.android.fbreader.api.*;
+import org.geometerplus.android.fbreader.tips.TipsActivity;
 
-	private int count = 0;
-	private Dialog dialog;
-	private EditText dialog_search_term;
-	private TextView dialog_search_title;
-	private TextView dialog_example_text;
+import org.geometerplus.android.util.UIUtil;
+
+public final class FBReader extends ZLAndroidActivity {
+	public static final String BOOK_PATH_KEY = "BookPath";
+
     private Resources resources;
+    //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
-
-//	private Speech speech;
+    
+	final static int REPAINT_CODE = 1;
+	final static int CANCEL_CODE = 2;
 
 	private int myFullScreenFlag;
 
-	private static class NavigationButtonPanel extends ControlButtonPanel {
-		public volatile boolean NavigateDragging;
-		public ZLTextPosition StartPosition;
-
+	private static final String PLUGIN_ACTION_PREFIX = "___";
+	private final List<PluginApi.ActionInfo> myPluginActions =
+		new LinkedList<PluginApi.ActionInfo>();
+	private final BroadcastReceiver myPluginInfoReceiver = new BroadcastReceiver() {
 		@Override
-		public void onShow() {
-			if (FBReader.Instance != null && myControlPanel != null) {
-				FBReader.Instance.setupNavigation(myControlPanel);
+		public void onReceive(Context context, Intent intent) {
+			final ArrayList<PluginApi.ActionInfo> actions = getResultExtras(true).<PluginApi.ActionInfo>getParcelableArrayList(PluginApi.PluginInfo.KEY);
+			if (actions != null) {
+				synchronized (myPluginActions) {
+					final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
+					int index = 0;
+					while (index < myPluginActions.size()) {
+						fbReader.removeAction(PLUGIN_ACTION_PREFIX + index++);
+					}
+					myPluginActions.addAll(actions);
+					index = 0;
+					for (PluginApi.ActionInfo info : myPluginActions) {
+						fbReader.addAction(
+							PLUGIN_ACTION_PREFIX + index++,
+							new RunPluginAction(FBReader.this, fbReader, info.getId())
+						);
+					}
+				}
 			}
 		}
+	};
 
-		@Override
-		public void updateStates() {
-			super.updateStates();
-			if (!NavigateDragging && FBReader.Instance != null && myControlPanel != null) {
-				FBReader.Instance.setupNavigation(myControlPanel);
+	@Override
+	protected ZLFile fileFromIntent(Intent intent) {
+		String filePath = intent.getStringExtra(BOOK_PATH_KEY);
+		if (filePath == null) {
+			final Uri data = intent.getData();
+			if (data != null) {
+				filePath = data.getPath();
 			}
 		}
+		return filePath != null ? ZLFile.createFileByPath(filePath) : null;
 	}
-
-	private static class TextSearchButtonPanel extends ControlButtonPanel {
-		@Override
-		public void onHide() {
-			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-			textView.clearFindResults();
-		}
-	}
-
-	private static TextSearchButtonPanel myTextSearchPanel;
-	private static NavigationButtonPanel myNavigatePanel;
 
 	@Override
 	public void onCreate(Bundle icicle) {
-		try
-		{
-			super.onCreate(icicle);
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
-		/*
-		android.telephony.TelephonyManager tele =
-			(android.telephony.TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-		System.err.println(tele.getNetworkOperator());
-		*/
-		Instance = this;
-		final ZLAndroidApplication application = ZLAndroidApplication.Instance();
+		super.onCreate(icicle);
+		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
         resources = getApplicationContext().getResources();
         accessibilityManager =
-        	        (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
-
+                    (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 		myFullScreenFlag =
-			application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
-		/*
-		 * Added to make the app go non-fullscreen for barnes and noble testing 
-		 */
-		myFullScreenFlag = 0;
+			zlibrary.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
 		getWindow().setFlags(
 			WindowManager.LayoutParams.FLAG_FULLSCREEN, myFullScreenFlag
 		);
-		if (myTextSearchPanel == null) {
-			myTextSearchPanel = new TextSearchButtonPanel();
-			myTextSearchPanel.register();
+
+		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
+		if (fbReader.getPopupById(TextSearchPopup.ID) == null) {
+			new TextSearchPopup(fbReader);
 		}
-		if (myNavigatePanel == null) {
-			myNavigatePanel = new NavigationButtonPanel();
-			myNavigatePanel.register();
+		if (fbReader.getPopupById(NavigationPopup.ID) == null) {
+			new NavigationPopup(fbReader);
+		}
+		if (fbReader.getPopupById(SelectionPopup.ID) == null) {
+			new SelectionPopup(fbReader);
+		}
+
+		fbReader.addAction(ActionCode.SHOW_LIBRARY, new ShowLibraryAction(this, fbReader));
+		fbReader.addAction(ActionCode.SHOW_PREFERENCES, new ShowPreferencesAction(this, fbReader));
+		fbReader.addAction(ActionCode.SHOW_BOOK_INFO, new ShowBookInfoAction(this, fbReader));
+		fbReader.addAction(ActionCode.SHOW_TOC, new ShowTOCAction(this, fbReader));
+		fbReader.addAction(ActionCode.SHOW_BOOKMARKS, new ShowBookmarksAction(this, fbReader));
+		fbReader.addAction(ActionCode.SHOW_NETWORK_LIBRARY, new ShowNetworkLibraryAction(this, fbReader));
+		
+		fbReader.addAction(ActionCode.SHOW_MENU, new ShowMenuAction(this, fbReader));
+		fbReader.addAction(ActionCode.SHOW_NAVIGATION, new ShowNavigationAction(this, fbReader));
+		fbReader.addAction(ActionCode.SEARCH, new SearchAction(this, fbReader));
+
+		fbReader.addAction(ActionCode.SELECTION_SHOW_PANEL, new SelectionShowPanelAction(this, fbReader));
+		fbReader.addAction(ActionCode.SELECTION_HIDE_PANEL, new SelectionHidePanelAction(this, fbReader));
+		fbReader.addAction(ActionCode.SELECTION_COPY_TO_CLIPBOARD, new SelectionCopyAction(this, fbReader));
+		fbReader.addAction(ActionCode.SELECTION_SHARE, new SelectionShareAction(this, fbReader));
+		fbReader.addAction(ActionCode.SELECTION_TRANSLATE, new SelectionTranslateAction(this, fbReader));
+		fbReader.addAction(ActionCode.SELECTION_BOOKMARK, new SelectionBookmarkAction(this, fbReader));
+
+		fbReader.addAction(ActionCode.PROCESS_HYPERLINK, new ProcessHyperlinkAction(this, fbReader));
+
+		fbReader.addAction(ActionCode.SHOW_CANCEL_MENU, new ShowCancelMenuAction(this, fbReader));
+
+		fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_SYSTEM, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_SYSTEM));
+		fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_SENSOR, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_SENSOR));
+		fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_PORTRAIT, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_PORTRAIT));
+		fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_LANDSCAPE, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_LANDSCAPE));
+		if (ZLibrary.Instance().supportsAllOrientations()) {
+			fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_PORTRAIT, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_REVERSE_PORTRAIT));
+			fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_LANDSCAPE, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_REVERSE_LANDSCAPE));
 		}
 	}
-	boolean menuFlag;
 
-	private boolean isScreenReaderActive() {
-        // Restrict the set of intents to only accessibility services that have
-        // the category FEEDBACK_SPOKEN (aka, screen readers).
-        Intent screenReaderIntent = new Intent(SCREENREADER_INTENT_ACTION);
-        screenReaderIntent.addCategory(SCREENREADER_INTENT_CATEGORY);
-        List<ResolveInfo> screenReaders = getPackageManager().queryIntentServices(
-                screenReaderIntent, 0);
-        ContentResolver cr = getContentResolver();
-        Cursor cursor = null;
-        int status = 0;
-        for (ResolveInfo screenReader : screenReaders) {
-            // All screen readers are expected to implement a content provider
-            // that responds to
-            // content://<nameofpackage>.providers.StatusProvider
-            cursor = cr.query(Uri.parse("content://" + screenReader.serviceInfo.packageName
-                    + ".providers.StatusProvider"), null, null, null, null);
-            if (cursor != null) {
-                cursor.moveToFirst();
-                // These content providers use a special cursor that only has one element, 
-                // an integer that is 1 if the screen reader is running.
-                status = cursor.getInt(0);
-                cursor.close();
-                if (status == 1) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-	
-	/*
-	 * Process Menu key event
-	 * @see org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity#onKeyDown(int, android.view.KeyEvent)
-	 * This method has been overridden to show a full screen menu when the menu button on the device is clicked
-	 * instead of the menu shown at the bottom of the screen. Comment this method to show the regular menu.
-	*/
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		System.out.println("************ Inside onKeyDown");
-		if(keyCode == KeyEvent.KEYCODE_MENU){
-			System.out.println("****** keyCode == KeyEvent.KEYCODE_MENU:");
-	   		Intent i = new Intent(this, MenuActivity.class);
-	   		startActivity(i);
+ 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
+		if (!zlibrary.isKindleFire() && !zlibrary.ShowStatusBarOption.getValue()) {
+			getWindow().addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 		}
+		return super.onPrepareOptionsMenu(menu);
+	}
 
-		if(isScreenReaderActive()){
-			if (keyCode == KeyEvent.KEYCODE_MENU) {
-				if(!menuFlag){
-	    	   		System.out.println("******* Before starting the MenuActivity");
-//	    	   		Intent i = new Intent(this, MenuActivity.class);
-//	    	   		startActivity(i);
-	    	   	}
-			}
+	@Override
+	public void onOptionsMenuClosed(Menu menu) {
+		super.onOptionsMenuClosed(menu);
+		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
+		if (!zlibrary.isKindleFire() && !zlibrary.ShowStatusBarOption.getValue()) {
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 		}
-		return super.onKeyDown(keyCode, event);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
+		if (!zlibrary.isKindleFire() && !zlibrary.ShowStatusBarOption.getValue()) {
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+		}
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent) {
+		final Uri data = intent.getData();
+		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
+		if ((intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
+			super.onNewIntent(intent);
+		} else if (Intent.ACTION_VIEW.equals(intent.getAction())
+					&& data != null && "fbreader-action".equals(data.getScheme())) {
+			fbReader.doAction(data.getEncodedSchemeSpecificPart(), data.getFragment());
+		} else if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+			final String pattern = intent.getStringExtra(SearchManager.QUERY);
+			final Runnable runnable = new Runnable() {
+				public void run() {
+					final TextSearchPopup popup = (TextSearchPopup)fbReader.getPopupById(TextSearchPopup.ID);
+					popup.initPosition();
+					fbReader.TextSearchPatternOption.setValue(pattern);
+					if (fbReader.getTextView().search(pattern, true, false, false, false) != 0) {
+						runOnUiThread(new Runnable() {
+							public void run() {
+								fbReader.showPopup(popup.getId());
+							}
+						});
+					} else {
+						runOnUiThread(new Runnable() {
+							public void run() {
+								UIUtil.showErrorMessage(FBReader.this, "textNotFound");
+								popup.StartPosition = null;
+							}
+						});
+					}
+				}
+			};
+			UIUtil.wait("search", runnable, this);
+		} else {
+			super.onNewIntent(intent);
+		}
 	}
 
 	@Override
 	public void onStart() {
 		super.onStart();
-//		speech = new Speech(this);
-		final ZLAndroidApplication application = ZLAndroidApplication.Instance();
+		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
 
-		/*
-		 * Added to make the app go non-fullscreen for barnes and noble testing 
-		 */
-		//final int fullScreenFlag =
-		//	application.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
-		final int fullScreenFlag = 0;
-
-		if (fullScreenFlag != myFullScreenFlag) 
-		{
+		final int fullScreenFlag =
+			zlibrary.ShowStatusBarOption.getValue() ? 0 : WindowManager.LayoutParams.FLAG_FULLSCREEN;
+		if (fullScreenFlag != myFullScreenFlag) {
 			finish();
-			startActivity(new Intent(this, this.getClass()));
+			startActivity(new Intent(this, getClass()));
 		}
 
-		final RelativeLayout root = (RelativeLayout)FBReader.this.findViewById(R.id.root_view);
-		if (!myTextSearchPanel.hasControlPanel()) {
-			final ControlPanel panel = new ControlPanel(this);
+		SetScreenOrientationAction.setOrientation(this, zlibrary.OrientationOption.getValue());
 
-			panel.addButton(ActionCode.FIND_PREVIOUS, false, R.drawable.text_search_previous);
-			panel.addButton(ActionCode.CLEAR_FIND_RESULTS, true, R.drawable.text_search_close);
-			panel.addButton(ActionCode.FIND_NEXT, false, R.drawable.text_search_next);
+		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
+		final RelativeLayout root = (RelativeLayout)findViewById(R.id.root_view);
+		((PopupPanel)fbReader.getPopupById(TextSearchPopup.ID)).createControlPanel(this, root, PopupWindow.Location.Bottom);
+		((PopupPanel)fbReader.getPopupById(NavigationPopup.ID)).createControlPanel(this, root, PopupWindow.Location.Bottom);
+		((PopupPanel)fbReader.getPopupById(SelectionPopup.ID)).createControlPanel(this, root, PopupWindow.Location.Floating);
 
-			myTextSearchPanel.setControlPanel(panel, root, false);
-		}
-		if (!myNavigatePanel.hasControlPanel()) {
-			final ControlPanel panel = new ControlPanel(this);
-			final View layout = getLayoutInflater().inflate(R.layout.navigate, panel, false);
-			
-			createNavigation(layout);
-			//speech.processView(layout);
-			panel.setExtension(layout);
-			myNavigatePanel.setControlPanel(panel, root, true);
-		}
-		findViewById(R.id.main_view).setOnLongClickListener(new View.OnLongClickListener() {
-			public boolean onLongClick(View v) {
-				if (!myNavigatePanel.getVisibility()) {
-					navigate();
-					return true;
-				}
-				return false;
+		synchronized (myPluginActions) {
+			int index = 0;
+			while (index < myPluginActions.size()) {
+				fbReader.removeAction(PLUGIN_ACTION_PREFIX + index++);
 			}
-		});
-		setApplicationTitle();
-	}
+			myPluginActions.clear();
+		}
 
-	private PowerManager.WakeLock myWakeLock;
+		sendOrderedBroadcast(
+			new Intent(PluginApi.ACTION_REGISTER),
+			null,
+			myPluginInfoReceiver,
+			null,
+			RESULT_OK,
+			null,
+			null
+		);
+
+		final TipsManager manager = TipsManager.Instance();
+		switch (manager.requiredAction()) {
+			case Initialize:
+				startActivity(new Intent(TipsActivity.INITIALIZE_ACTION, null, this, TipsActivity.class));
+				break;
+			case Show:
+				startActivity(new Intent(TipsActivity.SHOW_TIP_ACTION, null, this, TipsActivity.class));
+				break;
+			case Download:
+				manager.startDownloading();
+				break;
+			case None:
+				break;
+		}
+	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		count=0;	
-		ControlButtonPanel.restoreVisibilities();
-		if (ZLAndroidApplication.Instance().DontTurnScreenOffOption.getValue()) {
-			myWakeLock =
-				((PowerManager)getSystemService(POWER_SERVICE)).
-					newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "FBReader");
-			myWakeLock.acquire();
-		} else {
-			myWakeLock = null;
+		try {
+			sendBroadcast(new Intent(getApplicationContext(), KillerCallback.class));
+		} catch (Throwable t) {
 		}
-		setApplicationTitle();
-	}
-
-	@Override
-	public void onPause() {
-		if (myWakeLock != null) {
-			myWakeLock.release();
-			myWakeLock = null;
-		}
-		ControlButtonPanel.saveVisibilities();
-		super.onPause();
+		PopupPanel.restoreVisibilities(FBReaderApp.Instance());
+		ApiServerImplementation.sendEvent(this, ApiListener.EVENT_READ_MODE_OPENED);
+        setApplicationTitle();
 	}
 
 	@Override
 	public void onStop() {
-		ControlButtonPanel.removeControlPanels();
+		ApiServerImplementation.sendEvent(this, ApiListener.EVENT_READ_MODE_CLOSED);
+		PopupPanel.removeAllWindows(FBReaderApp.Instance(), this);
 		super.onStop();
 	}
 
-	void showTextSearchControls(boolean show) {
-		if (show) {
-			myTextSearchPanel.show(true);
-		} else {
-			myTextSearchPanel.hide(false);
+	@Override
+	protected FBReaderApp createApplication(ZLFile file) {
+		if (SQLiteBooksDatabase.Instance() == null) {
+			new SQLiteBooksDatabase(this, "READER");
 		}
-	}
-
-	protected ZLApplication createApplication(String fileName) {
-		new SQLiteBooksDatabase();
-		String[] args = (fileName != null) ? new String[] { fileName } : new String[0];
-		return new org.geometerplus.fbreader.fbreader.FBReader(args);
+		return new FBReaderApp(file != null ? file.getPath() : null);
 	}
 
 	@Override
 	public boolean onSearchRequested() {
-		final LinkedList<Boolean> visibilities = new LinkedList<Boolean>();
-		ControlButtonPanel.saveVisibilitiesTo(visibilities);
-		ControlButtonPanel.hideAllPendingNotify();
+		final FBReaderApp fbreader = (FBReaderApp)FBReaderApp.Instance();
+		final FBReaderApp.PopupPanel popup = fbreader.getActivePopup();
+		fbreader.hideActivePopup();
 		final SearchManager manager = (SearchManager)getSystemService(SEARCH_SERVICE);
 		manager.setOnCancelListener(new SearchManager.OnCancelListener() {
 			public void onCancel() {
-				ControlButtonPanel.restoreVisibilitiesFrom(visibilities);
+				if (popup != null) {
+					fbreader.showPopup(popup.getId());
+				}
 				manager.setOnCancelListener(null);
 			}
 		});
-		final org.geometerplus.fbreader.fbreader.FBReader fbreader =
-			(org.geometerplus.fbreader.fbreader.FBReader)ZLApplication.Instance();
 		startSearch(fbreader.TextSearchPatternOption.getValue(), true, null, false);
 		return true;
 	}
-	// Method to navigate to the specified page in the book
-	private void navigateByPage(int page){
+
+	public void showSelectionPanel() {
+		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
+		final ZLTextView view = fbReader.getTextView();
+		((SelectionPopup)fbReader.getPopupById(SelectionPopup.ID))
+			.move(view.getSelectionStartY(), view.getSelectionEndY());
+		fbReader.showPopup(SelectionPopup.ID);
+	}
+
+	public void hideSelectionPanel() {
+		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
+		final FBReaderApp.PopupPanel popup = fbReader.getActivePopup();
+		if (popup != null && popup.getId() == SelectionPopup.ID) {
+			FBReaderApp.Instance().hideActivePopup();
+		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		final FBReaderApp fbreader = (FBReaderApp)FBReaderApp.Instance();
+		switch (requestCode) {
+			case REPAINT_CODE:
+			{
+				final BookModel model = fbreader.Model;
+				if (model != null) {
+					final Book book = model.Book;
+					if (book != null) {
+						book.reloadInfoFromDatabase();
+						ZLTextHyphenator.Instance().load(book.getLanguage());
+					}
+				}
+				fbreader.clearTextCaches();
+				fbreader.getViewWidget().repaint();
+				break;
+			}
+			case CANCEL_CODE:
+				fbreader.runCancelAction(resultCode - 1);
+				break;
+		}
+	}
+
+    // Method to navigate to the specified page in the book
+    private void navigateByPage(int page){
 
         final VoiceableDialog finishedDialog = new VoiceableDialog(this);
         String message =  resources.getString(R.string.page_navigated, page);
         finishedDialog.popup(message, 2000);
 
-		final ZLView view = ZLApplication.Instance().getCurrentView();
-		if (view instanceof ZLTextView) {
-			ZLTextView textView = (ZLTextView) view;
-			if (page == 1) {
-				textView.gotoHome();
-			}
-			else{
-				textView.gotoPage(page);
-			}
-			ZLApplication.Instance().repaintView();
-		}
+        final ZLView view = ZLApplication.Instance().getCurrentView();
+        if (view instanceof ZLTextView) {
+            ZLTextView textView = (ZLTextView) view;
+            if (page == 1) {
+                textView.gotoHome();
+            }
+            else{
+                textView.gotoPage(page);
+            }
+            //todo: Rom - accessible navigate to page
+            //ZLApplication.Instance().repaintView();
+        }
+    }
+
+	public void navigate() {
+		((NavigationPopup)FBReaderApp.Instance().getPopupById(NavigationPopup.ID)).runNavigation();
+     /*   if(accessibilityManager.isEnabled()){
+        			dialog = new Dialog(this);
+        			dialog.setContentView(R.layout.bookshare_dialog);
+        			dialog.setTitle(resources.getString(R.string.navigate_dialog_title));
+        			dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
+        			dialog_search_term.setContentDescription(resources.getString(R.string.navigate_dialog_label));
+        			dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
+        			dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
+        			Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
+        			Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
+        			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
+        			final int currentPage = textView.computeCurrentPage();
+        			final int pagesNumber = textView.computePageNumber();
+        			dialog_search_title.setText(resources.getString(R.string.navigate_dialog_label));
+        			dialog_example_text.setText(resources.getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
+        			dialog_search_term.setOnKeyListener(new OnKeyListener() {
+        			    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        			        // If the event is a key-down event on the "enter" button
+        			        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+        			            (keyCode == KeyEvent.KEYCODE_ENTER)) {
+        			          // Perform action on key press
+        						int page = 1;
+        						try{
+        							page = Integer.parseInt(dialog_search_term.getText().toString().trim());
+        						}
+        						catch(NumberFormatException nfe){
+        							dialog.dismiss();
+        							return true;
+        						}
+        						navigateByPage(page);
+        						dialog.dismiss();
+        			          return true;
+        			        }
+        			        return false;
+        			    }
+        			});
+        			dialog_ok.setOnClickListener(new OnClickListener(){
+        				public void onClick(View v){
+        					int page = 1;
+        					try{
+        						page = Integer.parseInt(dialog_search_term.getText().toString().trim());
+        					}
+        					catch(NumberFormatException nfe){
+        						dialog.dismiss();
+        						return;
+        					}
+        					navigateByPage(page);
+        					dialog.dismiss();
+        				}
+        			});
+        			dialog_cancel.setOnClickListener(new OnClickListener(){
+        				public void onClick(View v){
+        					dialog.dismiss();
+        				}
+        			});
+        			dialog.show();
+                    dialog_search_term.requestFocus();
+        		}
+        		else{
+        			if (!myNavigatePanel.hasControlPanel()) {
+        				// Adding this block to set the control panel to a non-null value. This is necessary in showing the navigation slider
+        				final RelativeLayout root = (RelativeLayout)FBReader.this.findViewById(R.id.root_view);
+        				final ControlPanel panel = new ControlPanel(this);
+        				final View layout = getLayoutInflater().inflate(R.layout.navigate, panel, false);
+        				createNavigation(layout);
+        				panel.setExtension(layout);
+        				myNavigatePanel.setControlPanel(panel, root, true);
+        			}
+        
+        			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
+        			myNavigatePanel.NavigateDragging = false;
+        			myNavigatePanel.StartPosition = new ZLTextFixedPosition(textView.getStartCursor());
+        			myNavigatePanel.show(true);
+        		}
+     */
 	}
-	
-	public void navigate(){
-		if(accessibilityManager.isEnabled()){
-			dialog = new Dialog(this);
-			dialog.setContentView(R.layout.bookshare_dialog);
-			dialog.setTitle(resources.getString(R.string.navigate_dialog_title));
-			dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
-			dialog_search_term.setContentDescription(resources.getString(R.string.navigate_dialog_label));
-			dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
-			dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
-			Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
-			Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
-			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-			final int currentPage = textView.computeCurrentPage();
-			final int pagesNumber = textView.computePageNumber();
-			dialog_search_title.setText(resources.getString(R.string.navigate_dialog_label));
-			dialog_example_text.setText(resources.getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
-			dialog_search_term.setOnKeyListener(new OnKeyListener() {
-			    public boolean onKey(View v, int keyCode, KeyEvent event) {
-			        // If the event is a key-down event on the "enter" button
-			        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
-			            (keyCode == KeyEvent.KEYCODE_ENTER)) {
-			          // Perform action on key press
-						int page = 1;
-						try{
-							page = Integer.parseInt(dialog_search_term.getText().toString().trim());
-						}
-						catch(NumberFormatException nfe){
-							dialog.dismiss();
-							return true;
-						}
-						navigateByPage(page);
-						dialog.dismiss();
-			          return true;
-			        }
-			        return false;
-			    }
-			});
-			dialog_ok.setOnClickListener(new OnClickListener(){
-				public void onClick(View v){
-					int page = 1;
-					try{
-						page = Integer.parseInt(dialog_search_term.getText().toString().trim());
-					}
-					catch(NumberFormatException nfe){
-						dialog.dismiss();
-						return;
-					}
-					navigateByPage(page);
-					dialog.dismiss();
+    
+    /** 
+     * If book is available, add it to application title.
+     */
+    private final void setApplicationTitle() {
+        Library library = Library.Instance();
+        final Book currentBook = library.getRecentBook();
+        
+        if (currentBook != null) {
+            setTitle(resources.getString(R.string.app_name) + " - " + currentBook.getTitle());
+        }
+    }
+
+	private Menu addSubMenu(Menu menu, String id) {
+		final ZLAndroidApplication application = (ZLAndroidApplication)getApplication();
+		return application.myMainWindow.addSubMenu(menu, id);
+	}
+
+	private void addMenuItem(Menu menu, String actionId, String name) {
+		final ZLAndroidApplication application = (ZLAndroidApplication)getApplication();
+		application.myMainWindow.addMenuItem(menu, actionId, null, name);
+	}
+
+	private void addMenuItem(Menu menu, String actionId, int iconId) {
+		final ZLAndroidApplication application = (ZLAndroidApplication)getApplication();
+		application.myMainWindow.addMenuItem(menu, actionId, iconId, null);
+	}
+
+	private void addMenuItem(Menu menu, String actionId) {
+		final ZLAndroidApplication application = (ZLAndroidApplication)getApplication();
+		application.myMainWindow.addMenuItem(menu, actionId, null, null);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		addMenuItem(menu, ActionCode.SHOW_LIBRARY, R.drawable.ic_menu_library);
+		addMenuItem(menu, ActionCode.SHOW_NETWORK_LIBRARY, R.drawable.ic_menu_networklibrary);
+		addMenuItem(menu, ActionCode.SHOW_TOC, R.drawable.ic_menu_toc);
+		addMenuItem(menu, ActionCode.SHOW_BOOKMARKS, R.drawable.ic_menu_bookmarks);
+		addMenuItem(menu, ActionCode.SWITCH_TO_NIGHT_PROFILE, R.drawable.ic_menu_night);
+		addMenuItem(menu, ActionCode.SWITCH_TO_DAY_PROFILE, R.drawable.ic_menu_day);
+		addMenuItem(menu, ActionCode.SEARCH, R.drawable.ic_menu_search);
+		addMenuItem(menu, ActionCode.SHOW_PREFERENCES);
+		addMenuItem(menu, ActionCode.SHOW_BOOK_INFO);
+		final Menu subMenu = addSubMenu(menu, "screenOrientation");
+		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_SYSTEM);
+		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_SENSOR);
+		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_PORTRAIT);
+		addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_LANDSCAPE);
+		if (ZLibrary.Instance().supportsAllOrientations()) {
+			addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_REVERSE_PORTRAIT);
+			addMenuItem(subMenu, ActionCode.SET_SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+		}
+		addMenuItem(menu, ActionCode.INCREASE_FONT);
+		addMenuItem(menu, ActionCode.DECREASE_FONT);
+		addMenuItem(menu, ActionCode.SHOW_NAVIGATION);
+		synchronized (myPluginActions) {
+			int index = 0;
+			for (PluginApi.ActionInfo info : myPluginActions) {
+				if (info instanceof PluginApi.MenuActionInfo) {
+					addMenuItem(
+						menu,
+						PLUGIN_ACTION_PREFIX + index++,
+						((PluginApi.MenuActionInfo)info).MenuItemName
+					);
 				}
-			});
-			dialog_cancel.setOnClickListener(new OnClickListener(){
-				public void onClick(View v){
-					dialog.dismiss();
-				}
-			});
-			dialog.show();
-            dialog_search_term.requestFocus();
-		}
-		else{
-			if (!myNavigatePanel.hasControlPanel()) {
-				// Adding this block to set the control panel to a non-null value. This is necessary in showing the navigation slider
-				final RelativeLayout root = (RelativeLayout)FBReader.this.findViewById(R.id.root_view);
-				final ControlPanel panel = new ControlPanel(this);
-				final View layout = getLayoutInflater().inflate(R.layout.navigate, panel, false);
-				createNavigation(layout);
-				panel.setExtension(layout);
-				myNavigatePanel.setControlPanel(panel, root, true);
 			}
-
-			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-			myNavigatePanel.NavigateDragging = false;
-			myNavigatePanel.StartPosition = new ZLTextFixedPosition(textView.getStartCursor());
-			myNavigatePanel.show(true);
 		}
-	}
-		
-	/** 
-	 * If book is available, add it to application title.
-	 */
-	private final void setApplicationTitle() {
-		Library library = Library.Instance();
-		final Book currentBook = library.getRecentBook();
-		
-		if (currentBook != null) {
-			setTitle(resources.getString(R.string.app_name) + " - " + currentBook.getTitle());
-		}
-	}
-	
-	public final boolean canNavigate() {
-		final org.geometerplus.fbreader.fbreader.FBReader fbreader =
-			(org.geometerplus.fbreader.fbreader.FBReader)ZLApplication.Instance();
-		final ZLView view = fbreader.getCurrentView();
-		if (!(view instanceof ZLTextView)) {
-			return false;
-		}
-		final ZLTextModel textModel = ((ZLTextView) view).getModel();
-		if (textModel == null || textModel.getParagraphsNumber() == 0) {
-			return false;
-		}
-		final BookModel bookModel = fbreader.Model;
-		return bookModel != null && bookModel.Book != null;
+
+		final ZLAndroidApplication application = (ZLAndroidApplication)getApplication();
+		application.myMainWindow.refreshMenu();
+
+		return true;
 	}
 
-	private final void createNavigation(View layout) {
-		final SeekBar slider = (SeekBar) layout.findViewById(R.id.book_position_slider);
-		final TextView text = (TextView) layout.findViewById(R.id.book_position_text);
-
-		slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-			private void gotoPage(int page) {
-				final ZLView view = ZLApplication.Instance().getCurrentView();
-				if (view instanceof ZLTextView) {
-					ZLTextView textView = (ZLTextView) view;					
-					if (page == 1) {
-						textView.gotoHome();
-					} else {
-						textView.gotoPage(page);
-					}
-					ZLApplication.Instance().repaintView();
-				}
-			}
-
-			public void onStopTrackingTouch(SeekBar seekBar) {
-				myNavigatePanel.NavigateDragging = false;
-			}
-
-			public void onStartTrackingTouch(SeekBar seekBar) {
-				myNavigatePanel.NavigateDragging = true;
-			}
-
-			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				if (fromUser) {
-					final int page = progress + 1;
-					final int pagesNumber = seekBar.getMax() + 1; 
-					text.setText(makeProgressText(page, pagesNumber));
-					gotoPage(page);
-				}
-			}
-		});
-
-		final Button btnOk = (Button) layout.findViewById(android.R.id.button1);
-		final Button btnCancel = (Button) layout.findViewById(android.R.id.button3);
-		View.OnClickListener listener = new View.OnClickListener() {
-			public void onClick(View v) {
-				final ZLTextPosition position = myNavigatePanel.StartPosition;
-				myNavigatePanel.StartPosition = null;
-				if (v == btnCancel && position != null) {
-					((ZLTextView) ZLApplication.Instance().getCurrentView()).gotoPosition(position);
-				}
-				myNavigatePanel.hide(true);
-			}
-		};
-		btnOk.setOnClickListener(listener);
-		btnCancel.setOnClickListener(listener);
-		final ZLResource buttonResource = ZLResource.resource("dialog").getResource("button");
-		btnOk.setText("Ok");//buttonResource.getResource("ok").getValue());
-		btnCancel.setText("Cancel");//buttonResource.getResource("cancel").getValue());
-	}
-
-	private final void setupNavigation(ControlPanel panel) {
-		final SeekBar slider = (SeekBar) panel.findViewById(R.id.book_position_slider);
-		final TextView text = (TextView) panel.findViewById(R.id.book_position_text);
-
-		final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-		final int page = textView.computeCurrentPage();
-		final int pagesNumber = textView.computePageNumber();
-
-		if (slider.getMax() != (pagesNumber - 1)
-				|| slider.getProgress() != (page - 1)) {
-			slider.setMax(pagesNumber - 1);
-			slider.setProgress(page - 1);
-			text.setText(makeProgressText(page, pagesNumber));
-		}
-	}
-
-	private static String makeProgressText(int page, int pagesNumber) {
-		return "" + page + " / " + pagesNumber;
-	}
-
-	public boolean onDoubleTap(MotionEvent arg0) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public boolean onDoubleTapEvent(MotionEvent e)
-	{
-	//	speech.speak("tap tap");
-		return false;
-	}
-
-	public boolean onSingleTapConfirmed(MotionEvent e)
-	{
-	//	speech.speak("tap");
-		return false;
-	}
-
-	public boolean onDown(MotionEvent arg0)
-	{
-		return false;
-	}
-
-	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3)
-	{
-		return false;
-	}
-
-	public void onLongPress(MotionEvent arg0)
-	{
-	}
-
-	public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2, float arg3)
-	{
-		return false;
-	}
-
-	public void onShowPress(MotionEvent arg0)
-	{
-		
-	}
-
-	public boolean onSingleTapUp(MotionEvent arg0)
-	{
-		return false;
-	}
-
+    /*
+     * show accessible full screen menu when accessibility is turned on
+     *
+    */
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (accessibilityManager.isEnabled()) {
+            if(keyCode == KeyEvent.KEYCODE_MENU){
+                Intent i = new Intent(this, MenuActivity.class);
+                startActivity(i);
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+    
     public void onWindowFocusChanged(boolean hasFocus) {
         setApplicationTitle();
     }
-
-    protected void onActivityResult( int requestCode, int resultCode, Intent data) {
-        int i;
-    }
-	
-	
 }

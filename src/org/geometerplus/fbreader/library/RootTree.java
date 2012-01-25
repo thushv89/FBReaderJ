@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2009-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,24 @@
 
 package org.geometerplus.fbreader.library;
 
-final class RootTree extends LibraryTree {
+class RootTree extends LibraryTree {
+	private final Library myLibrary;
+
+	RootTree(Library library) {
+		myLibrary = library;
+	}
+
+	Library getLibrary() {
+		return myLibrary;
+	}
+
+	@Override
 	public String getName() {
-		return null;
+		return Library.resource().getValue();
+	}
+
+	@Override
+	protected String getStringId() {
+		return "@FBReaderLibraryRoot";
 	}
 }

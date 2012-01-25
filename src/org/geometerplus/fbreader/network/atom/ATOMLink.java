@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,7 @@ package org.geometerplus.fbreader.network.atom;
 
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 
-
 public class ATOMLink extends ATOMCommonAttributes {
-
 	public static final String HREF = "href";
 	public static final String REL = "rel";
 	public static final String TYPE = "type";
@@ -31,9 +29,8 @@ public class ATOMLink extends ATOMCommonAttributes {
 	public static final String TITLE = "title";
 	public static final String LENGTH = "length";
 
-	@Override
-	public void readAttributes(ZLStringMap source) {
-		super.readAttributes(source);
+	protected ATOMLink(ZLStringMap source) {
+		super(source);
 		readAttribute(HREF, source);
 		readAttribute(REL, source);
 		readAttribute(TYPE, source);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,27 +20,58 @@
 package org.geometerplus.zlibrary.ui.android.library;
 
 import java.io.*;
+import java.util.*;
+import java.lang.reflect.Field;
 
 import android.app.Application;
-import android.content.res.Resources;
+import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
 import android.content.res.AssetFileDescriptor;
-import android.content.Intent;
-import android.net.Uri;
+import android.os.Build;
+import android.telephony.TelephonyManager;
+import android.text.format.DateFormat;
+import android.util.DisplayMetrics;
 
 import org.geometerplus.zlibrary.core.library.ZLibrary;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.filesystem.ZLResourceFile;
+import org.geometerplus.zlibrary.core.options.ZLBooleanOption;
+import org.geometerplus.zlibrary.core.options.ZLIntegerRangeOption;
 
 import org.benetech.android.R;
-import org.geometerplus.zlibrary.ui.android.view.ZLAndroidPaintContext;
 import org.geometerplus.zlibrary.ui.android.view.ZLAndroidWidget;
-import org.geometerplus.zlibrary.ui.android.dialogs.ZLAndroidDialogManager;
-
-import org.geometerplus.fbreader.network.NetworkLibrary;
-
-import org.geometerplus.android.fbreader.network.BookDownloader;
-import org.geometerplus.android.fbreader.network.BookDownloaderService;
 
 public final class ZLAndroidLibrary extends ZLibrary {
+	public final ZLBooleanOption ShowStatusBarOption = new ZLBooleanOption("LookNFeel", "ShowStatusBar", hasNoHardwareMenuButton());
+	public final ZLIntegerRangeOption BatteryLevelToTurnScreenOffOption = new ZLIntegerRangeOption("LookNFeel", "BatteryLevelToTurnScreenOff", 0, 100, 50);
+	public final ZLBooleanOption DontTurnScreenOffDuringChargingOption = new ZLBooleanOption("LookNFeel", "DontTurnScreenOffDuringCharging", true);
+	public final ZLIntegerRangeOption ScreenBrightnessLevelOption = new ZLIntegerRangeOption("LookNFeel", "ScreenBrightnessLevel", 0, 100, 0);
+	public final ZLBooleanOption DisableButtonLightsOption = new ZLBooleanOption("LookNFeel", "DisableButtonLights", !hasButtonLightsBug());
+
+	private boolean hasNoHardwareMenuButton() {
+		return
+			// Eken M001
+			(Build.DISPLAY != null && Build.DISPLAY.contains("simenxie")) ||
+			// PanDigital
+			"PD_Novel".equals(Build.MODEL);
+	}
+
+	private Boolean myIsKindleFire = null;
+	public boolean isKindleFire() {
+		if (myIsKindleFire == null) {
+			final String KINDLE_MODEL_REGEXP = ".*kindle(\\s+)fire.*";
+			myIsKindleFire =
+				Build.MODEL != null &&
+				Build.MODEL.toLowerCase().matches(KINDLE_MODEL_REGEXP);
+		}
+		return myIsKindleFire;
+	}
+
+	public boolean hasButtonLightsBug() {
+		return "GT-S5830".equals(Build.MODEL);
+	}
+
 	private ZLAndroidActivity myActivity;
 	private final Application myApplication;
 	private ZLAndroidWidget myWidget;
@@ -51,27 +82,7 @@ public final class ZLAndroidLibrary extends ZLibrary {
 
 	void setActivity(ZLAndroidActivity activity) {
 		myActivity = activity;
-		((ZLAndroidDialogManager)ZLAndroidDialogManager.Instance()).setActivity(activity);
 		myWidget = null;
-	}
-
-	public void rotateScreen() {
-		if (myActivity != null)	{
-			myActivity.rotate();
-		}
-	}
-
-	public void navigate() {
-		if (myActivity != null)	{
-			myActivity.navigate();
-		}
-	}
-
-	public boolean canNavigate() {
-		if (myActivity != null)	{
-			return myActivity.canNavigate();
-		}
-		return false;
 	}
 
 	public void finish() {
@@ -80,8 +91,8 @@ public final class ZLAndroidLibrary extends ZLibrary {
 		}
 	}
 
-	public ZLAndroidPaintContext getPaintContext() {
-		return getWidget().getPaintContext();
+	public ZLAndroidActivity getActivity() {
+		return myActivity;
 	}
 
 	public ZLAndroidWidget getWidget() {
@@ -91,85 +102,195 @@ public final class ZLAndroidLibrary extends ZLibrary {
 		return myWidget;
 	}
 
-	public void openInBrowser(String reference) {
-		final Intent intent = new Intent(Intent.ACTION_VIEW);
-		boolean externalUrl = true;
-		if (BookDownloader.acceptsUri(Uri.parse(reference))) {
-			intent.setClass(myActivity, BookDownloader.class);
-			intent.putExtra(BookDownloaderService.SHOW_NOTIFICATIONS_KEY, BookDownloaderService.Notifications.ALL);
-			externalUrl = false;
-		}
-		// FIXME: initialize network library and use rewriteUrl!!!
-		//reference = NetworkLibrary.Instance().rewriteUrl(reference, externalUrl);
-		intent.setData(Uri.parse(reference));
-		myActivity.startActivity(intent);
+	@Override
+	public ZLResourceFile createResourceFile(String path) {
+		return new AndroidAssetsFile(path);
 	}
 
 	@Override
-	public ZLResourceFile createResourceFile(String path) {
-		return new AndroidResourceFile(path);
+	public ZLResourceFile createResourceFile(ZLResourceFile parent, String name) {
+		return new AndroidAssetsFile((AndroidAssetsFile)parent, name);
 	}
 
 	@Override
 	public String getVersionName() {
 		try {
-			return myApplication.getPackageManager().getPackageInfo(myApplication.getPackageName(), 0).versionName;
+			final PackageInfo info =
+				myApplication.getPackageManager().getPackageInfo(myApplication.getPackageName(), 0);
+			return info.versionName;
 		} catch (Exception e) {
 			return "";
 		}
 	}
 
-	private final class AndroidResourceFile extends ZLResourceFile {
-		private boolean myExists;
-		private int myResourceId;
+	@Override
+	public String getFullVersionName() {
+		try {
+			final PackageInfo info =
+				myApplication.getPackageManager().getPackageInfo(myApplication.getPackageName(), 0);
+			return info.versionName + " (" + info.versionCode + ")";
+		} catch (Exception e) {
+			return "";
+		}
+	}
 
-		AndroidResourceFile(String path) {
-			super(path);
-			final String drawablePrefix = "R.drawable.";
-			try {
-				if (path.startsWith(drawablePrefix)) {
-					final String fieldName = path.substring(drawablePrefix.length());
-					myResourceId = R.drawable.class.getField(fieldName).getInt(null);
-				} else {
-					final String fieldName = path.replace("/", "__").replace(".", "_").replace("-", "_").toLowerCase();
-					myResourceId = R.raw.class.getField(fieldName).getInt(null);
+	@Override
+	public String getCurrentTimeString() {
+		return DateFormat.getTimeFormat(myApplication.getApplicationContext()).format(new Date());
+	}
+
+	@Override
+	public void setScreenBrightness(int percent) {
+		if (myActivity != null) {
+			myActivity.setScreenBrightness(percent);
+		}
+	}
+
+	@Override
+	public int getScreenBrightness() {
+		return (myActivity != null) ? myActivity.getScreenBrightness() : 0;
+	}
+
+	@Override
+	public int getDisplayDPI() {
+		if (myActivity == null) {
+			return 0;
+		}
+		DisplayMetrics metrics = new DisplayMetrics();
+		myActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+		return (int)(160 * metrics.density);
+	}
+
+	@Override
+	public Collection<String> defaultLanguageCodes() {
+		final TreeSet<String> set = new TreeSet<String>();
+		set.add(Locale.getDefault().getLanguage());
+		final TelephonyManager manager = (TelephonyManager)myApplication.getSystemService(Context.TELEPHONY_SERVICE);
+		if (manager != null) {
+			final String country0 = manager.getSimCountryIso().toLowerCase();
+			final String country1 = manager.getNetworkCountryIso().toLowerCase();
+			for (Locale locale : Locale.getAvailableLocales()) {
+				final String country = locale.getCountry().toLowerCase();
+				if (country != null && country.length() > 0 &&
+					(country.equals(country0) || country.equals(country1))) {
+					set.add(locale.getLanguage());
 				}
-				myExists = true;
-			} catch (NoSuchFieldException e) {
-			} catch (IllegalAccessException e) {
+			}
+			if ("ru".equals(country0) || "ru".equals(country1)) {
+				set.add("ru");
+			} else if ("by".equals(country0) || "by".equals(country1)) {
+				set.add("ru");
+			} else if ("ua".equals(country0) || "ua".equals(country1)) {
+				set.add("ru");
+			}
+		}
+		set.add("multi");
+		return set;
+	}
+
+	@Override
+	public boolean supportsAllOrientations() {
+		try {
+			return ActivityInfo.class.getField("SCREEN_ORIENTATION_REVERSE_PORTRAIT") != null;
+		} catch (NoSuchFieldException e) {
+			return false;
+		}
+	}
+
+	private final class AndroidAssetsFile extends ZLResourceFile {
+		private final AndroidAssetsFile myParent;
+
+		AndroidAssetsFile(AndroidAssetsFile parent, String name) {
+			super(parent.getPath().length() == 0 ? name : parent.getPath() + '/' + name);
+			myParent = parent;
+		}
+
+		AndroidAssetsFile(String path) {
+			super(path);
+			if (path.length() == 0) {
+				myParent = null;
+			} else {
+				final int index = path.lastIndexOf('/');
+				myParent = new AndroidAssetsFile(index >= 0 ? path.substring(0, path.lastIndexOf('/')) : "");
+			}
+		}
+
+		@Override
+		protected List<ZLFile> directoryEntries() {
+			try {
+				String[] names = myApplication.getAssets().list(getPath());
+				if (names != null && names.length != 0) {
+					ArrayList<ZLFile> files = new ArrayList<ZLFile>(names.length);
+					for (String n : names) {
+						files.add(new AndroidAssetsFile(this, n));
+					}
+					return files;
+				}
+			} catch (IOException e) {
+			}
+			return Collections.emptyList();
+		}
+
+		@Override
+		public boolean isDirectory() {
+			try {
+				InputStream stream = myApplication.getAssets().open(getPath());
+				if (stream == null) {
+					return true;
+				}
+				stream.close();
+				return false;
+			} catch (IOException e) {
+				return true;
 			}
 		}
 
 		@Override
 		public boolean exists() {
-			return myExists;
+			try {
+				InputStream stream = myApplication.getAssets().open(getPath());
+				if (stream != null) {
+					stream.close();
+					// file exists
+					return true;
+				}
+			} catch (IOException e) {
+			}
+			try {
+				String[] names = myApplication.getAssets().list(getPath());
+				if (names != null && names.length != 0) {
+					// directory exists
+					return true;
+				}
+			} catch (IOException e) {
+			}
+			return false;
 		}
 
 		@Override
 		public long size() {
 			try {
-				AssetFileDescriptor descriptor =
-					myApplication.getResources().openRawResourceFd(myResourceId);
+				// TODO: for some files (archives, crt) descriptor cannot be opened
+				AssetFileDescriptor descriptor = myApplication.getAssets().openFd(getPath());
+				if (descriptor == null) {
+					return 0;
+				}
 				long length = descriptor.getLength();
 				descriptor.close();
 				return length;
 			} catch (IOException e) {
-				return 0;
-			} catch (Resources.NotFoundException e) {
 				return 0;
 			} 
 		}
 
 		@Override
 		public InputStream getInputStream() throws IOException {
-			if (!myExists) {
-				throw new IOException("File not found: " + getPath());
-			}
-			try {
-				return myApplication.getResources().openRawResource(myResourceId);
-			} catch (Resources.NotFoundException e) {
-				throw new IOException(e.getMessage());
-			}
+			return myApplication.getAssets().open(getPath());
+		}
+
+		@Override
+		public ZLFile getParent() {
+			return myParent;
 		}
 	}
 }

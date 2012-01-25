@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,6 +56,15 @@ public final class ZLTextWord extends ZLTextElement {
 		myParagraphOffset = paragraphOffset;
 	}
 
+	public boolean isASpace() {
+		for (int i = Offset; i < Offset + Length; ++i) {
+			if (!Character.isWhitespace(Data[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	public Mark getMark() {
 		return myMark;
 	}
@@ -81,18 +90,15 @@ public final class ZLTextWord extends ZLTextElement {
 	
 	public int getWidth(ZLPaintContext context) {
 		int width = myWidth;
-		if (width == -1) {
+		if (width <= 1) {
 			width = context.getStringWidth(Data, Offset, Length);	
 			myWidth = width;
 		}
 		return width;
 	}
 
+	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		for (int i = Offset; i < Offset + Length; i++) {
-			sb.append(Data[i]);
-		}	
-		return sb.toString();
+		return new String(Data, Offset, Length);
 	}
 }

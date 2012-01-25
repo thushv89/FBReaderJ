@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ class XHTMLTagHyperlinkAction extends XHTMLTagAction {
 
 	private static boolean isReference(String text) {
 		return
+			text.startsWith("fbreader-action://") ||
 			text.startsWith("http://") ||
 			text.startsWith("https://") ||
 			text.startsWith("mailto:") ||

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,24 +23,38 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import org.geometerplus.zlibrary.core.image.ZLImageData;
+import org.geometerplus.zlibrary.core.view.ZLPaintContext;
 
-public final class ZLAndroidImageData implements ZLImageData {
-	private byte[] myArray;
+public abstract class ZLAndroidImageData implements ZLImageData {
 	private Bitmap myBitmap;
 	private int myRealWidth;
 	private int myRealHeight;
-	private int myLastRequestedWidth;
-	private int myLastRequestedHeight;
+	private ZLPaintContext.Size myLastRequestedSize = null;
+	private ZLPaintContext.ScalingType myLastRequestedScaling = ZLPaintContext.ScalingType.OriginalSize;
 
-	ZLAndroidImageData(byte[] array) {
-		myArray = array;
+	protected ZLAndroidImageData() {
 	}
 
-	public synchronized Bitmap getBitmap(int maxWidth, int maxHeight) {
-		if ((maxWidth == 0) || (maxHeight == 0)) {
-			return null;
+	protected abstract Bitmap decodeWithOptions(BitmapFactory.Options options);
+
+	public Bitmap getFullSizeBitmap() {
+		return getBitmap(null, ZLPaintContext.ScalingType.OriginalSize);
+	}
+
+	public Bitmap getBitmap(int maxWidth, int maxHeight) {
+		return getBitmap(new ZLPaintContext.Size(maxWidth, maxHeight), ZLPaintContext.ScalingType.FitMaximum);
+	}
+
+	public Bitmap getBitmap(ZLPaintContext.Size maxSize, ZLPaintContext.ScalingType scaling) {
+		if (scaling != ZLPaintContext.ScalingType.OriginalSize) {
+			if (maxSize == null || maxSize.Width <= 0 || maxSize.Height <= 0) {
+				return null;
+			}
 		}
-		if ((maxWidth != myLastRequestedWidth) || (maxHeight != myLastRequestedHeight)) {
+		if (maxSize == null) {
+			maxSize = new ZLPaintContext.Size(-1, -1);
+		}
+		if (!maxSize.equals(myLastRequestedSize) || scaling != myLastRequestedScaling) {
 			if (myBitmap != null) {
 				myBitmap.recycle();
 				myBitmap = null;
@@ -49,23 +63,76 @@ public final class ZLAndroidImageData implements ZLImageData {
 				final BitmapFactory.Options options = new BitmapFactory.Options();
 				if (myRealWidth <= 0) {
 					options.inJustDecodeBounds = true;
-					BitmapFactory.decodeByteArray(myArray, 0, myArray.length, options);
+					decodeWithOptions(options);
 					myRealWidth = options.outWidth;
 					myRealHeight = options.outHeight;
 				}
 				options.inJustDecodeBounds = false;
 				int coefficient = 1;
-				while ((myRealHeight > maxHeight * coefficient) ||
-					   (myRealWidth > maxWidth *coefficient)) {
-					coefficient *= 2;
+				if (scaling == ZLPaintContext.ScalingType.IntegerCoefficient) {
+					if (myRealHeight > maxSize.Height || myRealWidth > maxSize.Width) {
+						coefficient = 1 + Math.max(
+							(myRealHeight - 1) / maxSize.Height,
+							(myRealWidth - 1) / maxSize.Width
+						);
+					}
 				}
 				options.inSampleSize = coefficient;
-				myBitmap = BitmapFactory.decodeByteArray(myArray, 0, myArray.length, options);
+				myBitmap = decodeWithOptions(options);
 				if (myBitmap != null) {
-					myLastRequestedWidth = maxWidth;
-					myLastRequestedHeight = maxHeight;
+					switch (scaling) {
+						case OriginalSize:
+							break;
+						case FitMaximum:
+						{
+							final int bWidth = myBitmap.getWidth();
+							final int bHeight = myBitmap.getHeight();
+							if (bWidth > 0 && bHeight > 0 &&
+								bWidth != maxSize.Width && bHeight != maxSize.Height) {
+								final int w, h;
+								if (bWidth * maxSize.Height > bHeight * maxSize.Width) {
+									w = maxSize.Width;
+									h = Math.max(1, bHeight * w / bWidth);
+								} else {
+									h = maxSize.Height;
+									w = Math.max(1, bWidth * h / bHeight);
+								}
+								final Bitmap scaled =
+									Bitmap.createScaledBitmap(myBitmap, w, h, false);
+								if (scaled != null) {
+									myBitmap = scaled;
+								}
+							}
+							break;
+						}
+						case IntegerCoefficient:
+						{
+							final int bWidth = myBitmap.getWidth();
+							final int bHeight = myBitmap.getHeight();
+							if (bWidth > 0 && bHeight > 0 &&
+								(bWidth > maxSize.Width || bHeight > maxSize.Height)) {
+								final int w, h;
+								if (bWidth * maxSize.Height > bHeight * maxSize.Width) {
+									w = maxSize.Width;
+									h = Math.max(1, bHeight * w / bWidth);
+								} else {
+									h = maxSize.Height;
+									w = Math.max(1, bWidth * h / bHeight);
+								}
+								final Bitmap scaled =
+									Bitmap.createScaledBitmap(myBitmap, w, h, false);
+								if (scaled != null) {
+									myBitmap = scaled;
+								}
+							}
+							break;
+						}
+					}
+					myLastRequestedSize = maxSize;
+					myLastRequestedScaling = scaling;
 				}
 			} catch (OutOfMemoryError e) {
+				e.printStackTrace();
 			}
 		}
 		return myBitmap;

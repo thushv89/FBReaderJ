@@ -1,5 +1,7 @@
 package org.geometerplus.android.fbreader.network.bookshare;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -72,7 +75,7 @@ public class Bookshare_Menu extends ListActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
-		//requestWindowFeature(Window.FEATURE_NO_TITLE);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_menu_main);
 
 		// Fetch the login info from the caller intent
@@ -238,7 +241,12 @@ public class Bookshare_Menu extends ListActivity {
         imm.hideSoftInputFromWindow(dialog_search_term.getWindowToken(), 0);
 
         // Remove the leading and trailing spaces
-        String search_term = ZLNetworkUtil.htmlEncode(dialog_search_term.getText().toString().trim());
+        String search_term = dialog_search_term.getText().toString().trim();
+        try {
+            search_term = URLEncoder.encode(search_term, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            //do nothing
+        }
 
         if(search_term.equals("")){
             final VoiceableDialog finishedDialog = new VoiceableDialog(dialog_ok.getContext());

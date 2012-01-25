@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,14 +23,9 @@ import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 
 public class MiscUtil {
 	public static String htmlDirectoryPrefix(ZLFile file) {
-		String shortName = file.getName(false);
+		String shortName = file.getShortName();
 		String path = file.getPath();
-		int index = -1;
-		if ((path.length() > shortName.length()) &&
-				(path.charAt(path.length() - shortName.length() - 1) == ':')) {
-			index = shortName.lastIndexOf('/');
-		}
-		return path.substring(0, path.length() - shortName.length() + index + 1);
+		return path.substring(0, path.length() - shortName.length());
 	}
 
 	public static String archiveEntryName(String fullPath) {
@@ -46,6 +41,10 @@ public class MiscUtil {
 	}
 
 	public static String decodeHtmlReference(String name) {
+		if (name == null) {
+			return null;
+		}
+
 		int index = 0;
 		while (true) {
 			index = name.indexOf('%', index);

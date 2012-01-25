@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,16 @@ package org.geometerplus.fbreader.network;
 import java.io.*;
 
 import org.geometerplus.zlibrary.core.image.ZLBase64EncodedImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.fbreader.Paths;
 
 final class Base64EncodedImage extends ZLBase64EncodedImage {
-
 	private static final String ENCODED_SUFFIX = ".base64";
 
 	private String myDecodedFileName;
 
-	// mimeType string MUST be interned
-	public Base64EncodedImage(String mimeType) {
+	public Base64EncodedImage(MimeType mimeType) {
 		super(mimeType);
 		new File(makeImagesDir()).mkdirs();
 	}
@@ -43,10 +42,10 @@ final class Base64EncodedImage extends ZLBase64EncodedImage {
 
 	public void setData(String data) {
 		myDecodedFileName = makeImagesDir() + File.separator + Integer.toHexString(data.hashCode());
-		String type = mimeType();
-		if (type == NetworkImage.MIME_PNG) {
+		final MimeType type = mimeType();
+		if (MimeType.IMAGE_PNG.equals(type)) {
 			myDecodedFileName += ".png";
-		} else if (type == NetworkImage.MIME_JPEG) {
+		} else if (MimeType.IMAGE_JPEG.equals(type)) {
 			myDecodedFileName += ".jpg";
 		}
 

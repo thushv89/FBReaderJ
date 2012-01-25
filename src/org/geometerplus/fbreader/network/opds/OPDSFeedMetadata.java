@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,18 @@
 
 package org.geometerplus.fbreader.network.opds;
 
+import org.geometerplus.zlibrary.core.xml.ZLStringMap;
+
 import org.geometerplus.fbreader.network.atom.*;
 
 class OPDSFeedMetadata extends ATOMFeedMetadata {
-
 	public int OpensearchTotalResults;
 	public int OpensearchItemsPerPage;
 	public int OpensearchStartIndex = 1;
+
+	public String ViewType;
+
+	protected OPDSFeedMetadata(ZLStringMap attributes) {
+		super(attributes);
+	}
 }

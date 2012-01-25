@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,43 +19,47 @@
 
 package org.geometerplus.fbreader.formats.plucker;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.image.ZLSingleImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.fbreader.formats.pdb.DocDecompressor;
-import org.geometerplus.zlibrary.core.image.ZLSingleImage;
-import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 
 public class DocCompressedFileImage extends ZLSingleImage {
 	private final ZLFile myFile;
 	private final int myOffset;
 	private final int myCompressedSize;
 	
-	public DocCompressedFileImage(String mimeType, final ZLFile file, final int offset, final int compressedSize) {
+	public DocCompressedFileImage(MimeType mimeType, final ZLFile file, final int offset, final int compressedSize) {
 		super(mimeType);
 		myFile = file;
 		myOffset = offset;
 		myCompressedSize = compressedSize;
 	}
 
-	public byte[] byteData() {
+	public String getURI() {
+		// TODO: implement
+		return null;
+	}
+
+	@Override
+	public InputStream inputStream() {
 		try {
 			final InputStream stream = myFile.getInputStream();
 			if (stream == null) {
-				return new byte[0];
+				return null;
 			}
 
 			stream.skip(myOffset);
-			byte [] targetBuffer = new byte[65535];
-			final int size = DocDecompressor.decompress(stream, targetBuffer, myCompressedSize);
-			if (size > 0 && size != 65535) {
-				byte [] buffer = new byte[size];
-				System.arraycopy(targetBuffer, 0, buffer, 0, size);
-				return buffer;
+			final byte[] buffer = new byte[65535];
+			final int size = DocDecompressor.decompress(stream, buffer, myCompressedSize);
+			if (size > 0) {
+				return new ByteArrayInputStream(buffer, 0, size);
 			}
-			return targetBuffer;
-		} catch (IOException e) {}
-		
-		return new byte[0];
+		} catch (IOException e) {
+		}
+		return null;
 	}
 }

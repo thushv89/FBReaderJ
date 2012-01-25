@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,39 +20,39 @@
 package org.geometerplus.zlibrary.core.image;
 
 import java.io.*;
+
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.util.MimeType;
+import org.geometerplus.zlibrary.core.util.SliceInputStream;
 
 public class ZLFileImage extends ZLSingleImage {
+	public static final String SCHEME = "imagefile";
+
 	private final ZLFile myFile;
 	private final int myOffset;
 	private final int myLength;
 	
-	public ZLFileImage(String mimeType, ZLFile file, int offset, int length) {
+	public ZLFileImage(MimeType mimeType, ZLFile file, int offset, int length) {
 		super(mimeType);
 		myFile = file;
 		myOffset = offset;
 		myLength = length;
 	}
 
-	public ZLFileImage(String mimeType, ZLFile file) {
+	public ZLFileImage(MimeType mimeType, ZLFile file) {
 		this(mimeType, file, 0, (int)file.size());
 	}
 
-	public byte [] byteData() {
-		try {
-			final InputStream stream = myFile.getInputStream();
-			int toSkip = myOffset - (int)stream.skip(myOffset);
-			while (--toSkip >= 0) {
-				stream.read();
-			}
+	public String getURI() {
+		return SCHEME + "://" + myFile.getPath() + "\000" + myOffset + "\000" + myLength;
+	}
 
-			byte[] buffer = new byte[myLength];
-			stream.read(buffer);
-			stream.close();
-			return buffer;
+	@Override
+	public InputStream inputStream() {
+		try {
+			return new SliceInputStream(myFile.getInputStream(), myOffset, myLength);
 		} catch (IOException e) {
+			return null;
 		}
-		
-		return new byte[0];
 	}
 }

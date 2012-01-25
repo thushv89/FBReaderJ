@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@ package org.geometerplus.zlibrary.ui.android.library;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -33,31 +35,40 @@ public class BugReportActivity extends Activity {
 
 	private String getVersionName() {
 		try {
-			return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+			final PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+			return info.versionName + " (" + info.versionCode + ")";
 		} catch (Exception e) {
 			return "";
 		}
 	}
 
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+	public void onCreate(Bundle icicle) {
+		super.onCreate(icicle);
 		setContentView(R.layout.bug_report_view);
-		final String stackTrace = getIntent().getStringExtra(STACKTRACE);
+		final StringBuilder reportText = new StringBuilder();
+
+		reportText.append("Model:").append(Build.MODEL).append("\n");
+		reportText.append("Device:").append(Build.DEVICE).append("\n");
+		reportText.append("Product:").append(Build.PRODUCT).append("\n");
+		reportText.append("Manufacturer:").append(Build.MANUFACTURER).append("\n");
+		reportText.append("Version:").append(Build.VERSION.RELEASE).append("\n");
+		reportText.append(getIntent().getStringExtra(STACKTRACE));
+
 		final TextView reportTextView = (TextView)findViewById(R.id.report_text);
 		reportTextView.setMovementMethod(ScrollingMovementMethod.getInstance());
 		reportTextView.setClickable(false);
 		reportTextView.setLongClickable(false);
 
 		final String versionName = getVersionName();
-		reportTextView.append("Sorry, but FBReader " + versionName + " has crashed.  You can help to fix this bug by pressing the button below which will send the following report to customer service.\n\nReport:\n");
-		reportTextView.append(stackTrace);
+		reportTextView.append("FBReader " + versionName + " has been crached, sorry. You can help to fix this bug by sending the report below to FBReader developers. The report will be sent by e-mail. Thank you in advance!\n\n");
+		reportTextView.append(reportText);
 
 		findViewById(R.id.send_report).setOnClickListener(
 			new View.OnClickListener() {
 				public void onClick(View view) {
 					Intent sendIntent = new Intent(Intent.ACTION_SEND);
-					sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { "exception@fbreader.org" });
-					sendIntent.putExtra(Intent.EXTRA_TEXT, stackTrace);
+					sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { "exception@geometerplus.com" });
+					sendIntent.putExtra(Intent.EXTRA_TEXT, reportText.toString());
 					sendIntent.putExtra(Intent.EXTRA_SUBJECT, "FBReader " + versionName + " exception report");
 					sendIntent.setType("message/rfc822");
 					startActivity(sendIntent);

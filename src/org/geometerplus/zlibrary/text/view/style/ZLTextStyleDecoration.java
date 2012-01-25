@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 package org.geometerplus.zlibrary.text.view.style;
 
+import org.geometerplus.zlibrary.core.util.ZLBoolean3;
 import org.geometerplus.zlibrary.core.options.*;
 
 import org.geometerplus.zlibrary.text.view.ZLTextStyle;
@@ -37,7 +38,7 @@ public class ZLTextStyleDecoration {
 
 	private final String myName;
 
-	public ZLTextStyleDecoration(String name, int fontSizeDelta, int bold, int italic, int underline, int verticalShift, int allowHyphenations) {
+	public ZLTextStyleDecoration(String name, int fontSizeDelta, ZLBoolean3 bold, ZLBoolean3 italic, ZLBoolean3 underline, int verticalShift, ZLBoolean3 allowHyphenations) {
 		myName = name;
 		FontFamilyOption = new ZLStringOption(STYLE, name + ":fontFamily", "");
 		FontSizeDeltaOption = new ZLIntegerRangeOption(STYLE, name + ":fontSize", -16, 16, fontSizeDelta);
@@ -56,10 +57,6 @@ public class ZLTextStyleDecoration {
 		return new ZLTextPartialDecoratedStyle(base, this, hyperlink);
 	}
 	
-	public boolean isFullDecoration() {
-		return false;
-	}
-
 	public String getName() {
 		return myName;
 	}

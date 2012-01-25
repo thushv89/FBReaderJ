@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 package org.geometerplus.fbreader.network.atom;
 
 public interface ATOMConstants {
-
 	String TYPE_TEXT = "text";
 	String TYPE_HTML = "html";
 	String TYPE_XHTML = "xhtml";

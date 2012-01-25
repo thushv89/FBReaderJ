@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,14 @@
 
 package org.geometerplus.zlibrary.core.image;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 public abstract class ZLBase64EncodedImage extends ZLSingleImage {
-
 	private boolean myIsDecoded;
 
-	protected ZLBase64EncodedImage(String mimeType) {
+	protected ZLBase64EncodedImage(MimeType mimeType) {
 		super(mimeType);
 	}
 
@@ -57,6 +55,16 @@ public abstract class ZLBase64EncodedImage extends ZLSingleImage {
 				return 64;
 		}
 		return -1;
+	}
+
+	public String getURI() {
+		try {
+			decode();
+			final File file = new File(decodedFileName());
+			return ZLFileImage.SCHEME + "://" + decodedFileName() + "\0000\000" + (int)file.length();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	protected abstract String encodedFileName();
@@ -120,21 +128,12 @@ public abstract class ZLBase64EncodedImage extends ZLSingleImage {
 	}
 
 	@Override
-	public final byte[] byteData() {
+	public final InputStream inputStream() {
 		try {
 			decode();
-			final File file = new File(decodedFileName());
-			final byte[] data = new byte[(int)file.length()];
-			final FileInputStream stream = new FileInputStream(file);
-			try {
-				stream.read(data);
-			} finally {
-				stream.close();
-			}
-			return data;
+			return new FileInputStream(new File(decodedFileName()));
 		} catch (IOException e) {
 			return null;
 		}
 	}
-
 }

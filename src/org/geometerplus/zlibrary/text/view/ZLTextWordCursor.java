@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,16 +57,26 @@ public final class ZLTextWordCursor extends ZLTextPosition {
 	}
 
 	public boolean isStartOfParagraph() {
-		return (myElementIndex == 0 && myCharIndex == 0);
+		return myElementIndex == 0 && myCharIndex == 0;
+	}
+
+	public boolean isStartOfText() {
+		return !isNull() && isStartOfParagraph() && myParagraphCursor.isFirst();
 	}
 
 	public boolean isEndOfParagraph() {
-		return (myParagraphCursor != null) && (myElementIndex == myParagraphCursor.getParagraphLength());
+		return
+			myParagraphCursor != null &&
+			myElementIndex == myParagraphCursor.getParagraphLength();
+	}
+
+	public boolean isEndOfText() {
+		return isNull() || (isEndOfParagraph() && myParagraphCursor.isLast());
 	}
 
 	@Override
 	public int getParagraphIndex() {
-		return (myParagraphCursor != null) ? myParagraphCursor.Index : 0;
+		return myParagraphCursor != null ? myParagraphCursor.Index : 0;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,9 @@
 package org.geometerplus.zlibrary.core.view;
 
 import java.util.*;
-import org.geometerplus.zlibrary.core.util.*;
 
+import org.geometerplus.zlibrary.core.util.ZLColor;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.image.ZLImageData;
 
 abstract public class ZLPaintContext {
@@ -40,7 +41,9 @@ abstract public class ZLPaintContext {
 	protected ZLPaintContext() {
 	}
 
+	abstract public void clear(ZLFile wallpaperFile, boolean doMirror);
 	abstract public void clear(ZLColor color);
+	abstract public ZLColor getBackgroundColor();
 
 	private boolean myResetFont = true;
 	private String myFontFamily = "";
@@ -48,10 +51,6 @@ abstract public class ZLPaintContext {
 	private boolean myFontIsBold;
 	private boolean myFontIsItalic;
 	private boolean myFontIsUnderlined;
-
-	public final void resetFont() {
-		myResetFont = true;
-	}
 
 	public final void setFont(String family, int size, boolean bold, boolean italic, boolean underline) {
 		if ((family != null) && !myFontFamily.equals(family)) {
@@ -90,15 +89,22 @@ abstract public class ZLPaintContext {
 		setLineColor(color, LineStyle.SOLID_LINE);
 	}
 	abstract public void setLineColor(ZLColor color, int style);
+	abstract public void setLineWidth(int width);
 
-	final public void setFillColor(ZLColor color) {
-		setFillColor(color, FillStyle.SOLID_FILL);
+	final public void setFillColor(ZLColor color, int alpha) {
+		setFillColor(color, alpha, FillStyle.SOLID_FILL);
 	}
-	abstract public void setFillColor(ZLColor color, int style);
+	final public void setFillColor(ZLColor color) {
+		setFillColor(color, 0xFF, FillStyle.SOLID_FILL);
+	}
+	abstract public void setFillColor(ZLColor color, int alpha, int style);
 
 	abstract public int getWidth();
 	abstract public int getHeight();
 	
+	public final int getStringWidth(String string) {
+		return getStringWidth(string.toCharArray(), 0, string.length());
+	}
 	abstract public int getStringWidth(char[] string, int offset, int length);
 
 	private int mySpaceWidth = -1;
@@ -134,15 +140,47 @@ abstract public class ZLPaintContext {
 	}
 	abstract protected int getDescentInternal();
 
+	public final void drawString(int x, int y, String string) {
+		drawString(x, y, string.toCharArray(), 0, string.length());
+	}
 	abstract public void drawString(int x, int y, char[] string, int offset, int length);
 
-	abstract public int imageWidth(ZLImageData image);
-	abstract public int imageHeight(ZLImageData image);
-	abstract public void drawImage(int x, int y, ZLImageData image);
+	public static final class Size {
+		public final int Width;
+		public final int Height;
+
+		public Size(int w, int h) {
+			Width = w;
+			Height = h;
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			if (other == this) {
+				return true;
+			}
+			if (!(other instanceof Size)) {
+				return false;
+			}
+			final Size s = (Size)other;
+			return Width == s.Width && Height == s.Height;
+		}
+	}
+	public static enum ScalingType {
+		OriginalSize,
+		IntegerCoefficient,
+		FitMaximum
+	}
+
+	abstract public Size imageSize(ZLImageData image, Size maxSize, ScalingType scaling);
+	abstract public void drawImage(int x, int y, ZLImageData image, Size maxSize, ScalingType scaling);
 
 	abstract public void drawLine(int x0, int y0, int x1, int y1);
 	abstract public void fillRectangle(int x0, int y0, int x1, int y1);
 	abstract public void drawFilledCircle(int x, int y, int r);
+
+	abstract public void drawPolygonalLine(int[] xs, int ys[]);
+	abstract public void fillPolygon(int[] xs, int[] ys);
 	abstract public void drawOutline(int[] xs, int ys[]);
 
 	public ArrayList<String> fontFamilies() {

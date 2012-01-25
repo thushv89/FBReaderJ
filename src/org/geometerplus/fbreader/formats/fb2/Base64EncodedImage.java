@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ package org.geometerplus.fbreader.formats.fb2;
 import java.io.*;
 
 import org.geometerplus.zlibrary.core.image.ZLBase64EncodedImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
 
 import org.geometerplus.fbreader.Paths;
 
@@ -36,14 +37,14 @@ final class Base64EncodedImage extends ZLBase64EncodedImage {
 	private final int myFileNumber;
 	private OutputStreamWriter myStreamWriter;
 	
-	public Base64EncodedImage(String contentType) {
+	public Base64EncodedImage(MimeType mimeType) {
 		// TODO: use contentType
-		super(contentType);
+		super(mimeType);
 		myDirName = Paths.cacheDirectory();
 		new File(myDirName).mkdirs();
 		myFileNumber = ourCounter++;
 		try {
-			myStreamWriter = new OutputStreamWriter(new FileOutputStream(myDirName + "/image" + myFileNumber), "UTF-8");
+			myStreamWriter = new OutputStreamWriter(new FileOutputStream(encodedFileName()), "UTF-8");
 		} catch (IOException e) {
 		}
 	}
@@ -69,7 +70,9 @@ final class Base64EncodedImage extends ZLBase64EncodedImage {
 
 	void close() {
 		try {
-			myStreamWriter.close();
+			if (myStreamWriter != null) {
+				myStreamWriter.close();
+			}
 		} catch (IOException e) {
 		}
 	}

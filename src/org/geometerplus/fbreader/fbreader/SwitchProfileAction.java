@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,17 +22,20 @@ package org.geometerplus.fbreader.fbreader;
 class SwitchProfileAction extends FBAction {
 	private String myProfileName;
 
-	SwitchProfileAction(FBReader fbreader, String profileName) {
+	SwitchProfileAction(FBReaderApp fbreader, String profileName) {
 		super(fbreader);
 		myProfileName = profileName;
 	}
 
+	@Override
 	public boolean isVisible() {
 		return !myProfileName.equals(Reader.getColorProfileName());
 	}
 
-	public void run() {
+	@Override
+	public void run(Object ... params) {
 		Reader.setColorProfileName(myProfileName);
-		Reader.repaintView();
+		Reader.getViewWidget().reset();
+		Reader.getViewWidget().repaint();
 	}
 }

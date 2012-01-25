@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,21 +19,22 @@
 
 package org.geometerplus.fbreader.network;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
-import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
+import org.geometerplus.zlibrary.core.language.ZLLanguageUtil;
+import org.geometerplus.zlibrary.core.network.ZLNetworkRequest;
 
+import org.geometerplus.fbreader.network.urlInfo.*;
+import org.geometerplus.fbreader.network.tree.NetworkItemsLoader;
 
 public abstract class AbstractNetworkLink implements INetworkLink {
+	private int myId;
 
 	protected String mySiteName;
 	protected String myTitle;
 	protected String mySummary;
-	protected String myIcon;
-	protected TreeMap<String, String> myLinks;
-
+	protected final String myLanguage;
+	protected final UrlInfoCollection<UrlInfoWithDate> myInfos;
 
 	/**
 	 * Creates new NetworkLink instance.
@@ -41,79 +42,123 @@ public abstract class AbstractNetworkLink implements INetworkLink {
 	 * @param siteName   name of the corresponding website. Must be not <code>null</code>.
 	 * @param title      title of the corresponding library item. Must be not <code>null</code>.
 	 * @param summary    description of the corresponding library item. Can be <code>null</code>.
-	 * @param icon       string contains link's icon data/url. Can be <code>null</code>.
-	 * @param links      map contains URLs with their identifiers; must always contain one URL with <code>URL_MAIN</code> identifier
+	 * @param language   language of the catalog. If <code>null</code> we assume this catalog is multilanguage.
+	 * @param infos      collection of URL infos; must always contain one URL with <code>UrlInfo.Type.Catalog</code> identifier
 	 */
-	public AbstractNetworkLink(String siteName, String title, String summary, String icon, Map<String, String> links) {
+	public AbstractNetworkLink(int id, String siteName, String title, String summary, String language, UrlInfoCollection<UrlInfoWithDate> infos) {
+		myId = id;
 		mySiteName = siteName;
 		myTitle = title;
 		mySummary = summary;
-		myIcon = icon;
-		myLinks = new TreeMap<String, String>(links);
+		myLanguage = language != null ? language : "multi";
+		myInfos = new UrlInfoCollection<UrlInfoWithDate>(infos);
 	}
 
-	public String getSiteName() {
+	public int getId() {
+		return myId;
+	}
+
+	public void setId(int id) {
+		myId = id;
+	}
+
+	public final String getSiteName() {
 		return mySiteName;
 	}
 
-	public String getTitle() {
+	public final String getTitle() {
 		return myTitle;
 	}
 
-	public String getSummary() {
+	public final String getSummary() {
 		return mySummary;
 	}
 
-	public String getIcon() {
-		return myIcon;
+	public final String getLanguage() {
+		return myLanguage;
 	}
 
-	public String getLink(String urlKey) {
-		return myLinks.get(urlKey);
+	public final UrlInfoCollection<UrlInfoWithDate> urlInfoMap() {
+		return new UrlInfoCollection<UrlInfoWithDate>(myInfos);
 	}
 
-	public Set<String> getLinkKeys() {
-		return myLinks.keySet();
+	public final String getUrl(UrlInfo.Type type) {
+		return getUrlInfo(type).Url;
 	}
 
-	public NetworkOperationData createOperationData(INetworkLink link,
-			NetworkOperationData.OnNewItemListener listener) {
-		return new NetworkOperationData(link, listener);
+	public final UrlInfoWithDate getUrlInfo(UrlInfo.Type type) {
+		final UrlInfoWithDate info = myInfos.getInfo(type);
+		return info != null ? info : UrlInfoWithDate.NULL;
+	}
+
+	public final Set<UrlInfo.Type> getUrlKeys() {
+		final HashSet<UrlInfo.Type> set = new HashSet<UrlInfo.Type>();
+		for (UrlInfo info : myInfos.getAllInfos()) {
+			set.add(info.InfoType);
+		}
+		return set;
+	}
+
+	public BasketItem getBasketItem() {
+		return null;
+	}
+
+	public ZLNetworkRequest bookListRequest(List<String> bookIds, NetworkOperationData data) {
+		return null;
+	}
+
+	public NetworkOperationData createOperationData(NetworkItemsLoader listener) {
+		return new NetworkOperationData(this, listener);
 	}
 
 	@Override
 	public String toString() {
-		String icon = myIcon;
-		if (icon.length() > 64) {
-			icon = icon.substring(0, 61) + "...";
+		String icon = getUrl(UrlInfo.Type.Catalog);
+		if (icon != null) {
+			if (icon.length() > 64) {
+				icon = icon.substring(0, 61) + "...";
+			}
+			icon = icon.replaceAll("\n", "");
 		}
-		icon = icon.replaceAll("\n", "");
 		return "AbstractNetworkLink: {"
 			+ "siteName=" + mySiteName
 			+ "; title=" + myTitle
 			+ "; summary=" + mySummary
 			+ "; icon=" + icon
-			+ "; links=" + myLinks
+			+ "; infos=" + myInfos
 			+ "}";
 	}
 
+	private String getTitleForComparison() {
+		String title = getTitle();
+		for (int index = 0; index < title.length(); ++index) {
+			final char ch = title.charAt(index);
+			if (ch < 128 && Character.isLetter(ch)) {
+				return title.substring(index);
+			}
+		}
+		return title;
+	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
+	private static int getLanguageOrder(String language) {
+		if (ZLLanguageUtil.MULTI_LANGUAGE_CODE.equals(language)) {
+			return 1;
 		}
-		if (!(o instanceof AbstractNetworkLink)) {
-			return false;
+		if (language.equals(Locale.getDefault().getLanguage())) {
+			return 0;
 		}
-		final AbstractNetworkLink lnk = (AbstractNetworkLink) o;
-		if (!mySiteName.equals(lnk.mySiteName)
-				|| !myTitle.equals(lnk.myTitle)
-				|| !ZLMiscUtil.equals(mySummary, lnk.mySummary)
-				|| !ZLMiscUtil.equals(myIcon, lnk.myIcon)
-				|| !ZLMiscUtil.mapsEquals(myLinks, lnk.myLinks)) {
-			return false;
+		return 2;
+	}
+
+	public int compareTo(INetworkLink link) {
+		int diff = getLanguageOrder(getLanguage()) - getLanguageOrder(link.getLanguage());
+		if (diff != 0) {
+			return diff;
 		}
-		return true;
+		diff = getTitleForComparison().compareToIgnoreCase(((AbstractNetworkLink)link).getTitleForComparison());
+		if (diff != 0) {
+			return diff;
+		}
+		return getId() - link.getId();
 	}
 }

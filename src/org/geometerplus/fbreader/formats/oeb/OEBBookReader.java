@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,14 +21,15 @@ package org.geometerplus.fbreader.formats.oeb;
 
 import java.util.*;
 
-import org.geometerplus.zlibrary.core.xml.*;
+import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.image.ZLFileImage;
+import org.geometerplus.zlibrary.core.util.MimeType;
+import org.geometerplus.zlibrary.core.xml.*;
 
 import org.geometerplus.fbreader.bookmodel.*;
 import org.geometerplus.fbreader.formats.xhtml.XHTMLReader;
 import org.geometerplus.fbreader.formats.util.MiscUtil;
-import org.geometerplus.fbreader.constants.XMLNamespace;
 
 class Reference {
 	public final String Title;
@@ -40,7 +41,7 @@ class Reference {
 	}
 }
 
-class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
+class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 	private static final char[] Dots = new char[] {'.', '.', '.'};
 
 	private final BookReader myModelReader;
@@ -52,9 +53,18 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	private String myOPFSchemePrefix;
 	private String myFilePrefix;
 	private String myNCXTOCFileName;
+	private String myCoverFileName;
 
 	OEBBookReader(BookModel model) {
 		myModelReader = new BookReader(model);
+		model.setLabelResolver(new BookModel.LabelResolver() {
+			public List<String> getCandidates(String id) {
+				final int index = id.indexOf("#");
+				return index > 0
+					? Collections.<String>singletonList(id.substring(0, index))
+					: Collections.<String>emptyList();
+			}
+		});
 	}
 
 	private TreeMap<String,Integer> myFileNumbers = new TreeMap<String,Integer>();
@@ -77,8 +87,16 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		myModelReader.setMainTextModel();
 		myModelReader.pushKind(FBTextKind.REGULAR);
 
+		int count = 0;
 		for (String name : myHtmlFileNames) {
 			final ZLFile xhtmlFile = ZLFile.createFileByPath(myFilePrefix + name);
+			if (xhtmlFile == null) {
+				// NPE fix: null for bad attributes in .opf XML file
+				return false;
+			}
+			if (count++ == 0 && xhtmlFile.getPath().equals(myCoverFileName)) {
+				continue;
+			}
 			final XHTMLReader reader = new XHTMLReader(myModelReader, myFileNumbers);
 			final String referenceName = reader.getFileAlias(MiscUtil.archiveEntryName(xhtmlFile.getPath()));
 
@@ -89,14 +107,13 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 		}
 
 		generateTOC();
+
 		return true;
 	}
 
 	private BookModel.Label getTOCLabel(String id) {
-		
 		final int index = id.indexOf('#');
 		final String path = (index >= 0) ? id.substring(0, index) : id;
-		
 		Integer num = myFileNumbers.get(path);
 		if (num == null) {
 			return null;
@@ -120,7 +137,6 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 					int level = 0;
 					for (NCXReader.NavPoint point : navigationMap.values()) {
 						final BookModel.Label label = getTOCLabel(point.ContentHRef);
-						
 						int index = (label != null) ? label.ParagraphIndex : -1;
 						while (level > point.Level) {
 							myModelReader.endContentsParagraph();
@@ -164,6 +180,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	private static final String ITEMREF = "itemref";
 	private static final String ITEM = "item";
 
+	private static final String COVER = "cover";
 	private static final String COVER_IMAGE = "other.ms-coverimage-standard";
 
 	private static final int READ_NONE = 0;
@@ -177,7 +194,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	@Override
 	public boolean startElementHandler(String tag, ZLStringMap xmlattributes) {
 		tag = tag.toLowerCase();
-		if ((myOPFSchemePrefix != null) && tag.startsWith(myOPFSchemePrefix)) {
+		if (myOPFSchemePrefix != null && tag.startsWith(myOPFSchemePrefix)) {
 			tag = tag.substring(myOPFSchemePrefix.length());
 		}
 		tag = tag.intern();
@@ -190,14 +207,14 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 			myState = READ_GUIDE;
 		} else if (TOUR == tag) {
 			myState = READ_TOUR;
-		} else if ((myState == READ_MANIFEST) && (ITEM == tag)) {
+		} else if (myState == READ_MANIFEST && ITEM == tag) {
 			final String id = xmlattributes.getValue("id");
 			String href = xmlattributes.getValue("href");
 			if ((id != null) && (href != null)) {
 				href = MiscUtil.decodeHtmlReference(href);
 				myIdToHref.put(id, href);
 			}
-		} else if ((myState == READ_SPINE) && (ITEMREF == tag)) {
+		} else if (myState == READ_SPINE && ITEMREF == tag) {
 			final String id = xmlattributes.getValue("idref");
 			if (id != null) {
 				final String fileName = myIdToHref.get(id);
@@ -205,7 +222,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 					myHtmlFileNames.add(fileName);
 				}
 			}
-		} else if ((myState == READ_GUIDE) && (REFERENCE == tag)) {
+		} else if (myState == READ_GUIDE && REFERENCE == tag) {
 			final String type = xmlattributes.getValue("type");
 			final String title = xmlattributes.getValue("title");
 			String href = xmlattributes.getValue("href");
@@ -214,15 +231,30 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 				if (title != null) {
 					myGuideTOC.add(new Reference(title, href));
 				}
-				if ((type != null) && (COVER_IMAGE.equals(type))) {
-					myModelReader.setMainTextModel();
+				if (COVER.equals(type)) {
 					final ZLFile imageFile = ZLFile.createFileByPath(myFilePrefix + href);
-					final String imageName = imageFile.getName(false);
-					myModelReader.addImageReference(imageName, (short)0);
-					myModelReader.addImage(imageName, new ZLFileImage("image/auto", imageFile));
+					myCoverFileName = imageFile.getPath();
+					final String imageName = imageFile.getLongName();
+					final ZLFileImage image = XHTMLImageFinder.getCoverImage(imageFile);
+					if (image != null) {
+						myModelReader.setMainTextModel();
+						myModelReader.addImageReference(imageName, (short)0, true);
+						myModelReader.addImage(imageName, image);
+						myModelReader.insertEndOfSectionParagraph();
+					} else {
+						myCoverFileName = null;
+					}
+				} else if (COVER_IMAGE.equals(type)) {
+					final ZLFile imageFile = ZLFile.createFileByPath(myFilePrefix + href);
+					myCoverFileName = imageFile.getPath();
+					final String imageName = imageFile.getLongName();
+					myModelReader.setMainTextModel();
+					myModelReader.addImageReference(imageName, (short)0, true);
+					myModelReader.addImage(imageName, new ZLFileImage(MimeType.IMAGE_AUTO, imageFile));
+					myModelReader.insertEndOfSectionParagraph();
 				}
 			}
-		} else if ((myState == READ_TOUR) && (SITE == tag)) {
+		} else if (myState == READ_TOUR && SITE == tag) {
 			final String title = xmlattributes.getValue("title");
 			String href = xmlattributes.getValue("href");
 			if ((title != null) && (href != null)) {
@@ -236,11 +268,11 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	@Override
 	public boolean endElementHandler(String tag) {
 		tag = tag.toLowerCase();
-		if ((myOPFSchemePrefix != null) && tag.startsWith(myOPFSchemePrefix)) {
+		if (myOPFSchemePrefix != null && tag.startsWith(myOPFSchemePrefix)) {
 			tag = tag.substring(myOPFSchemePrefix.length());
 		}
 		tag = tag.intern();
-		if ((MANIFEST == tag) || (SPINE == tag) || (GUIDE == tag) || (TOUR == tag)) {
+		if (MANIFEST == tag || SPINE == tag || GUIDE == tag || TOUR == tag) {
 			myState = READ_NONE;
 		}
 		return false;
@@ -252,7 +284,7 @@ class OEBBookReader extends ZLXMLReaderAdapter implements XMLNamespace {
 	}
 
 	@Override
-	public void namespaceMapChangedHandler(HashMap<String,String> namespaceMap) {
+	public void namespaceMapChangedHandler(Map<String,String> namespaceMap) {
 		myOPFSchemePrefix = null;
 		for (Map.Entry<String,String> entry : namespaceMap.entrySet()) {
 			if (OpenPackagingFormat.equals(entry.getValue())) {

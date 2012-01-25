@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ public final class ZLColorOption extends ZLOption {
 						myValue = new ZLColor(intValue);
 					}
 				} catch (NumberFormatException e) {
-					// System.err.println(e);
 				}
 			}
 			myIsSynchronized = true;

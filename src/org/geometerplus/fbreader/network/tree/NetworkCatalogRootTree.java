@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,11 +19,34 @@
 
 package org.geometerplus.fbreader.network.tree;
 
+import org.geometerplus.fbreader.tree.FBTree;
 import org.geometerplus.fbreader.network.*;
 
 public class NetworkCatalogRootTree extends NetworkCatalogTree {
-
 	public NetworkCatalogRootTree(RootTree parent, INetworkLink link, int position) {
-		super(parent, (NetworkCatalogItem) link.libraryItem(), position);
+		super(parent, link, (NetworkCatalogItem)link.libraryItem(), position);
+	}
+
+	@Override
+	public String getTreeTitle() {
+		return getName();
+	}
+
+	@Override
+	protected void addSpecialTrees() {
+		super.addSpecialTrees();
+		final BasketItem basketItem = getLink().getBasketItem();
+		if (basketItem != null) {
+			myChildrenItems.add(basketItem);
+			new BasketCatalogTree(this, basketItem, -1);
+		}
+	}
+
+	@Override
+	public int compareTo(FBTree tree) {
+		if (!(tree instanceof NetworkCatalogRootTree)) {
+			return 1;
+		}
+		return getLink().compareTo(((NetworkCatalogRootTree)tree).getLink());
 	}
 }

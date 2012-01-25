@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2007-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,10 @@ public abstract class ZLResourceFile extends ZLFile {
 		return ZLibrary.Instance().createResourceFile(path);
 	}
 
+	static ZLResourceFile createResourceFile(ZLResourceFile parent, String name) {
+		return ZLibrary.Instance().createResourceFile(parent, name);
+	}
+
 	private final String myPath;
 	
 	protected ZLResourceFile(String path) {
@@ -33,22 +37,17 @@ public abstract class ZLResourceFile extends ZLFile {
 		init();
 	}
 	
-	public boolean isDirectory() {
-		return false;
-	}
-	
+	@Override
 	public String getPath() {
 		return myPath;
 	}
 	
-	public String getNameWithExtension() {
-		return myPath;
+	@Override
+	public String getLongName() {
+		return myPath.substring(myPath.lastIndexOf('/') + 1);
 	}
 
-	public ZLFile getParent() {
-		return null;
-	}
-
+	@Override
 	public ZLPhysicalFile getPhysicalFile() {
 		return null;
 	}

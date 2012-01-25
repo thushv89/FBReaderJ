@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,18 @@ package org.geometerplus.fbreader.network;
 import java.util.*;
 import java.io.File;
 
+import org.geometerplus.zlibrary.core.network.ZLNetworkException;
+
+import org.geometerplus.fbreader.network.urlInfo.*;
 import org.geometerplus.fbreader.network.authentication.NetworkAuthenticationManager;
 
-
-public final class NetworkBookItem extends NetworkLibraryItem {
+public class NetworkBookItem extends NetworkItem {
+	public static enum Status {
+		NotAvailable,
+		Downloaded,
+		ReadyForDownload,
+		CanBePurchased
+	};
 
 	public static class AuthorData implements Comparable<AuthorData> {
 		public final String DisplayName;
@@ -35,11 +43,11 @@ public final class NetworkBookItem extends NetworkLibraryItem {
 		 * Creates new AuthorData instance. 
 		 *
 		 * @param displayName author's name. Must be not <code>null</code>.
-		 * @param sortKey     string that defines sorting order of book's authors. Must be not <code>null</code>.
+		 * @param sortKey     string that defines sorting order of book's authors.
 		 */
 		public AuthorData(String displayName, String sortKey) {
 			DisplayName = displayName.intern();
-			SortKey = sortKey.intern();
+			SortKey = sortKey != null ? sortKey.intern() : DisplayName.toLowerCase().intern();
 		}
 
 		public int compareTo(AuthorData data) {
@@ -59,7 +67,7 @@ public final class NetworkBookItem extends NetworkLibraryItem {
 				return false;
 			}
 			final AuthorData data = (AuthorData) o;
-			return SortKey == data.SortKey && DisplayName == data.DisplayName;
+			return SortKey.equals(data.SortKey) && DisplayName.equals(data.DisplayName);
 		}
 
 		@Override
@@ -75,12 +83,10 @@ public final class NetworkBookItem extends NetworkLibraryItem {
 	public final LinkedList<AuthorData> Authors;
 	public final LinkedList<String> Tags;
 	public final String SeriesTitle;
-	public final int IndexInSeries;
-
-	private final LinkedList<BookReference> myReferences;
+	public final float IndexInSeries;
 
 	/**
-	 * Creates new NetworkLibraryItem instance.
+	 * Creates new NetworkBookItem instance.
 	 *
 	 * @param link          corresponding NetworkLink object. Must be not <code>null</code>.
 	 * @param id            string that uniquely identifies this book item. Must be not <code>null</code>.
@@ -93,15 +99,13 @@ public final class NetworkBookItem extends NetworkLibraryItem {
 	 * @param tags          list of book tags. Must be not <code>null</code> (can be empty).
 	 * @param seriesTitle   title of this book's series. Can be <code>null</code>.
 	 * @param indexInSeries	sequence number of this book within book's series. Ignored if seriesTitle is <code>null</code>.
-	 * @param cover         cover url. Can be <code>null</code>.
-	 * @param references    list of references related to this book. Must be not <code>null</code>.
+	 * @param urls          list of urls related to this book. Can be <code>null</code>.
 	 */
 	public NetworkBookItem(INetworkLink link, String id, int index,
-		String title, String summary, /*String language, String date,*/
-		List<AuthorData> authors, List<String> tags, String seriesTitle, int indexInSeries,
-		String cover,
-		List<BookReference> references) {
-		super(link, title, summary, cover);
+		CharSequence title, CharSequence summary, /*String language, String date,*/
+		List<AuthorData> authors, List<String> tags, String seriesTitle, float indexInSeries,
+		UrlInfoCollection<?> urls) {
+		super(link, title, summary, urls);
 		Index = index;
 		Id = id;
 		//Language = language;
@@ -110,61 +114,103 @@ public final class NetworkBookItem extends NetworkLibraryItem {
 		Tags = new LinkedList<String>(tags);
 		SeriesTitle = seriesTitle;
 		IndexInSeries = indexInSeries;
-		myReferences = new LinkedList<BookReference>(references);
 	}
 
-	public BookReference reference(int type) {
-		BookReference reference = null;
-		for (BookReference ref: myReferences) {
-			if (ref.ReferenceType == type &&
-					(reference == null || ref.BookFormat > reference.BookFormat)) {
-				reference = ref;
+	public boolean isFullyLoaded() {
+		return true;
+	}
+
+	public void loadFullInformation() throws ZLNetworkException {
+	}
+
+	public NetworkCatalogItem createRelatedCatalogItem(RelatedUrlInfo info) {
+		return null;
+	}
+
+	public Status getStatus() {
+		if (localCopyFileName() != null) {
+			return Status.Downloaded;
+		} else if (reference(UrlInfo.Type.Book) != null) {
+			return Status.ReadyForDownload;
+		} else if (buyInfo() != null) {
+			return Status.CanBePurchased;
+		} else {
+			return Status.NotAvailable;
+		}
+	}
+
+	/*
+	public Status getDemoStatus() {
+	}
+	*/
+
+	private BookUrlInfo getReferenceInternal(UrlInfo.Type type) {
+		BookUrlInfo reference = null;
+		for (UrlInfo r : getAllInfos(type)) {
+			if (!(r instanceof BookUrlInfo)) {
+				continue;
+			}
+			final BookUrlInfo br = (BookUrlInfo)r;
+			if (reference == null || br.BookFormat > reference.BookFormat) {
+				reference = br;
 			}
 		}
-
-		if (reference == null && type == BookReference.Type.DOWNLOAD_FULL) {
-			reference = this.reference(BookReference.Type.DOWNLOAD_FULL_CONDITIONAL);
-			if (reference != null) {
-				NetworkAuthenticationManager authManager = Link.authenticationManager();
-				if (authManager == null || authManager.needPurchase(this)) {
-					return null;
-				}
-				reference = authManager.downloadReference(this);
-			}
-		}
-
-		if (reference == null &&
-				type == BookReference.Type.DOWNLOAD_FULL &&
-				this.reference(BookReference.Type.BUY) == null &&
-				this.reference(BookReference.Type.BUY_IN_BROWSER) == null) {
-			reference = this.reference(BookReference.Type.DOWNLOAD_FULL_OR_DEMO);
-		}
-
-		if (reference == null &&
-				type == BookReference.Type.DOWNLOAD_DEMO &&
-				(this.reference(BookReference.Type.BUY) != null ||
-				 this.reference(BookReference.Type.BUY_IN_BROWSER) != null)) {
-			reference = this.reference(BookReference.Type.DOWNLOAD_FULL_OR_DEMO);
-		}
-
 		return reference;
 	}
 
+	public BookUrlInfo reference(UrlInfo.Type type) {
+		final BookUrlInfo reference = getReferenceInternal(type);
+		if (reference != null) {
+			return reference;
+		}
+
+		switch (type) {
+			case Book:
+				if (getReferenceInternal(UrlInfo.Type.BookConditional) != null) {
+					final NetworkAuthenticationManager authManager = Link.authenticationManager();
+					if (authManager == null || authManager.needPurchase(this)) {
+						return null;
+					}
+					return authManager.downloadReference(this);
+				} else if (buyInfo() == null) {
+					return getReferenceInternal(UrlInfo.Type.BookFullOrDemo);
+				}
+				break;
+			case BookDemo:
+				if (buyInfo() != null) {
+					return getReferenceInternal(UrlInfo.Type.BookFullOrDemo);
+				}
+				break;
+		}
+
+		return null;
+	}
+
+	public BookBuyUrlInfo buyInfo() {
+		final UrlInfo info = reference(UrlInfo.Type.BookBuy);
+		if (info != null) {
+			return (BookBuyUrlInfo)info;
+		}
+		return (BookBuyUrlInfo)reference(UrlInfo.Type.BookBuyInBrowser);
+	}
+
 	public String localCopyFileName() {
-		final boolean hasBuyReference =
-			this.reference(BookReference.Type.BUY) != null ||
-			this.reference(BookReference.Type.BUY_IN_BROWSER) != null;
-		BookReference reference = null;
+		final boolean hasBuyReference = buyInfo() != null;
+		BookUrlInfo reference = null;
 		String fileName = null;
-		for (BookReference ref: myReferences) {
-			final int type = ref.ReferenceType;
-			if ((type == BookReference.Type.DOWNLOAD_FULL ||
-					type == BookReference.Type.DOWNLOAD_FULL_CONDITIONAL ||
-					(!hasBuyReference && type == BookReference.Type.DOWNLOAD_FULL_OR_DEMO)) &&
-					(reference == null || ref.BookFormat > reference.BookFormat)) {
-				String name = ref.localCopyFileName(BookReference.Type.DOWNLOAD_FULL);
+		for (UrlInfo r : getAllInfos()) {
+			if (!(r instanceof BookUrlInfo)) {
+				continue;
+			}
+			final BookUrlInfo br = (BookUrlInfo)r;
+			final UrlInfo.Type type = br.InfoType;
+			if ((type == UrlInfo.Type.Book ||
+				 type == UrlInfo.Type.BookConditional ||
+				 (!hasBuyReference && type == UrlInfo.Type.BookFullOrDemo)) &&
+				(reference == null || br.BookFormat > reference.BookFormat)) {
+				String name = br.localCopyFileName(UrlInfo.Type.Book);
 				if (name != null) {
-					reference = ref;
+					reference = br;
 					fileName = name;
 				}
 			}
@@ -173,15 +219,17 @@ public final class NetworkBookItem extends NetworkLibraryItem {
 	}
 
 	public void removeLocalFiles() {
-		final boolean hasBuyReference =
-			this.reference(BookReference.Type.BUY) != null ||
-			this.reference(BookReference.Type.BUY_IN_BROWSER) != null;
-		for (BookReference ref: myReferences) {
-			final int type = ref.ReferenceType;
-			if (type == BookReference.Type.DOWNLOAD_FULL ||
-					type == BookReference.Type.DOWNLOAD_FULL_CONDITIONAL ||
-					(!hasBuyReference && type == BookReference.Type.DOWNLOAD_FULL_OR_DEMO)) {
-				String fileName = ref.localCopyFileName(BookReference.Type.DOWNLOAD_FULL);
+		final boolean hasBuyReference = buyInfo() != null;
+		for (UrlInfo r : getAllInfos()) {
+			if (!(r instanceof BookUrlInfo)) {
+				continue;
+			}
+			final BookUrlInfo br = (BookUrlInfo)r;
+			final UrlInfo.Type type = br.InfoType;
+			if (type == UrlInfo.Type.Book ||
+				type == UrlInfo.Type.BookConditional ||
+				(!hasBuyReference && type == UrlInfo.Type.BookFullOrDemo)) {
+				String fileName = br.localCopyFileName(UrlInfo.Type.Book);
 				if (fileName != null) {
 					// TODO: remove a book from the library
 					// TODO: remove a record from the database
@@ -191,4 +239,7 @@ public final class NetworkBookItem extends NetworkLibraryItem {
 		}
 	}
 
+	public String getStringId() {
+		return "@Book:" + Id + ":" + Title;
+	}
 }
