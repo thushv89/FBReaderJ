@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.*;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -58,6 +59,7 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 
 	@Override
 	public void onCreate(Bundle icicle) {
+        Log.w("NetworkLibraryActivity","****  NetworkLibraryActivity onCreate ****");
 		super.onCreate(icicle);
 
 		AuthenticationActivity.initCredentialsCreator(this);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Geometer Plus <contact@geometerplus.com>
+ * Copyright (C) 2010-2012 Geometer Plus <contact@geometerplus.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,6 @@ public class NetworkLibrary {
 	}
 
 	private static NetworkLibrary ourInstance;
-	private boolean bookshareLinkAdded = false;
 
 	public static NetworkLibrary Instance() {
 		if (ourInstance == null) {
@@ -210,6 +209,19 @@ public class NetworkLibrary {
 
 		try {
 			myLinks.addAll(OPDSLinkReader.loadOPDSLinks(OPDSLinkReader.CacheMode.LOAD));
+
+/*            // Example of adding a hard-coded library entry to network library
+            // Add bookshare link
+            String myUrl = "https://api.bookshare.org";
+            String myTitle = "Bookshare";
+            String mySummary = "Daisy 3 Books Collection";
+            String bookshareSiteName = "https://api.bookshare.org";
+
+            UrlInfoWithDate bookshareUrlInfo = new UrlInfoWithDate(UrlInfo.Type.Catalog, myUrl);
+            UrlInfoCollection<UrlInfoWithDate> infos = new UrlInfoCollection<UrlInfoWithDate>();
+            infos.addInfo(bookshareUrlInfo);
+            ICustomNetworkLink myLink = new OPDSCustomNetworkLink(999, bookshareSiteName, myTitle, mySummary, "en", infos);
+            myLinks.add(myLink);*/
 		} catch (ZLNetworkException e) {
 			removeAllLoadedLinks();
 			fireModelChangedEvent(ChangeListener.Code.InitializationFailed, e.getMessage());
@@ -389,32 +401,6 @@ public class NetworkLibrary {
 	}
 
 	public void synchronize() {
-        //todo: need to auto add Bookshare
-/*        if(!bookshareLinkAdded){
-        			// Add bookshare link
-        			String myUrl = "https://api.bookshare.org";
-        			String myTitle = "Bookshare";
-        			String mySummary = "Daisy 3 Books Collection";
-        			String bookshareSiteName = "https://api.bookshare.org";
-        	
-        			INetworkLink myLink = OPDSLinkReader.createCustomLinkWithoutInfo(bookshareSiteName, myUrl);
-        			final ICustomNetworkLink custom_link = (ICustomNetworkLink) myLink;
-        			custom_link.setSiteName(bookshareSiteName);
-        			custom_link.setTitle(myTitle);
-        			custom_link.setSummary(mySummary);
-        			custom_link.setLink(INetworkLink.URL_MAIN, myUrl);
-        
-        			final int index = Collections.binarySearch(myCustomLinks, custom_link, new LinksComparator());
-        			// Add the link only if it does not exist in myCustomLinks
-        			if(index < 0){
-        				addLinkInternal(myCustomLinks, custom_link, new LinksComparator());
-        				custom_link.setSaveLinkListener(myChangesListener);
-        				custom_link.saveLink();
-        			}
-        			bookshareLinkAdded = true;
-        		}*/
-        
-        
 		if (myChildrenAreInvalid) {
 			myChildrenAreInvalid = false;
 			makeUpToDate();

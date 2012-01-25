@@ -134,6 +134,7 @@ public final class FBReader extends ZLAndroidActivity {
 			new SelectionPopup(fbReader);
 		}
 
+        fbReader.addAction(ActionCode.BOOKSHARE, new ShowBookshareMenuAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_LIBRARY, new ShowLibraryAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_PREFERENCES, new ShowPreferencesAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_BOOK_INFO, new ShowBookInfoAction(this, fbReader));
@@ -501,10 +502,16 @@ public final class FBReader extends ZLAndroidActivity {
 		final ZLAndroidApplication application = (ZLAndroidApplication)getApplication();
 		application.myMainWindow.addMenuItem(menu, actionId, null, null);
 	}
+    
+    private void addMenuItem(Menu menu, String actionId, String name, int iconId) {
+    		final ZLAndroidApplication application = (ZLAndroidApplication)getApplication();
+    		application.myMainWindow.addMenuItem(menu, actionId, iconId, name);
+    	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
+        addMenuItem(menu, ActionCode.BOOKSHARE, getResources().getString(R.string.menu_bookshare), R.drawable.bookshare);
 		addMenuItem(menu, ActionCode.SHOW_LIBRARY, R.drawable.ic_menu_library);
 		addMenuItem(menu, ActionCode.SHOW_NETWORK_LIBRARY, R.drawable.ic_menu_networklibrary);
 		addMenuItem(menu, ActionCode.SHOW_TOC, R.drawable.ic_menu_toc);
