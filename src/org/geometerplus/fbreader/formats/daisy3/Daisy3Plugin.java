@@ -63,13 +63,13 @@ public class Daisy3Plugin extends FormatPlugin {
 
     @Override
     public ZLImage readCover(ZLFile file) {
-        //todo:
+        //todo: Rom
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public String readAnnotation(ZLFile file) {
-        //todo:
+        //todo: Rom
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
