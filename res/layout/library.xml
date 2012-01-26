@@ -7,25 +7,30 @@
 		android:id="@+id/by_title"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
+        android:focusable="true"
 	/>
     	<ListView
 		android:id="@+id/by_author"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
+        android:focusable="true"
 	/>
 	<ListView
 		android:id="@+id/by_tag"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
+        android:focusable="true"
 	/>
 	<ListView
 		android:id="@+id/recent"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
+        android:focusable="true"
 	/>
 	<ListView
 		android:id="@+id/search_results"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
+        android:focusable="true"
 	/>
 </RelativeLayout>
