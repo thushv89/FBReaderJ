@@ -20,9 +20,11 @@
 package org.geometerplus.android.fbreader.tips;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
 import android.view.View;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.*;
 
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -37,10 +39,14 @@ public class TipsActivity extends Activity {
 
 	private final TipsManager myManager = TipsManager.Instance();
 
+    //Added for the detecting whether the talkback is on
+    private AccessibilityManager accessibilityManager;
+
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-
+        accessibilityManager =
+                            (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 		final boolean doInitialize = INITIALIZE_ACTION.equals(getIntent().getAction());
 
 		setContentView(R.layout.tip);
@@ -80,6 +86,9 @@ public class TipsActivity extends Activity {
 					finish();
 				}
 			});
+            if (accessibilityManager.isEnabled()) {
+                finish();
+            }
 		} else {
 			checkBox.setText(resource.getResource("dontShowAgain").getValue());
 
@@ -103,7 +112,10 @@ public class TipsActivity extends Activity {
 					showTip(nextTipButton);
 				}
 			});
-        
+
+            if (accessibilityManager.isEnabled()) {
+                finish();
+            }
 			showTip(nextTipButton);
 		}
 	}
