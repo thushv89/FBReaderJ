@@ -12,29 +12,31 @@
         android:orientation="horizontal"
         android:gravity="center_horizontal">-->
 
-     <Button android:id="@+id/spokentextpause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:nextFocusRight="@+id/spokentextback"
-            android:nextFocusLeft="@+id/spokentextcontents"
-            android:layout_weight="1"
-            android:contentDescription="@string/play"
-            android:text="@string/play" />
+
 
     <Button android:id="@+id/spokentextback"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:nextFocusRight="@+id/spokentextforward"
-            android:nextFocusLeft="@+id/spokentextpause"
+            android:nextFocusRight="@+id/spokentextpause"
+            android:nextFocusLeft="@+id/spokentextcontents"
             android:layout_weight="2"
             android:contentDescription="@string/previous"
             android:text="@string/previous"/>
+
+    <Button android:id="@+id/spokentextpause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:nextFocusRight="@+id/spokentextforward"
+            android:nextFocusLeft="@+id/spokentextback"
+            android:layout_weight="1"
+            android:contentDescription="@string/play"
+            android:text="@string/play" />
 
     <Button android:id="@+id/spokentextforward"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:nextFocusRight="@+id/spokentextcontents"
-            android:nextFocusLeft="@+id/spokentextback"
+            android:nextFocusLeft="@+id/spokentextpause"
             android:layout_weight="1"
             android:contentDescription="@string/next"
             android:text="@string/next" />
@@ -42,7 +44,7 @@
     <Button android:id="@+id/spokentextcontents"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:nextFocusRight="@+id/spokentextpause"
+            android:nextFocusRight="@+id/spokentextback"
             android:nextFocusLeft="@+id/spokentextforward"
             android:layout_weight="2"
             android:contentDescription="@string/toc"

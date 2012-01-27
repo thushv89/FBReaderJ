@@ -27,20 +27,25 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
+
+import org.accessibility.SimpleGestureFilter;
 import org.benetech.android.R;
+import org.geometerplus.android.fbreader.TOCActivity;
 import org.geometerplus.android.fbreader.api.ApiServerImplementation;
 import org.geometerplus.android.fbreader.api.TextPosition;
 
 
-public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitListener, TextToSpeech.OnUtteranceCompletedListener {
+public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitListener, TextToSpeech.OnUtteranceCompletedListener, SimpleGestureFilter.SimpleGestureListener  {
     private ApiServerImplementation myApi;
 
 	private static final String UTTERANCE_ID = "FBReaderTTSPlugin";
@@ -51,6 +56,10 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	private int myParagraphsNumber;
 
 	private boolean myIsActive = false;
+
+    private static final int PLAY_AFTER_TOC = 1;
+    private SimpleGestureFilter detector;
+    private Vibrator myVib;
 
 	private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
@@ -66,20 +75,17 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         getWindow().getAttributes();
         params.gravity = Gravity.BOTTOM;
         this.getWindow().setAttributes(params);
+        detector = new SimpleGestureFilter(this,this);
+        myVib = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 
 		setListener(R.id.spokentextback, new View.OnClickListener() {
 			public void onClick(View v) {
-				stopTalking();
-				gotoPreviousParagraph();
+                goBackward();
 			}
 		});
 		setListener(R.id.spokentextforward, new View.OnClickListener() {
 			public void onClick(View v) {
-				stopTalking();
-				if (myParagraphIndex < myParagraphsNumber) {
-					++myParagraphIndex;
-					gotoNextParagraph();
-				}
+                goForward();
 			}
 		});
 /*		setListener(R.id.button_close, new View.OnClickListener() {
@@ -90,13 +96,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 		});*/
 		setListener(R.id.spokentextpause, new View.OnClickListener() {
 			public void onClick(View v) {
-                if (!myIsActive) {
-                    setActive(true);
-                    speakString(gotoNextParagraph());
-                } else {
-                    stopTalking();
-                }
-			}
+                playOrPause();
+            }
 		});
 
 		((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).listen(
@@ -125,7 +126,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 		setTitle(R.string.initializing);
 	}
 
-	@Override
+    @Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
 			myTTS = new TextToSpeech(this, this);
@@ -137,6 +138,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	@Override
 	protected void onResume() {
 		super.onResume();
+        findViewById(R.id.spokentextpause).requestFocus();
 	}
 
 	@Override
@@ -285,6 +287,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 		runOnUiThread(new Runnable() {
 			public void run() {
                 ((Button)findViewById(R.id.spokentextpause)).setText(active ? R.string.on_press_pause : R.string.on_press_play);
+                findViewById(R.id.spokentextpause).requestFocus();
 			}
 		});
 
@@ -353,4 +356,65 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			return text;
 
 	}
+
+    // Bookshare custom methods
+    private void playOrPause() {
+            if (!myIsActive) {
+                setActive(true);
+                speakString(gotoNextParagraph());
+            } else {
+                stopTalking();
+            }
+        }
+
+    private void goForward() {
+        stopTalking();
+        if (myParagraphIndex < myParagraphsNumber) {
+            ++myParagraphIndex;
+            gotoNextParagraph();
+        }
+    }
+
+    private void goBackward() {
+        stopTalking();
+        gotoPreviousParagraph();
+    }
+
+    private void showContents() {
+        stopTalking();
+        setActive(false);
+        Intent tocIntent = new Intent(this, TOCActivity.class);
+        startActivityForResult(tocIntent, PLAY_AFTER_TOC);
+    }
+
+    @Override
+         public boolean dispatchTouchEvent(MotionEvent me){
+           this.detector.onTouchEvent(me);
+          return super.dispatchTouchEvent(me);
+         }
+
+    @Override
+    public void onSwipe(int direction) {
+        myVib.vibrate(100);
+        switch (direction) {
+            case SimpleGestureFilter.SWIPE_RIGHT :
+                goForward();
+                break;
+            case SimpleGestureFilter.SWIPE_LEFT :
+                goBackward();
+                break;
+            case SimpleGestureFilter.SWIPE_DOWN :
+                showContents();
+                break;
+            case SimpleGestureFilter.SWIPE_UP :
+                showContents();
+                break;
+          }
+    }
+
+    @Override
+    public void onDoubleTap() {
+        myVib.vibrate(100);
+        playOrPause();
+    }
 }
