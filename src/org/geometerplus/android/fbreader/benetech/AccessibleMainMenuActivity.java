@@ -22,7 +22,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class MenuActivity extends Activity {
+public class AccessibleMainMenuActivity extends Activity {
 
     private List<Object> listItems = new ArrayList<Object>();
     private ListView list;
@@ -55,7 +55,7 @@ public class MenuActivity extends Activity {
 
 	private class ListItemsAdapter extends ArrayAdapter<Object> {
 		public ListItemsAdapter(List<Object> items) {
-			super(MenuActivity.this, android.R.layout.simple_list_item_1, items);
+			super(AccessibleMainMenuActivity.this, android.R.layout.simple_list_item_1, items);
 		}
 
 		public View getView(int position, View convertView, ViewGroup parent) {
@@ -115,6 +115,7 @@ public class MenuActivity extends Activity {
 	    speak(resources.getString(R.string.menu_speak), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SPEAK);
+                activity.finish();
 	        }
 	    }),
         bookshare(resources.getString(R.string.menu_bookshare), new MenuOperation() {
