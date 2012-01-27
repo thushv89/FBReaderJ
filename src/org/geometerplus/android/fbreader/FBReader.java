@@ -30,6 +30,7 @@ import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
 
+import org.geometerplus.android.fbreader.benetech.MenuActivity;
 import org.benetech.android.R;
 import org.accessibility.VoiceableDialog;
 import org.geometerplus.fbreader.library.Library;
@@ -41,7 +42,6 @@ import org.geometerplus.zlibrary.core.view.ZLView;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
 import org.geometerplus.zlibrary.text.hyphenation.ZLTextHyphenator;
 
-import org.benetech.android.R;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
 import org.geometerplus.zlibrary.ui.android.library.ZLAndroidLibrary;
@@ -134,6 +134,7 @@ public final class FBReader extends ZLAndroidActivity {
 			new SelectionPopup(fbReader);
 		}
 
+        fbReader.addAction(ActionCode.SPEAK, new ShowSpeakAction(this, fbReader));
         fbReader.addAction(ActionCode.BOOKSHARE, new ShowBookshareMenuAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_LIBRARY, new ShowLibraryAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_PREFERENCES, new ShowPreferencesAction(this, fbReader));
@@ -511,6 +512,7 @@ public final class FBReader extends ZLAndroidActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
+        addMenuItem(menu, ActionCode.SPEAK, "Speak");
         addMenuItem(menu, ActionCode.BOOKSHARE, getResources().getString(R.string.menu_bookshare), R.drawable.bookshare);
 		addMenuItem(menu, ActionCode.SHOW_LIBRARY, R.drawable.ic_menu_library);
 		addMenuItem(menu, ActionCode.SHOW_NETWORK_LIBRARY, R.drawable.ic_menu_networklibrary);

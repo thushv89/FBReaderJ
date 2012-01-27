@@ -1,11 +1,11 @@
-package org.geometerplus.android.fbreader;
+package org.geometerplus.android.fbreader.benetech;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.benetech.android.R;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
-import org.benetech.android.R;
 
 import android.app.Activity;
 import android.content.res.Resources;

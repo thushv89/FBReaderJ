@@ -26,11 +26,13 @@ import android.speech.tts.TextToSpeech.OnInitListener;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -66,6 +68,10 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     private Resources resources;
     private SimpleGestureFilter detector;
     private Vibrator myVib;
+
+    private void setListener(int id, View.OnClickListener listener) {
+        findViewById(id).setOnClickListener(listener);
+    }
 
     @Override
      public boolean dispatchTouchEvent(MotionEvent me){
@@ -143,12 +149,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         speakBook();
     }
 
-    private OnClickListener backListener = new OnClickListener() {
-        public void onClick(View v) {
-            goBackward();
-        }
-    };
-
     private void goBackward() {
         stopTalking();
         setState(INACTIVE);
@@ -210,8 +210,16 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.view_spokentext);
 
-        final Button backbutton = (Button) findViewById(R.id.spokentextback);
-        backbutton.setOnClickListener(backListener);
+        WindowManager.LayoutParams params =
+        getWindow().getAttributes();
+        params.gravity = Gravity.BOTTOM;
+        this.getWindow().setAttributes(params);
+
+        setListener(R.id.spokentextback, new View.OnClickListener() {
+            public void onClick(View v) {
+                goBackward();
+            }
+        });
 
         final Button forwardbutton = (Button) findViewById(R.id.spokentextforward);
         forwardbutton.setOnClickListener(forwardListener);
