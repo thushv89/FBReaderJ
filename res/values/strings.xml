@@ -64,7 +64,7 @@
     <string name="navigate_dialog_example">Current page is %1$d of %2$d.</string>
     <string name="page_navigated">Page %1$d</string>
 
-    <!-- MenuActivity -->
+    <!-- AccessibleMainMenuActivity -->
     <string name="menu_speak">Read to Me</string>
     <string name="menu_bookshare">Get Bookshare books</string>
     <string name="menu_toc">Table of Contents</string>
@@ -84,6 +84,14 @@
     <string name="on_press_play">Play/Pause</string>
     <string name="on_press_pause">Pause/Play</string>
     <string name="speak_title_postfix">\u0020- press play or double click screen</string>
+
+    <string name="initializing">Initializing&#8230;</string>
+    <string name="failure">Initialization failed, sorry</string>
+    <string name="speak_menu_item">Speak</string>
+    <string name="no_tts_installed">Could not connect TTS engine on your device.</string>
+    <string name="initialization_error">Could not get book data from FBReader.</string>
+    <string name="language_is_not_set">Book language is not set. Trying to read book in %0.</string>
+    <string name="no_data_for_language" formatted="false">Text-to-speech data for %0 are not installed. Trying to read book in %1.</string>
 
     <!-- TOCActivity -->
     <string name="subheading">\u0020(has %1$d sub headings)</string>

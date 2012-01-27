@@ -30,7 +30,7 @@ import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
 
-import org.geometerplus.android.fbreader.benetech.MenuActivity;
+import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
 import org.accessibility.VoiceableDialog;
 import org.geometerplus.fbreader.library.Library;
@@ -561,7 +561,7 @@ public final class FBReader extends ZLAndroidActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (accessibilityManager.isEnabled()) {
             if(keyCode == KeyEvent.KEYCODE_MENU){
-                Intent i = new Intent(this, MenuActivity.class);
+                Intent i = new Intent(this, AccessibleMainMenuActivity.class);
                 startActivity(i);
             }
         }

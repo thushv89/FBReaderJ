@@ -1,10 +1,11 @@
-package org.geometerplus.android.fbreader;
+package org.geometerplus.android.fbreader.benetech;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
 import org.accessibility.SimpleGestureFilter;
+import org.geometerplus.android.fbreader.TOCActivity;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.fbreader.fbreader.FBView;
 import org.geometerplus.fbreader.library.Book;
