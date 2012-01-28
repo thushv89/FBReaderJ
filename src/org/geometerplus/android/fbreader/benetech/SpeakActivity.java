@@ -4,23 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.accessibility.SimpleGestureFilter;
-import org.geometerplus.android.fbreader.TOCActivity;
-import org.geometerplus.fbreader.fbreader.FBReaderApp;
-import org.geometerplus.fbreader.fbreader.FBView;
-import org.geometerplus.fbreader.library.Book;
-import org.geometerplus.fbreader.library.Library;
-import org.geometerplus.zlibrary.core.application.ZLApplication;
-import org.geometerplus.zlibrary.text.view.ZLTextElement;
-import org.geometerplus.zlibrary.text.view.ZLTextParagraphCursor;
-import org.geometerplus.zlibrary.text.view.ZLTextWord;
-import org.geometerplus.zlibrary.text.view.ZLTextWordCursor;
-import org.benetech.android.R;
-
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
@@ -32,13 +21,27 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
-// This class is used to compile for the non TTS version (regular). It contains the ImageButtons for TTS player controls
-//public class SpeakActivity_nonTTS extends Activity implements OnInitListener, OnUtteranceCompletedListener {
+import org.accessibility.SimpleGestureFilter;
+import org.geometerplus.android.fbreader.TOCActivity;
+import org.geometerplus.android.fbreader.api.ApiServerImplementation;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
+import org.geometerplus.fbreader.fbreader.FBView;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.library.Library;
+import org.geometerplus.zlibrary.core.application.ZLApplication;
+import org.geometerplus.zlibrary.text.view.ZLTextElement;
+import org.geometerplus.zlibrary.text.view.ZLTextParagraphCursor;
+import org.geometerplus.zlibrary.text.view.ZLTextWord;
+import org.geometerplus.zlibrary.text.view.ZLTextWordCursor;
+import org.benetech.android.R;
+
 public class SpeakActivity extends Activity implements OnInitListener, OnUtteranceCompletedListener, SimpleGestureFilter.SimpleGestureListener {
+    private ApiServerImplementation myApi;
+
     static final int ACTIVE = 1;
     static final int INACTIVE = 0;
 	private static final int CHECK_TTS_INSTALLED = 0;
@@ -49,7 +52,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	static final int SEARCHFORWARD = 1;
 	static final int SEARCHBACKWARD = 2;
 		
-    private TextToSpeech mTts=null;
+    private TextToSpeech myTTS =null;
     private FBReaderApp Reader;
     private ZLTextParagraphCursor myParaCursor;
     
@@ -67,41 +70,68 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     private SimpleGestureFilter detector;
     private Vibrator myVib;
 
+
     private void setListener(int id, View.OnClickListener listener) {
         findViewById(id).setOnClickListener(listener);
     }
 
     @Override
-     public boolean dispatchTouchEvent(MotionEvent me){
-       this.detector.onTouchEvent(me);
-      return super.dispatchTouchEvent(me);
-     }
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-    @Override
-    public void onSwipe(int direction) {
-        myVib.vibrate(50);
-        switch (direction) {
+        setContentView(R.layout.view_spokentext);
 
-            case SimpleGestureFilter.SWIPE_RIGHT :
-                goForward();
-                break;
-            case SimpleGestureFilter.SWIPE_LEFT :
+        WindowManager.LayoutParams params =
+        getWindow().getAttributes();
+        params.gravity = Gravity.BOTTOM;
+        this.getWindow().setAttributes(params);
+        detector = new SimpleGestureFilter(this,this);
+        myVib = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+
+        Reader = (FBReaderApp)ZLApplication.Instance();
+        //requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        setListener(R.id.spokentextback, new View.OnClickListener() {
+            public void onClick(View v) {
                 goBackward();
-                break;
-            case SimpleGestureFilter.SWIPE_DOWN :
-                showContents();
-                break;
-            case SimpleGestureFilter.SWIPE_UP :
-                showContents();
-                break;
+            }
+        });
 
-          }
-    }
+        final Button forwardbutton = (Button) findViewById(R.id.spokentextforward);
+        forwardbutton.setOnClickListener(forwardListener);
 
-    @Override
-    public void onDoubleTap() {
-        myVib.vibrate(50);
-        playOrPause();
+        pausebutton = (Button)findViewById(R.id.spokentextpause);
+        pausebutton.setOnClickListener(pauseListener);
+
+        final Button contentsButton = (Button) findViewById(R.id.spokentextcontents);
+        contentsButton.setOnClickListener(contentsListener);
+
+        setState(INACTIVE);
+
+        ((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).listen(
+            new PhoneStateListener() {
+                public void onCallStateChanged(int state, String incomingNumber) {
+                    if (state == TelephonyManager.CALL_STATE_RINGING) {
+                        stopTalking();
+                    }
+                }
+            },
+            PhoneStateListener.LISTEN_CALL_STATE
+        );
+
+        myApi = new ApiServerImplementation();
+        try {
+            startActivityForResult(
+                new Intent(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA), CHECK_TTS_INSTALLED
+            );
+        } catch (ActivityNotFoundException e) {
+            showErrorMessage(getText(R.string.no_tts_installed), true);
+        }
+
+        resources = getApplicationContext().getResources();
+        activity = this;
+
+        setTitle(R.string.initializing);
     }
 
     class UpdateControls implements Runnable {
@@ -121,18 +151,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 
         public UpdateControls(int value) { this.buttonstate = value; }
     }
-    	
-    	
-    private PhoneStateListener mPhoneListener = new PhoneStateListener()
-    {
-        public void onCallStateChanged(int callState, String incomingNumber)
-        {
-            if(callState == TelephonyManager.CALL_STATE_RINGING) {
-                stopTalking();
-                finish();
-            }
-        }
-    };
     	
     private OnClickListener forwardListener = new OnClickListener() {
         public void onClick(View v) {
@@ -196,53 +214,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
             finish();
         }
     };
-    	
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        detector = new SimpleGestureFilter(this,this);
-
-        Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
-        Reader = (FBReaderApp)ZLApplication.Instance();
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.view_spokentext);
-
-        WindowManager.LayoutParams params =
-        getWindow().getAttributes();
-        params.gravity = Gravity.BOTTOM;
-        this.getWindow().setAttributes(params);
-
-        setListener(R.id.spokentextback, new View.OnClickListener() {
-            public void onClick(View v) {
-                goBackward();
-            }
-        });
-
-        final Button forwardbutton = (Button) findViewById(R.id.spokentextforward);
-        forwardbutton.setOnClickListener(forwardListener);
-
-        pausebutton = (Button)findViewById(R.id.spokentextpause);
-        pausebutton.setOnClickListener(pauseListener);
-
-        final Button contentsButton = (Button) findViewById(R.id.spokentextcontents);
-        contentsButton.setOnClickListener(contentsListener);
-
-        setState(INACTIVE);
-
-        TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-        tm.listen(mPhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
-        myVib = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
-
-        resources = getApplicationContext().getResources();
-
-        Intent checkIntent = new Intent();
-        checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
-        pausebutton.requestFocus();
-        activity = this;
-        setTitle(R.string.initializing);
-    }
     
     /** 
      * If book is available, add it to application title.
@@ -273,7 +244,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	    if (requestCode == CHECK_TTS_INSTALLED) {
 
             if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                mTts = new TextToSpeech(this, this);
+                myTTS = new TextToSpeech(this, this);
             } else {
                 startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
             }
@@ -285,6 +256,19 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
             }
         }
     }
+
+    private void showErrorMessage(final CharSequence text, final boolean fatal) {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                if (fatal) {
+                    setTitle(R.string.failure);
+                }
+                Toast.makeText(SpeakActivity.this, text, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private volatile PowerManager.WakeLock myWakeLock;
 	   
 	   
 // ZLTextWord cursor will navigate on a per-paragraph basis. 
@@ -335,14 +319,6 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		}
 	}
 	
-	
-	private void speakStringQueueFlush(String s){
-		HashMap<String, String> callbackMap = new HashMap<String, String>();
-		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,PARAGRAPHUTTERANCE);
-
-		mTts.speak(s, TextToSpeech.QUEUE_FLUSH, callbackMap);			
-	}
-	
 	private void loadSpeechEngine(){
         	String spkString;
         	int sentenceNumber = 0;
@@ -357,9 +333,9 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
             		sentenceNumber++;
 			spkString = sentenceListIterator.next();
 
-	     		HashMap<String, String> callbackMap = new HashMap<String, String>();
+            HashMap<String, String> callbackMap = new HashMap<String, String>();
 			callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,Integer.toString(sentenceNumber));
-		    	mTts.speak(spkString, TextToSpeech.QUEUE_ADD, callbackMap);	
+            myTTS.speak(spkString, TextToSpeech.QUEUE_ADD, callbackMap);
 		}
 		
 		lastSentence = sentenceNumber;
@@ -404,14 +380,14 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	protected void  onDestroy() {	
 		Reader.onWindowClosing(); // save the position
 		setState(INACTIVE);
-		mTts.shutdown();
+        myTTS.shutdown();
 		super.onDestroy();				
 	}
 	
 	private void stopTalking() {
 		setState(INACTIVE);
-		if(mTts!=null){
-		    mTts.stop();
+		if(myTTS !=null){
+		    myTTS.stop();
 		}
 	}
 	
@@ -446,7 +422,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	
 //	@Override
 	public void onInit(int status) {
-		mTts.setOnUtteranceCompletedListener(this);
+		myTTS.setOnUtteranceCompletedListener(this);
 		setState(INACTIVE);
         setApplicationTitle();
 //		nextParagraphString(SEARCHFORWARD);
@@ -474,5 +450,49 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 
         return super.onKeyDown(keyCode, event);
     }
+
+    @Override
+     public boolean dispatchTouchEvent(MotionEvent me){
+       this.detector.onTouchEvent(me);
+      return super.dispatchTouchEvent(me);
+     }
+
+    @Override
+    public void onSwipe(int direction) {
+        myVib.vibrate(50);
+        switch (direction) {
+
+            case SimpleGestureFilter.SWIPE_RIGHT :
+                goForward();
+                break;
+            case SimpleGestureFilter.SWIPE_LEFT :
+                goBackward();
+                break;
+            case SimpleGestureFilter.SWIPE_DOWN :
+                showContents();
+                break;
+            case SimpleGestureFilter.SWIPE_UP :
+                showContents();
+                break;
+
+          }
+    }
+
+    @Override
+    public void onDoubleTap() {
+        myVib.vibrate(50);
+        playOrPause();
+    }
+
+/*    private void highlightParagraph()  {
+        if (0 <= myParagraphIndex && myParagraphIndex < myParagraphsNumber) {
+            myApi.highlightArea(
+                    new TextPosition(myParagraphIndex, 0, 0),
+                    new TextPosition(myParagraphIndex, Integer.MAX_VALUE, 0)
+            );
+        } else {
+            myApi.clearHighlighting();
+        }
+    }*/
 
 }
