@@ -1,6 +1,7 @@
 package org.geometerplus.android.fbreader;
 
 import org.geometerplus.android.fbreader.benetech.NewSpeakActivity;
+import org.geometerplus.android.fbreader.benetech.SpeakActivity;
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 
@@ -17,7 +18,7 @@ public class ShowSpeakAction extends FBAndroidAction {
 
     @Override
     protected void run(Object... params) {
-        Intent intent = new Intent(BaseActivity.getApplicationContext(), NewSpeakActivity.class);
+        Intent intent = new Intent(BaseActivity.getApplicationContext(), SpeakActivity.class);
         BaseActivity.startActivity(intent);
     }
 }

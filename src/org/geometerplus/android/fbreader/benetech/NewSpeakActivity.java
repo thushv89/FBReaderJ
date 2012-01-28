@@ -31,6 +31,7 @@ import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -43,7 +44,6 @@ import org.benetech.android.R;
 import org.geometerplus.android.fbreader.TOCActivity;
 import org.geometerplus.android.fbreader.api.ApiServerImplementation;
 import org.geometerplus.android.fbreader.api.TextPosition;
-
 
 public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitListener, TextToSpeech.OnUtteranceCompletedListener, SimpleGestureFilter.SimpleGestureListener  {
     private ApiServerImplementation myApi;
@@ -60,8 +60,12 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     private static final int PLAY_AFTER_TOC = 1;
     private SimpleGestureFilter detector;
     private Vibrator myVib;
+    private int lastSentence = 0;
+    private int lastSpoken = 0;
+    private String[] sentenceArray;
+    private boolean justPaused = false;
 
-	private void setListener(int id, View.OnClickListener listener) {
+    private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
 	}
 
@@ -230,24 +234,45 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			myParagraphsNumber = myApi.getParagraphsNumber();
 			setActionsEnabled(true);
 			setActive(true);
-			speakString(gotoNextParagraph());
+			speakParagraph(gotoNextParagraph());
 		} catch (Exception e) {
 			setActionsEnabled(false);
 			showErrorMessage(getText(R.string.initialization_error), true);
 		}
 	}
-
+    
+    public void onUtteranceCompletedOriginal(String uttId) {
+    		if (myIsActive && UTTERANCE_ID.equals(uttId)) {
+    			++myParagraphIndex;
+    			speakString(gotoNextParagraph());
+    			if (myParagraphIndex >= myParagraphsNumber) {
+    				stopTalking();
+    			}
+    		} else {
+    			setActive(false);
+    		}
+    	}
+    
 	@Override
 	public void onUtteranceCompleted(String uttId) {
-		if (myIsActive && UTTERANCE_ID.equals(uttId)) {
+        String lastSentenceID = Integer.toString(lastSentence);
+		if (myIsActive && uttId.equals(lastSentenceID)) {
 			++myParagraphIndex;
-			speakString(gotoNextParagraph());
+			speakParagraph(gotoNextParagraph());
 			if (myParagraphIndex >= myParagraphsNumber) {
 				stopTalking();
 			}
 		} else {
-			setActive(false);
+			//setActive(false);
+            lastSpoken = Integer.parseInt(uttId);
 		}
+
+
+/*        if(state == ACTIVE && uttId.equals(lastSentenceID)) {
+         nextParagraph(SEARCHFORWARD);                        // nextParagraph can change sentenceListIterator
+        } else {
+            lastSpoken = Integer.parseInt(uttId);                // get last spoken id
+        }*/
 	}
 
 	private void highlightParagraph()  {
@@ -305,12 +330,35 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			}
 		}
 	}
+    
+    private void speakString(String text) {
+        HashMap<String, String> callbackMap = new HashMap<String, String>();
+        callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
+        myTTS.speak(text, TextToSpeech.QUEUE_FLUSH, callbackMap);
+    }
 
-	private void speakString(String text) {
+	private void speakStringNew(String text, final int sentenceNumber) {
+        Log.w("NewSpeakActivity", "**** " + text + " ****");
 		HashMap<String, String> callbackMap = new HashMap<String, String>();
-		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
-		myTTS.speak(text, TextToSpeech.QUEUE_FLUSH, callbackMap);
+		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(sentenceNumber));
+		myTTS.speak(text, TextToSpeech.QUEUE_ADD, callbackMap);
 	}
+    
+    private void speakParagraph(String text) {
+        sentenceArray = text.split("[\\.\\!\\?]");
+        int i = 0;
+
+/*        if (justPaused) {                    // on returning from pause, start with the last sentence spoken
+            justPaused = false;
+            i = lastSpoken;
+        }*/
+
+        for(String sentence : sentenceArray) {
+            i++;
+            speakStringNew(sentence, i);
+        }
+        lastSentence = i;
+    }
 
 	private void gotoPreviousParagraph() {
         for (int i = myParagraphIndex - 1; i >= 0; --i) {
@@ -358,12 +406,14 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	}
 
     // Bookshare custom methods
+
     private void playOrPause() {
             if (!myIsActive) {
                 setActive(true);
-                speakString(gotoNextParagraph());
+                speakParagraph(gotoNextParagraph());
             } else {
                 stopTalking();
+                //justPaused = true;
             }
         }
 
@@ -371,13 +421,18 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         stopTalking();
         if (myParagraphIndex < myParagraphsNumber) {
             ++myParagraphIndex;
-            gotoNextParagraph();
+            lastSentence = 0;
+            //setActive(true);
+            //speakParagraph(gotoNextParagraph());
         }
     }
 
     private void goBackward() {
         stopTalking();
+        lastSentence = 0;
+        //setActive(true);
         gotoPreviousParagraph();
+        //speakParagraph(gotoNextParagraph());
     }
 
     private void showContents() {

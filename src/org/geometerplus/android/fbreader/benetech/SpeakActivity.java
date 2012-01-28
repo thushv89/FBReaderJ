@@ -35,8 +35,6 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.TextView;
-
 
 // This class is used to compile for the non TTS version (regular). It contains the ImageButtons for TTS player controls
 //public class SpeakActivity_nonTTS extends Activity implements OnInitListener, OnUtteranceCompletedListener {
@@ -57,8 +55,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
     
     private Button pausebutton;
 
-    private ArrayList<String> sentenceList;
-	private Iterator<String> sentenceListIterator;
+    private Iterator<String> sentenceListIterator;
 
     private int state = INACTIVE;
 	private int lastSentence = 0;
@@ -244,6 +241,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         startActivityForResult(checkIntent, CHECK_TTS_INSTALLED);
         pausebutton.requestFocus();
         activity = this;
+        setTitle(R.string.initializing);
     }
     
     /** 
@@ -272,31 +270,21 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 
     protected void onActivityResult(
 	           int requestCode, int resultCode, Intent data) {
-	       if (requestCode == CHECK_TTS_INSTALLED) {
-	    	    
-	    	     switch (resultCode) {
-	    	     case TextToSpeech.Engine.CHECK_VOICE_DATA_PASS:
-	    	          mTts = new TextToSpeech(this, this);
-	    	          break;
-	    	     case TextToSpeech.Engine.CHECK_VOICE_DATA_BAD_DATA:
-	    	     case TextToSpeech.Engine.CHECK_VOICE_DATA_MISSING_DATA:
-	    	     case TextToSpeech.Engine.CHECK_VOICE_DATA_MISSING_VOLUME:
-	                  Intent installIntent = new Intent();
-	                  installIntent.setAction(
-	                  TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-	                  startActivity(installIntent);
-	    	          break;
-	    	     case TextToSpeech.Engine.CHECK_VOICE_DATA_FAIL:
-	    	     default:
-	    	     }
-	       } else if (requestCode == PLAY_AFTER_TOC) {
-               if (resultCode != TOCActivity.BACK_PRESSED) {
-                    resumePlaying = true;
-               } else {
-                   fromPause = true;
-               }
-           }
-	   }
+	    if (requestCode == CHECK_TTS_INSTALLED) {
+
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                mTts = new TextToSpeech(this, this);
+            } else {
+                startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
+            }
+        } else if (requestCode == PLAY_AFTER_TOC) {
+            if (resultCode != TOCActivity.BACK_PRESSED) {
+                resumePlaying = true;
+            } else {
+                fromPause = true;
+            }
+        }
+    }
 	   
 	   
 // ZLTextWord cursor will navigate on a per-paragraph basis. 
@@ -306,7 +294,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 		StringBuilder sb = new StringBuilder();
 	    	boolean inSentence = true;
 
-		sentenceList = new ArrayList<String>();                      // clears out list, old list gets garbage collected
+        ArrayList<String> sentenceList = new ArrayList<String>();
 
 		ZLTextWordCursor cursor = new ZLTextWordCursor(paraCursor);
 
@@ -442,14 +430,13 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	@Override
 	protected void  onResume(){			
 		super.onResume();
-
+        pausebutton.requestFocus();
         if (! fromPause) {
             final FBView theView = ((FBReaderApp) FBReaderApp.Instance()).getTextView();
             final ZLTextWordCursor cursor = theView.getStartCursor();
             myParaCursor = cursor.getParagraphCursor();
         }
         
-        pausebutton.requestFocus();
         if (resumePlaying || fromPause) {
             resumePlaying = false;
             speakBook();
@@ -461,6 +448,7 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
 	public void onInit(int status) {
 		mTts.setOnUtteranceCompletedListener(this);
 		setState(INACTIVE);
+        setApplicationTitle();
 //		nextParagraphString(SEARCHFORWARD);
 	}
 	
