@@ -64,6 +64,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     private int lastSpoken = 0;
     private String[] sentenceArray;
     private boolean justPaused = false;
+    private int lastSentenceInParagraph = 0;
 
     private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
@@ -234,37 +235,37 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			myParagraphsNumber = myApi.getParagraphsNumber();
 			setActionsEnabled(true);
 			setActive(true);
-			speakParagraph(gotoNextParagraph());
+			speakParagraph(getNextParagraph());
 		} catch (Exception e) {
 			setActionsEnabled(false);
 			showErrorMessage(getText(R.string.initialization_error), true);
 		}
 	}
     
-    public void onUtteranceCompletedOriginal(String uttId) {
-    		if (myIsActive && UTTERANCE_ID.equals(uttId)) {
-    			++myParagraphIndex;
-    			speakString(gotoNextParagraph());
-    			if (myParagraphIndex >= myParagraphsNumber) {
-    				stopTalking();
-    			}
-    		} else {
-    			setActive(false);
-    		}
-    	}
     
 	@Override
 	public void onUtteranceCompleted(String uttId) {
-        String lastSentenceID = Integer.toString(lastSentence);
+        Log.e("NewSpeakActivity", "uttId is " + uttId);
+        Log.e("NewSpeakActivity", "lastSentence is " + lastSentence);
+        Log.e("NewSpeakActivity", "lastSentenceInParagraph is " + lastSentenceInParagraph);
+        String lastSentenceID = Integer.toString(lastSentence - 1);
 		if (myIsActive && uttId.equals(lastSentenceID)) {
-			++myParagraphIndex;
-			speakParagraph(gotoNextParagraph());
-			if (myParagraphIndex >= myParagraphsNumber) {
-				stopTalking();
-			}
+            Log.e("NewSpeakActivity", "entering first if");
+            if (Integer.toString(lastSentenceInParagraph - 1).equals(uttId)) {
+                Log.e("NewSpeakActivity", "incrementing paragraph");
+                ++myParagraphIndex;
+                speakParagraph(getNextParagraph());
+                if (myParagraphIndex >= myParagraphsNumber) {
+                    stopTalking();
+                }
+            } else {
+                Log.e("NewSpeakActivity", "just saving lastSpoken to " + uttId);
+                lastSpoken = Integer.parseInt(uttId);
+            }
 		} else {
 			//setActive(false);
             lastSpoken = Integer.parseInt(uttId);
+            Log.e("NewSpeakActivity", "lastSpoken just set  to " + lastSpoken);
 		}
 
 
@@ -288,7 +289,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
 	private void stopTalking() {
 		setActive(false);
-		if (myTTS != null && myTTS.isSpeaking()) {
+		//if (myTTS != null && myTTS.isSpeaking()) {
+		if (myTTS != null) {
 			myTTS.stop();
 		}
 	}
@@ -338,7 +340,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     }
 
 	private void speakStringNew(String text, final int sentenceNumber) {
-        Log.w("NewSpeakActivity", "**** " + text + " ****");
+        //Log.w("NewSpeakActivity", "**** " + text + " ****");
 		HashMap<String, String> callbackMap = new HashMap<String, String>();
 		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(sentenceNumber));
 		myTTS.speak(text, TextToSpeech.QUEUE_ADD, callbackMap);
@@ -346,18 +348,27 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     
     private void speakParagraph(String text) {
         sentenceArray = text.split("[\\.\\!\\?]");
-        int i = 0;
+        lastSentenceInParagraph = sentenceArray.length;
+        int j = 0;
 
-/*        if (justPaused) {                    // on returning from pause, start with the last sentence spoken
+        if (justPaused) {                    // on returning from pause, start with the last sentence spoken
             justPaused = false;
-            i = lastSpoken;
-        }*/
-
-        for(String sentence : sentenceArray) {
-            i++;
-            speakStringNew(sentence, i);
+            j = lastSpoken;
+            Log.e("NewSpeakActivity","last sentence is " + lastSentenceInParagraph);
+            Log.e("NewSpeakActivity, speakParagraph", "lastSpoken is " + lastSpoken);
+            Log.e("NewSpeakActivity", "next sentence should be #" + j);
+            Log.e("NewSpeakActivity","text is " + text);
         }
-        lastSentence = i;
+
+        for(int i = j; i< lastSentenceInParagraph; i++) {
+            speakStringNew(sentenceArray[i], i);
+        }
+
+/*        for(String sentence : sentenceArray) {
+            j++;
+            speakStringNew(sentence, i);
+        }*/
+        lastSentence = lastSentenceInParagraph;
     }
 
 	private void gotoPreviousParagraph() {
@@ -380,7 +391,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
 	}
 
-	private String gotoNextParagraph() {
+	private String getNextParagraph() {
 			String text = "";
 			for (; myParagraphIndex < myParagraphsNumber; ++myParagraphIndex) {
 				final String s = myApi.getParagraphText(myParagraphIndex);
@@ -410,10 +421,11 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     private void playOrPause() {
             if (!myIsActive) {
                 setActive(true);
-                speakParagraph(gotoNextParagraph());
+                speakParagraph(getNextParagraph());
             } else {
                 stopTalking();
-                //justPaused = true;
+                setActive(false);
+                justPaused = true;
             }
         }
 
@@ -423,7 +435,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
             ++myParagraphIndex;
             lastSentence = 0;
             //setActive(true);
-            //speakParagraph(gotoNextParagraph());
+            //speakParagraph(getNextParagraph());
         }
     }
 
@@ -432,7 +444,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         lastSentence = 0;
         //setActive(true);
         gotoPreviousParagraph();
-        //speakParagraph(gotoNextParagraph());
+        //speakParagraph(getNextParagraph());
     }
 
     private void showContents() {
