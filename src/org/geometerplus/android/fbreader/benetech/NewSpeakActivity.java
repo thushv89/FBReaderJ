@@ -62,9 +62,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     private Vibrator myVib;
     private int lastSentence = 0;
     private int lastSpoken = 0;
-    private String[] sentenceArray;
     private boolean justPaused = false;
-    private int lastSentenceInParagraph = 0;
 
     private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
@@ -131,7 +129,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 		setTitle(R.string.initializing);
 	}
 
-    @Override
+	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
 			myTTS = new TextToSpeech(this, this);
@@ -245,35 +243,16 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     
 	@Override
 	public void onUtteranceCompleted(String uttId) {
-        Log.e("NewSpeakActivity", "uttId is " + uttId);
-        Log.e("NewSpeakActivity", "lastSentence is " + lastSentence);
-        Log.e("NewSpeakActivity", "lastSentenceInParagraph is " + lastSentenceInParagraph);
         String lastSentenceID = Integer.toString(lastSentence - 1);
 		if (myIsActive && uttId.equals(lastSentenceID)) {
-            Log.e("NewSpeakActivity", "entering first if");
-            if (Integer.toString(lastSentenceInParagraph - 1).equals(uttId)) {
-                Log.e("NewSpeakActivity", "incrementing paragraph");
-                ++myParagraphIndex;
-                speakParagraph(getNextParagraph());
-                if (myParagraphIndex >= myParagraphsNumber) {
-                    stopTalking();
-                }
-            } else {
-                Log.e("NewSpeakActivity", "just saving lastSpoken to " + uttId);
-                lastSpoken = Integer.parseInt(uttId);
+            ++myParagraphIndex;
+            speakParagraph(getNextParagraph());
+            if (myParagraphIndex >= myParagraphsNumber) {
+                stopTalking();
             }
 		} else {
-			//setActive(false);
             lastSpoken = Integer.parseInt(uttId);
-            Log.e("NewSpeakActivity", "lastSpoken just set  to " + lastSpoken);
 		}
-
-
-/*        if(state == ACTIVE && uttId.equals(lastSentenceID)) {
-         nextParagraph(SEARCHFORWARD);                        // nextParagraph can change sentenceListIterator
-        } else {
-            lastSpoken = Integer.parseInt(uttId);                // get last spoken id
-        }*/
 	}
 
 	private void highlightParagraph()  {
@@ -289,7 +268,6 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
 	private void stopTalking() {
 		setActive(false);
-		//if (myTTS != null && myTTS.isSpeaking()) {
 		if (myTTS != null) {
 			myTTS.stop();
 		}
@@ -332,43 +310,27 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			}
 		}
 	}
-    
-    private void speakString(String text) {
-        HashMap<String, String> callbackMap = new HashMap<String, String>();
-        callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
-        myTTS.speak(text, TextToSpeech.QUEUE_FLUSH, callbackMap);
-    }
 
 	private void speakStringNew(String text, final int sentenceNumber) {
-        //Log.w("NewSpeakActivity", "**** " + text + " ****");
 		HashMap<String, String> callbackMap = new HashMap<String, String>();
 		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(sentenceNumber));
 		myTTS.speak(text, TextToSpeech.QUEUE_ADD, callbackMap);
 	}
     
     private void speakParagraph(String text) {
-        sentenceArray = text.split("[\\.\\!\\?]");
-        lastSentenceInParagraph = sentenceArray.length;
-        int j = 0;
+        String[] sentenceArray = text.split("[\\.\\!\\?]");
+        lastSentence = sentenceArray.length;
+        int startingSentenceNumber = 0;
 
         if (justPaused) {                    // on returning from pause, start with the last sentence spoken
             justPaused = false;
-            j = lastSpoken;
-            Log.e("NewSpeakActivity","last sentence is " + lastSentenceInParagraph);
-            Log.e("NewSpeakActivity, speakParagraph", "lastSpoken is " + lastSpoken);
-            Log.e("NewSpeakActivity", "next sentence should be #" + j);
-            Log.e("NewSpeakActivity","text is " + text);
+            startingSentenceNumber = lastSpoken;
         }
 
-        for(int i = j; i< lastSentenceInParagraph; i++) {
+        for(int i = startingSentenceNumber; i< lastSentence; i++) {
             speakStringNew(sentenceArray[i], i);
         }
 
-/*        for(String sentence : sentenceArray) {
-            j++;
-            speakStringNew(sentence, i);
-        }*/
-        lastSentence = lastSentenceInParagraph;
     }
 
 	private void gotoPreviousParagraph() {
@@ -434,17 +396,17 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         if (myParagraphIndex < myParagraphsNumber) {
             ++myParagraphIndex;
             lastSentence = 0;
-            //setActive(true);
-            //speakParagraph(getNextParagraph());
+            setActive(true);
+            speakParagraph(getNextParagraph());
         }
     }
 
     private void goBackward() {
         stopTalking();
         lastSentence = 0;
-        //setActive(true);
+        setActive(true);
         gotoPreviousParagraph();
-        //speakParagraph(getNextParagraph());
+        speakParagraph(getNextParagraph());
     }
 
     private void showContents() {

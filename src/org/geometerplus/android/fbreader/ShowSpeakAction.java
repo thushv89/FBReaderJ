@@ -18,7 +18,7 @@ public class ShowSpeakAction extends FBAndroidAction {
 
     @Override
     protected void run(Object... params) {
-        Intent intent = new Intent(BaseActivity.getApplicationContext(), SpeakActivity.class);
+        Intent intent = new Intent(BaseActivity.getApplicationContext(), NewSpeakActivity.class);
         BaseActivity.startActivity(intent);
     }
 }
