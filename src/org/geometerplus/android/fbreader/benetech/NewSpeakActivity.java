@@ -31,7 +31,6 @@ import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -58,11 +57,13 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	private boolean myIsActive = false;
 
     private static final int PLAY_AFTER_TOC = 1;
+    private static final int CHECK_TTS_INSTALLED = 0;
     private SimpleGestureFilter detector;
     private Vibrator myVib;
     private int lastSentence = 0;
     private int lastSpoken = 0;
     private boolean justPaused = false;
+    private boolean resumePlaying = false;
 
     private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
@@ -81,12 +82,12 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         detector = new SimpleGestureFilter(this,this);
         myVib = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
 
-		setListener(R.id.spokentextback, new View.OnClickListener() {
+		setListener(R.id.speak_menu_back, new View.OnClickListener() {
 			public void onClick(View v) {
                 goBackward();
 			}
 		});
-		setListener(R.id.spokentextforward, new View.OnClickListener() {
+		setListener(R.id.speak_menu_forward, new View.OnClickListener() {
 			public void onClick(View v) {
                 goForward();
 			}
@@ -97,11 +98,16 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 				finish();
 			}
 		});*/
-		setListener(R.id.spokentextpause, new View.OnClickListener() {
+		setListener(R.id.speak_menu_pause, new View.OnClickListener() {
 			public void onClick(View v) {
                 playOrPause();
             }
 		});
+        setListener(R.id.speak_menu_contents, new View.OnClickListener() {
+            public void onClick(View v) {
+                showContents();
+            }
+        });
 
 		((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).listen(
 			new PhoneStateListener() {
@@ -120,7 +126,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 		myApi = new ApiServerImplementation();
 		try {
 			startActivityForResult(
-				new Intent(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA), 0
+				new Intent(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA), CHECK_TTS_INSTALLED
 			);
 		} catch (ActivityNotFoundException e) {
 			showErrorMessage(getText(R.string.no_tts_installed), true);
@@ -131,17 +137,35 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-			myTTS = new TextToSpeech(this, this);
-		} else {
-			startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
-		}
+        if (requestCode == CHECK_TTS_INSTALLED) {
+            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
+                myTTS = new TextToSpeech(this, this);
+            } else {
+                startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
+            }
+        } else {
+            if (resultCode != TOCActivity.BACK_PRESSED) {
+                resumePlaying = true;
+           } else {
+               justPaused = true;
+           }
+        }
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-        findViewById(R.id.spokentextpause).requestFocus();
+        findViewById(R.id.speak_menu_pause).requestFocus();
+
+        if (! justPaused) {
+            myParagraphIndex = myApi.getPageStart().ParagraphIndex;
+            myParagraphsNumber = myApi.getParagraphsNumber();
+        }
+
+        if (resumePlaying || justPaused) {
+            resumePlaying = false;
+            speakParagraph(getNextParagraph());
+        }
 	}
 
 	@Override
@@ -181,9 +205,10 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	private void setActionsEnabled(final boolean enabled) {
 		runOnUiThread(new Runnable() {
 			public void run() {
-				findViewById(R.id.spokentextback).setEnabled(enabled);
-				findViewById(R.id.spokentextforward).setEnabled(enabled);
-				findViewById(R.id.spokentextpause).setEnabled(enabled);
+				findViewById(R.id.speak_menu_back).setEnabled(enabled);
+				findViewById(R.id.speak_menu_forward).setEnabled(enabled);
+				findViewById(R.id.speak_menu_pause).setEnabled(enabled);
+				findViewById(R.id.speak_menu_contents).setEnabled(enabled);
 			}
 		});
 	}
@@ -289,8 +314,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
 		runOnUiThread(new Runnable() {
 			public void run() {
-                ((Button)findViewById(R.id.spokentextpause)).setText(active ? R.string.on_press_pause : R.string.on_press_play);
-                findViewById(R.id.spokentextpause).requestFocus();
+                ((Button)findViewById(R.id.speak_menu_pause)).setText(active ? R.string.on_press_pause : R.string.on_press_play);
+                findViewById(R.id.speak_menu_pause).requestFocus();
 			}
 		});
 
@@ -328,8 +353,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         highlightParagraph();
         runOnUiThread(new Runnable() {
             public void run() {
-                findViewById(R.id.spokentextforward).setEnabled(true);
-                findViewById(R.id.spokentextpause).setEnabled(true);
+                findViewById(R.id.speak_menu_forward).setEnabled(true);
+                findViewById(R.id.speak_menu_pause).setEnabled(true);
             }
         });
 
@@ -351,7 +376,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			if (myParagraphIndex >= myParagraphsNumber) {
 				runOnUiThread(new Runnable() {
 					public void run() {
-						findViewById(R.id.spokentextforward).setEnabled(false);
+						findViewById(R.id.speak_menu_forward).setEnabled(false);
 						//findViewById(R.id.spokentextpause).setEnabled(false);
 					}
 				});

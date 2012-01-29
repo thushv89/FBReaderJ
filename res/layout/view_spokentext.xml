@@ -14,38 +14,38 @@
 
 
 
-    <Button android:id="@+id/spokentextback"
+    <Button android:id="@+id/speak_menu_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:nextFocusRight="@+id/spokentextpause"
-            android:nextFocusLeft="@+id/spokentextcontents"
+            android:nextFocusRight="@+id/speak_menu_pause"
+            android:nextFocusLeft="@+id/speak_menu_contents"
             android:layout_weight="2"
             android:contentDescription="@string/previous"
             android:text="@string/previous"/>
 
-    <Button android:id="@+id/spokentextpause"
+    <Button android:id="@+id/speak_menu_pause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:nextFocusRight="@+id/spokentextforward"
-            android:nextFocusLeft="@+id/spokentextback"
+            android:nextFocusRight="@+id/speak_menu_forward"
+            android:nextFocusLeft="@+id/speak_menu_back"
             android:layout_weight="1"
             android:contentDescription="@string/play"
             android:text="@string/play" />
 
-    <Button android:id="@+id/spokentextforward"
+    <Button android:id="@+id/speak_menu_forward"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:nextFocusRight="@+id/spokentextcontents"
-            android:nextFocusLeft="@+id/spokentextpause"
+            android:nextFocusRight="@+id/speak_menu_contents"
+            android:nextFocusLeft="@+id/speak_menu_pause"
             android:layout_weight="1"
             android:contentDescription="@string/next"
             android:text="@string/next" />
 
-    <Button android:id="@+id/spokentextcontents"
+    <Button android:id="@+id/speak_menu_contents"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:nextFocusRight="@+id/spokentextback"
-            android:nextFocusLeft="@+id/spokentextforward"
+            android:nextFocusRight="@+id/speak_menu_back"
+            android:nextFocusLeft="@+id/speak_menu_forward"
             android:layout_weight="2"
             android:contentDescription="@string/toc"
             android:text="@string/toc" />

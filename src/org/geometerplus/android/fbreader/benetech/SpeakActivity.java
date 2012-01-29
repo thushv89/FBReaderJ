@@ -91,19 +91,19 @@ public class SpeakActivity extends Activity implements OnInitListener, OnUtteran
         Reader = (FBReaderApp)ZLApplication.Instance();
         //requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        setListener(R.id.spokentextback, new View.OnClickListener() {
+        setListener(R.id.speak_menu_back, new View.OnClickListener() {
             public void onClick(View v) {
                 goBackward();
             }
         });
 
-        final Button forwardbutton = (Button) findViewById(R.id.spokentextforward);
+        final Button forwardbutton = (Button) findViewById(R.id.speak_menu_forward);
         forwardbutton.setOnClickListener(forwardListener);
 
-        pausebutton = (Button)findViewById(R.id.spokentextpause);
+        pausebutton = (Button)findViewById(R.id.speak_menu_pause);
         pausebutton.setOnClickListener(pauseListener);
 
-        final Button contentsButton = (Button) findViewById(R.id.spokentextcontents);
+        final Button contentsButton = (Button) findViewById(R.id.speak_menu_contents);
         contentsButton.setOnClickListener(contentsListener);
 
         setState(INACTIVE);
