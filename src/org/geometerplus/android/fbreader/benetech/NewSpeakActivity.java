@@ -232,15 +232,13 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			myParagraphIndex = myApi.getPageStart().ParagraphIndex;
 			myParagraphsNumber = myApi.getParagraphsNumber();
 			setActionsEnabled(true);
-			setActive(true);
 			speakParagraph(getNextParagraph());
 		} catch (Exception e) {
 			setActionsEnabled(false);
 			showErrorMessage(getText(R.string.initialization_error), true);
 		}
 	}
-    
-    
+
 	@Override
 	public void onUtteranceCompleted(String uttId) {
         String lastSentenceID = Integer.toString(lastSentence - 1);
@@ -316,22 +314,6 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(sentenceNumber));
 		myTTS.speak(text, TextToSpeech.QUEUE_ADD, callbackMap);
 	}
-    
-    private void speakParagraph(String text) {
-        String[] sentenceArray = text.split("[\\.\\!\\?]");
-        lastSentence = sentenceArray.length;
-        int startingSentenceNumber = 0;
-
-        if (justPaused) {                    // on returning from pause, start with the last sentence spoken
-            justPaused = false;
-            startingSentenceNumber = lastSpoken;
-        }
-
-        for(int i = startingSentenceNumber; i< lastSentence; i++) {
-            speakStringNew(sentenceArray[i], i);
-        }
-
-    }
 
 	private void gotoPreviousParagraph() {
         for (int i = myParagraphIndex - 1; i >= 0; --i) {
@@ -380,9 +362,24 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
     // Bookshare custom methods
 
+    private void speakParagraph(String text) {
+        setActive(true);
+        String[] sentenceArray = text.split("[\\.\\!\\?]");
+        lastSentence = sentenceArray.length;
+        int startingSentenceNumber = 0;
+
+        if (justPaused) {                    // on returning from pause, start with the last sentence spoken
+            justPaused = false;
+            startingSentenceNumber = lastSpoken;
+        }
+
+        for(int i = startingSentenceNumber; i< lastSentence; i++) {
+            speakStringNew(sentenceArray[i], i);
+        }
+    }
+
     private void playOrPause() {
             if (!myIsActive) {
-                setActive(true);
                 speakParagraph(getNextParagraph());
             } else {
                 stopTalking();
@@ -395,16 +392,12 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         stopTalking();
         if (myParagraphIndex < myParagraphsNumber) {
             ++myParagraphIndex;
-            lastSentence = 0;
-            setActive(true);
             speakParagraph(getNextParagraph());
         }
     }
 
     private void goBackward() {
         stopTalking();
-        lastSentence = 0;
-        setActive(true);
         gotoPreviousParagraph();
         speakParagraph(getNextParagraph());
     }
