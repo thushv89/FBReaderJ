@@ -196,8 +196,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	}
 
 	private volatile int myInitializationStatus;
-	private static int TTS_INITIALIZED = 2;
-	private static int FULLY_INITIALIZED =  TTS_INITIALIZED;
+	private final static int TTS_INITIALIZED = 2;
+	private final static int FULLY_INITIALIZED =  TTS_INITIALIZED;
 
 	// implements TextToSpeech.OnInitListener
 	public void onInit(int status) {
@@ -282,8 +282,12 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
             }
 		} else {
             lastSpoken = Integer.parseInt(uttId);
-            int spokenSentence = Integer.valueOf(uttId);
-            highlightSentence(wordIndexList.get(spokenSentence - 1) + 1, wordIndexList.get(spokenSentence));
+            if (myIsActive) {
+                int listSize = wordIndexList.size();
+                if (listSize > 1 && lastSpoken < listSize) {
+                    highlightSentence(wordIndexList.get(lastSpoken - 1) + 1, wordIndexList.get(lastSpoken));
+                }
+            }
 		}
 	}
 
@@ -386,7 +390,6 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 				runOnUiThread(new Runnable() {
 					public void run() {
 						findViewById(R.id.speak_menu_forward).setEnabled(false);
-						//findViewById(R.id.spokentextpause).setEnabled(false);
 					}
 				});
 			}
@@ -424,8 +427,11 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                     sentenceListIterator.next();
                 }
             }
-            //todo - fix sentence highlighting on return from a pause
-            //highlightSentence(wordIndexList.get(lastSpoken - 2) + 1, wordIndexList.get(lastSpoken - 1));
+            if (lastSpoken > 1) {
+                sentenceNumber = lastSpoken - 1;
+                highlightSentence(wordIndexList.get(lastSpoken - 2) + 1, wordIndexList.get(lastSpoken - 1));
+            }
+
         } else { //should only highlight first sentence of paragraph if we haven't just paused
             if (wordIndexList.size() > 0) {
                 highlightSentence(0, wordIndexList.get(0));
@@ -471,12 +477,12 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                 element = cursor.getElement();
             }
 
-            sentenceList.add(sb.toString());              // arrayList of sentences
+            sentenceList.add(sb.toString());
 
-            sb.setLength(0);                             // reset stringbuilder
+            sb.setLength(0);
             inSentence = true;
         }
-        sentenceListIterator = sentenceList.iterator();     // set the iterator
+        sentenceListIterator = sentenceList.iterator();
     }
 
     private void playOrPause() {
