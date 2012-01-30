@@ -19,7 +19,9 @@
 
 package org.geometerplus.android.fbreader.benetech;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 
 import android.app.Activity;
@@ -43,11 +45,14 @@ import org.benetech.android.R;
 import org.geometerplus.android.fbreader.TOCActivity;
 import org.geometerplus.android.fbreader.api.ApiServerImplementation;
 import org.geometerplus.android.fbreader.api.TextPosition;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
+import org.geometerplus.zlibrary.core.application.ZLApplication;
+import org.geometerplus.zlibrary.text.view.ZLTextElement;
+import org.geometerplus.zlibrary.text.view.ZLTextWord;
+import org.geometerplus.zlibrary.text.view.ZLTextWordCursor;
 
 public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitListener, TextToSpeech.OnUtteranceCompletedListener, SimpleGestureFilter.SimpleGestureListener  {
     private ApiServerImplementation myApi;
-
-	private static final String UTTERANCE_ID = "FBReaderTTSPlugin";
 
 	private TextToSpeech myTTS;
 
@@ -64,6 +69,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     private int lastSpoken = 0;
     private boolean justPaused = false;
     private boolean resumePlaying = false;
+    private Iterator<String> sentenceListIterator;
+    private ArrayList<Integer> wordIndexList;
 
     private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
@@ -266,7 +273,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
 	@Override
 	public void onUtteranceCompleted(String uttId) {
-        String lastSentenceID = Integer.toString(lastSentence - 1);
+        String lastSentenceID = Integer.toString(lastSentence);
 		if (myIsActive && uttId.equals(lastSentenceID)) {
             ++myParagraphIndex;
             speakParagraph(getNextParagraph());
@@ -275,6 +282,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
             }
 		} else {
             lastSpoken = Integer.parseInt(uttId);
+            int spokenSentence = Integer.valueOf(uttId);
+            highlightSentence(wordIndexList.get(spokenSentence - 1) + 1, wordIndexList.get(spokenSentence));
 		}
 	}
 
@@ -386,21 +395,88 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	}
 
     // Bookshare custom methods
+    
+    private void highlightSentence(int startWord, int endWord)  {
+        if (0 <= myParagraphIndex && myParagraphIndex < myParagraphsNumber) {
+            myApi.highlightArea(
+                    new TextPosition(myParagraphIndex, startWord, 0),
+                    new TextPosition(myParagraphIndex, endWord + 1, 0)
+            );
+        } else {
+            myApi.clearHighlighting();
+        }
+    }
 
     private void speakParagraph(String text) {
+        if (text.length() < 1) {
+            return;
+        }
         setActive(true);
-        String[] sentenceArray = text.split("[\\.\\!\\?]");
-        lastSentence = sentenceArray.length;
-        int startingSentenceNumber = 0;
+        createSentenceIterator();
+        
+        String currentSentence;
+        int sentenceNumber = 0;
 
-        if (justPaused) {                    // on returning from pause, start with the last sentence spoken
+        if (justPaused) {                    // on returning from pause, iterate to the last sentence spoken
             justPaused = false;
-            startingSentenceNumber = lastSpoken;
+            for (int i=1; i< lastSpoken; i++) {
+                if (sentenceListIterator.hasNext()) {
+                    sentenceListIterator.next();
+                }
+            }
+            //todo - fix sentence highlighting on return from a pause
+            //highlightSentence(wordIndexList.get(lastSpoken - 2) + 1, wordIndexList.get(lastSpoken - 1));
+        } else { //should only highlight first sentence of paragraph if we haven't just paused
+            if (wordIndexList.size() > 0) {
+                highlightSentence(0, wordIndexList.get(0));
+            }
         }
 
-        for(int i = startingSentenceNumber; i< lastSentence; i++) {
-            speakStringNew(sentenceArray[i], i);
+        while (sentenceListIterator.hasNext())  { 	// if there are sentences in the sentence queue
+            sentenceNumber++;
+            currentSentence = sentenceListIterator.next();
+            speakStringNew(currentSentence, sentenceNumber);
         }
+        
+        lastSentence = sentenceNumber;
+    }
+
+    private void createSentenceIterator() {
+        StringBuilder sb = new StringBuilder();
+        boolean inSentence = true;
+
+        ArrayList<String> sentenceList = new ArrayList<String>();
+        wordIndexList = new ArrayList<Integer>();
+
+        FBReaderApp myReader = (FBReaderApp) ZLApplication.Instance();
+        final ZLTextWordCursor cursor = new ZLTextWordCursor(myReader.getTextView().getStartCursor());
+        cursor.moveToParagraph(myParagraphIndex);
+        cursor.moveToParagraphStart();
+
+        while(!cursor.isEndOfParagraph()) {
+            ZLTextElement element = cursor.getElement();
+            while (inSentence)  {
+                if(element instanceof ZLTextWord) {
+                    if (element.toString().indexOf(".") == (element.toString().length() -1) ) {           // detects period at end of element
+                       sb.append(element.toString().substring(0,element.toString().indexOf(".")));        // remove period
+                        wordIndexList.add(cursor.getElementIndex());
+                       inSentence = false;
+                    } else {
+                          sb.append(element.toString()).append(" ");
+                    }
+                }
+                cursor.nextWord();
+                if (cursor.isEndOfParagraph())
+                    break;
+                element = cursor.getElement();
+            }
+
+            sentenceList.add(sb.toString());              // arrayList of sentences
+
+            sb.setLength(0);                             // reset stringbuilder
+            inSentence = true;
+        }
+        sentenceListIterator = sentenceList.iterator();     // set the iterator
     }
 
     private void playOrPause() {
