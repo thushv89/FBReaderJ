@@ -97,7 +97,7 @@ class Daisy3MetaInfoReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 		return true;
 	}
 
-	public void namespaceMapChangedHandler(HashMap<String,String> namespaceMap) {
+	public void namespaceMapChangedHandler(Map<String,String> namespaceMap) {
 		myTitleTag = null;
 		myAuthorTag = null;
 		mySubjectTag = null;
