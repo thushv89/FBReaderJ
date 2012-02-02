@@ -19,6 +19,7 @@
 
 package org.geometerplus.zlibrary.text.view;
 
+import org.geometerplus.fbreader.bookmodel.FBTextKind;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.util.ZLColor;
 import org.geometerplus.zlibrary.core.view.ZLView;
@@ -95,8 +96,11 @@ abstract class ZLTextViewBase extends ZLView {
 
 	void applyControl(ZLTextControlElement control) {
 		if (control.IsStart) {
-			final ZLTextStyleDecoration decoration =
+			ZLTextStyleDecoration decoration =
 				ZLTextStyleCollection.Instance().getDecoration(control.Kind);
+            if (null == decoration) {
+                decoration =  ZLTextStyleCollection.Instance().getDecoration(FBTextKind.REGULAR);
+            }
 			if (control instanceof ZLTextHyperlinkControlElement) {
 				setTextStyle(decoration.createDecoratedStyle(myTextStyle, ((ZLTextHyperlinkControlElement)control).Hyperlink));
 			} else {
