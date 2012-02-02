@@ -31,6 +31,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.bookshare.net.BookshareWebservice;
+import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.fbreader.library.Book;
@@ -213,7 +214,7 @@ public class Bookshare_Book_Details extends Activity{
 									}
 								}
 								
-								// Navigate to the local library
+								// View book or display error
 								else if(btn_download.getText().toString().equalsIgnoreCase(resources.getString(R.string.book_details_download_success))){
 									setResult(BOOKSHARE_BOOK_DETAILS_FINISHED);
 									if (null == downloadedBookDir) {
@@ -233,9 +234,12 @@ public class Bookshare_Book_Details extends Activity{
                                                 }
                                             }
                                             if (null != opfFile) {
-                                                Book myBook = Book.getByFile(opfFile);
-                                                ((FBReaderApp)FBReaderApp.Instance()).openBook(myBook, null);
-                                                finish();
+                                                startActivity(
+                                                    new Intent(getApplicationContext(), FBReader.class)
+                                                        .setAction(Intent.ACTION_VIEW)
+                                                        .putExtra(FBReader.BOOK_PATH_KEY, opfFile.getPath())
+                                                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                                );
                                             }
                                             
                                         }
