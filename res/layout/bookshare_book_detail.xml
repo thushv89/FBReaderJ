@@ -75,7 +75,7 @@
 							android:layout_height="wrap_content"
 							android:layout_marginLeft="20dip"
 							android:layout_marginRight="20dip"
-							android:text="Download"
+							android:text="@string/book_details_download_button"
 							android:textStyle="bold"
 							android:layout_span="2"
 							android:gravity="center"/>					    					

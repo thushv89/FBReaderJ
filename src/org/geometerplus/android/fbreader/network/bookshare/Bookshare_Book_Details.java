@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -20,6 +21,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import android.app.Dialog;
 import android.content.res.Resources;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import net.lingala.zip4j.core.ZipFile;
@@ -39,6 +41,7 @@ import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.fbreader.library.LibraryTree;
 import org.geometerplus.fbreader.tree.FBTree;
 import org.benetech.android.R;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -100,6 +103,7 @@ public class Bookshare_Book_Details extends Activity{
 	private LibraryTree libraryTreeBeforeDownload;
 	private Vector<Long> bookInstances;
     private Resources resources;
+    private String downloadedBookDir;
 
 	
 	@Override
@@ -202,7 +206,7 @@ public class Bookshare_Book_Details extends Activity{
 						btn_download.setOnClickListener(new OnClickListener(){
 							public void onClick(View v){
 								
-								if(btn_download.getText().toString().equalsIgnoreCase("Download")){
+								if(btn_download.getText().toString().equalsIgnoreCase(resources.getString(R.string.book_details_download_button))){
 									
 									// Start a new Activity for getting the OM member list
 									// See onActivityResult for further processing
@@ -218,17 +222,35 @@ public class Bookshare_Book_Details extends Activity{
 								}
 								
 								// Navigate to the local library
-								else if(btn_download.getText().toString().equalsIgnoreCase("Read Book")){
+								else if(btn_download.getText().toString().equalsIgnoreCase(resources.getString(R.string.book_details_download_success))){
 									setResult(BOOKSHARE_BOOK_DETAILS_FINISHED);
-									if(downloadedBook == null){
+									if (null == downloadedBookDir) {
 										final VoiceableDialog finishedDialog = new VoiceableDialog(btn_download.getContext());
                                         String message =  resources.getString(R.string.book_details_open_error);
                                         finishedDialog.popup(message, 2000);
 									}
-									else{
-										Library.Instance().addBookToRecentList(downloadedBook);
+									else {
+                                        if (null != downloadedBookDir) {
+                                            ZLFile bookDir = ZLFile.createFileByPath(downloadedBookDir);
+                                            List<ZLFile> bookEntries = bookDir.children();
+                                            ZLFile opfFile = null;
+                                            for (ZLFile entry : bookEntries) {
+                                                if (entry.getExtension().equals("opf")) {
+                                                    opfFile = entry;
+                                                    break;
+                                                }
+                                            }
+                                            if (null != opfFile) {
+                                                Book myBook = Book.getByFile(opfFile);
+                                                Library.Instance().addBookToRecentList(myBook);
+                                                ((FBReaderApp)FBReaderApp.Instance()).openBook(myBook, null);
+                                                finish();
+                                            }
+                                            
+                                        }
+/*										Library.Instance().addBookToRecentList(downloadedBook);
 										((FBReaderApp)FBReaderApp.Instance()).openBook(downloadedBook, null);
-										finish();
+										finish();*/
 									}
 								}
 							}
@@ -259,30 +281,30 @@ public class Bookshare_Book_Details extends Activity{
 						if(temp == null){
 							temp = "";
 						}
-						temp = temp.trim().equals("") ? "Not available" : temp;
+						temp = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 						bookshare_book_detail_authors_text.setText(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_authors_text.setText("Not available");
+						bookshare_book_detail_authors_text.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getIsbn() != null){
-						temp = metadata_bean.getIsbn().trim().equals("") ? "Not available" : metadata_bean.getIsbn();
+						temp = metadata_bean.getIsbn().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getIsbn();
 						bookshare_book_detail_isbn_text.setText(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_isbn_text.setText("Not available");
+						bookshare_book_detail_isbn_text.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getLanguage() != null){
-						temp = metadata_bean.getLanguage().trim().equals("") ? "Not available" : metadata_bean.getLanguage();
+						temp = metadata_bean.getLanguage().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getLanguage();
 						bookshare_book_detail_language_text.setText(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_language_text.setText("Not available");
+						bookshare_book_detail_language_text.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getCategory() != null){
@@ -298,12 +320,12 @@ public class Bookshare_Book_Details extends Activity{
 						if(temp == null){
 							temp = "";
 						}
-						temp = temp.trim().equals("") ? "Not available" : temp;
+						temp = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 						bookshare_book_detail_category_text.setText(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_category_text.setText("Not available");
+						bookshare_book_detail_category_text.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getPublishDate() != null){
@@ -353,25 +375,25 @@ public class Bookshare_Book_Details extends Activity{
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_publish_date_text.setText("Not available");
+						bookshare_book_detail_publish_date_text.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getPublisher() != null){
-						temp = metadata_bean.getPublisher().trim().equals("") ? "Not available" : metadata_bean.getPublisher();
+						temp = metadata_bean.getPublisher().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getPublisher();
 						bookshare_book_detail_publisher_text.setText(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_publisher_text.setText("Not available");
+						bookshare_book_detail_publisher_text.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getCopyright() != null){
-						temp = metadata_bean.getCopyright().trim().equals("") ? "Not available" : metadata_bean.getCopyright();
+						temp = metadata_bean.getCopyright().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getCopyright();
 						bookshare_book_detail_copyright_text.setText(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_copyright_text.setText("Not available");
+						bookshare_book_detail_copyright_text.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getCompleteSynopsis() != null &&
@@ -388,7 +410,7 @@ public class Bookshare_Book_Details extends Activity{
 						if(temp == null){
 							temp = "";
 						}
-						temp  = temp.trim().equals("") ? "Not available" : temp;
+						temp  = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 						bookshare_book_detail_synopsis_text.setText(temp.trim());
 						//System.out.println("Complete synopsis = "+temp.trim());
 						temp = "";
@@ -406,7 +428,7 @@ public class Bookshare_Book_Details extends Activity{
 						if(temp == null){
 							temp = "";
 						}
-						temp = temp.trim().equals("") ? "Not available" : temp;
+						temp = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 						bookshare_book_detail_synopsis_text.setText(temp.trim());
 						System.out.println("Brief Synopsis = "+temp);
 						temp = "";
@@ -424,7 +446,7 @@ public class Bookshare_Book_Details extends Activity{
 						if(temp == null){
 							temp = "";
 						}
-						temp  = temp.trim().equals("") ? "Not available" : temp;
+						temp  = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 
 						bookshare_book_detail_synopsis_text.setText(temp.trim());
 						temp = "";
@@ -447,6 +469,7 @@ public class Bookshare_Book_Details extends Activity{
 		@Override
 		protected void onPreExecute(){
 			btn_download.setText("Downloading Book...");
+            downloadedBookDir = null;
 			libraryTreeBeforeDownload = Library.Instance().getFirstLevelTree(Library.ROOT_BY_AUTHOR);
 			if(bookInstances == null){
 				bookInstances = new Vector<Long>();						
@@ -497,13 +520,14 @@ public class Bookshare_Book_Details extends Activity{
 						filename = filename.replaceAll(" +", "_").replaceAll(":", "__");
 					}
 					String zip_file = Paths.BooksDirectoryOption().getValue() +"/"+ filename + ".zip";
+                    downloadedBookDir = Paths.BooksDirectoryOption().getValue() + "/" + filename;
 					
 					File downloaded_zip_file = new File(zip_file);
 					if(downloaded_zip_file.exists()){
 						downloaded_zip_file.delete();
 					}
 					Header header = entity.getContentType();
-					System.out.println("******  zip_file *****"+zip_file);
+					//Log.w("FBR", "******  zip_file *****" + zip_file);
 					if(header.getValue().contains("zip")){
 						try{
 							System.out.println("Contains zip");
@@ -553,18 +577,18 @@ public class Bookshare_Book_Details extends Activity{
 								// Loop through the file headers
 								for (int i = 0; i < fileHeaderList.size(); i++) {
 									FileHeader fileHeader = (FileHeader)fileHeaderList.get(i);
-									System.out.println(Paths.BooksDirectoryOption().getValue() +"/"+ filename);
+									System.out.println(downloadedBookDir);
 									// Extract the file to the specified destination
-									zipFile.extractFile(fileHeader, Paths.BooksDirectoryOption().getValue() +"/"+ filename);
+									zipFile.extractFile(fileHeader, downloadedBookDir);
 								}
 							}
 							// Unzip the non-encrypted archive file
 							else{
 								try
 						        {
-									File file = new File(Paths.BooksDirectoryOption().getValue() +"/"+ filename);
+									File file = new File(downloadedBookDir);
 									file.mkdir();
-						            String destinationname = Paths.BooksDirectoryOption().getValue() +"/"+ filename + "/";
+						            String destinationname = downloadedBookDir + "/";
 						            byte[] buf = new byte[1024];
 						            ZipInputStream zipinputstream = null;
 						            ZipEntry zipentry;
@@ -636,13 +660,9 @@ public class Bookshare_Book_Details extends Activity{
 		// Will be called in the UI thread
 		@Override
 		protected void onPostExecute(Void param){
-			
-			// Clear the library instance to fetch recently downloaded book
-            // todo - Rom - need to reimplement after new code base
-			//Library.Instance().clear();
 
 			// Get the latest set of books
-			LibraryTree libraryTreeAfterDownload = Library.Instance().getFirstLevelTree(Library.ROOT_RECENT);
+			LibraryTree libraryTreeAfterDownload = Library.Instance().getFirstLevelTree(Library.ROOT_BY_AUTHOR);
 			for (FBTree tree : libraryTreeAfterDownload) {
 				if(tree instanceof BookTree){
 					Book book = ((BookTree)tree).Book;
@@ -671,6 +691,7 @@ public class Bookshare_Book_Details extends Activity{
 
 				btn_download.setText(resources.getString(R.string.book_details_download_error));
 				btn_download.setEnabled(true);
+                downloadedBookDir = null;
 				//finish();
 			}
 		}
