@@ -419,6 +419,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         
         String currentSentence;
         int sentenceNumber = 0;
+        int numWordIndices = wordIndexList.size();
 
         if (justPaused) {                    // on returning from pause, iterate to the last sentence spoken
             justPaused = false;
@@ -427,13 +428,13 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                     sentenceListIterator.next();
                 }
             }
-            if (lastSpoken > 1) {
+            if (lastSpoken > 1 && numWordIndices > 1) {
                 sentenceNumber = lastSpoken - 1;
                 highlightSentence(wordIndexList.get(lastSpoken - 2) + 1, wordIndexList.get(lastSpoken - 1));
             }
 
         } else { //should only highlight first sentence of paragraph if we haven't just paused
-            if (wordIndexList.size() > 0) {
+            if (numWordIndices > 0) {
                 highlightSentence(0, wordIndexList.get(0));
             }
         }
