@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -19,7 +18,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import android.app.Dialog;
 import android.content.res.Resources;
 import android.util.Log;
 import android.view.Window;
@@ -36,10 +34,7 @@ import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.fbreader.library.Book;
-import org.geometerplus.fbreader.library.BookTree;
 import org.geometerplus.fbreader.library.Library;
-import org.geometerplus.fbreader.library.LibraryTree;
-import org.geometerplus.fbreader.tree.FBTree;
 import org.benetech.android.R;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.xml.sax.Attributes;
@@ -99,9 +94,6 @@ public class Bookshare_Book_Details extends Activity{
 	private String memberId = null;
 	private String omDownloadPassword;
 	private boolean downloadSuccess;
-	private Book downloadedBook;
-	private LibraryTree libraryTreeBeforeDownload;
-	private Vector<Long> bookInstances;
     private Resources resources;
     private String downloadedBookDir;
 
@@ -242,15 +234,11 @@ public class Bookshare_Book_Details extends Activity{
                                             }
                                             if (null != opfFile) {
                                                 Book myBook = Book.getByFile(opfFile);
-                                                Library.Instance().addBookToRecentList(myBook);
                                                 ((FBReaderApp)FBReaderApp.Instance()).openBook(myBook, null);
                                                 finish();
                                             }
                                             
                                         }
-/*										Library.Instance().addBookToRecentList(downloadedBook);
-										((FBReaderApp)FBReaderApp.Instance()).openBook(downloadedBook, null);
-										finish();*/
 									}
 								}
 							}
@@ -470,21 +458,7 @@ public class Bookshare_Book_Details extends Activity{
 		protected void onPreExecute(){
 			btn_download.setText("Downloading Book...");
             downloadedBookDir = null;
-			libraryTreeBeforeDownload = Library.Instance().getFirstLevelTree(Library.ROOT_BY_AUTHOR);
-			if(bookInstances == null){
-				bookInstances = new Vector<Long>();						
-			}
-			else{
-				bookInstances.clear();
-			}
-			for (FBTree tree : libraryTreeBeforeDownload) {
-				if(tree instanceof BookTree){
-					Book book = ((BookTree)tree).Book;
-					// Add the book instance to the Vector
-					bookInstances.add(book.getId());
-				}
-			}
-			
+
 			// Disable the download button while the download is in progress
 			btn_download.setEnabled(false);
 		}
@@ -661,22 +635,7 @@ public class Bookshare_Book_Details extends Activity{
 		@Override
 		protected void onPostExecute(Void param){
 
-			// Get the latest set of books
-			LibraryTree libraryTreeAfterDownload = Library.Instance().getFirstLevelTree(Library.ROOT_BY_AUTHOR);
-			for (FBTree tree : libraryTreeAfterDownload) {
-				if(tree instanceof BookTree){
-					Book book = ((BookTree)tree).Book;
-					// Locate the recently downloaded book
-					if(!bookInstances.contains(book.getId())){
-						downloadedBook = book;						
-						// Add the downloaded book to recents list. The book will now appear under recent tab in local library.
-						Library.Instance().addBookToRecentList(book);
-						break;
-					}
-				}
-			}
-
-            final VoiceableDialog finishedDialog = new VoiceableDialog(btn_download.getContext());
+			final VoiceableDialog finishedDialog = new VoiceableDialog(btn_download.getContext());
 			
 			if(downloadSuccess){
                 String message =  resources.getString(R.string.book_details_download_success);
@@ -685,8 +644,8 @@ public class Bookshare_Book_Details extends Activity{
 				btn_download.setEnabled(true);
 			}
 			else{
-				String message = error != null ? error.getMessagesFormatted() : "Download Failed!";
-				message = resources.getString(R.string.book_details_download_error);
+				//String message = error != null ? error.getMessagesFormatted() : "Download Failed!";
+				String message = resources.getString(R.string.book_details_download_error);
                 finishedDialog.popup(message, 1500);
 
 				btn_download.setText(resources.getString(R.string.book_details_download_error));
