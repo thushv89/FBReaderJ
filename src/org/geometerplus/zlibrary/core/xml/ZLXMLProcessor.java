@@ -24,6 +24,8 @@ import java.io.*;
 
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 
+import android.util.Log;
+
 public abstract class ZLXMLProcessor {
 	public static Map<String,char[]> getEntityMap(List<String> dtdList) {
 		try {
@@ -42,6 +44,7 @@ public abstract class ZLXMLProcessor {
 			reader.endDocumentHandler();
 		} catch (IOException e) {
 			//System.out.println(e);
+            Log.e("FBR", "entity error", e);
 			return false;
 		} finally {
 			if (parser != null) {
