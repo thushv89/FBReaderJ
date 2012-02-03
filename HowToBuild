@@ -52,7 +52,7 @@ Part B
 5. Choose create project from existing source. Point to the location of the downloaded code.
 6. Put the .jar files in the /libs directory in the build path (present in FBReaderJ directory).  In Eclipse this is best done from FBReader->Properties->Java Build Path->Add JARs for both JAR files.  This step should remove all the errors mentioned in the step 3.
 7. To enable use of the Bookshare library, you need to obtain a developer key at http://developer.bookshare.org.  One you have an application key, you need to enter it into org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey.java
-8. Build from within Eclipse
+8. Build from within Eclipse  or 'ant clean debug' to build an installable .apk file
 9. The signed apk will be present in the /bin folder which can be installed on the Android device/emulator.
 
 Side Notes:
