@@ -24,10 +24,13 @@ import java.util.*;
 import android.app.*;
 import android.os.*;
 import android.view.*;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.*;
 import android.content.*;
 
 import org.accessibility.VoiceableDialog;
+import org.geometerplus.fbreader.fbreader.ActionCode;
+import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
@@ -56,6 +59,9 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 	private final ZLStringOption myBookmarkSearchPatternOption =
 		new ZLStringOption("BookmarkSearch", "Pattern", "");
 
+    //Added for the detecting whether the talkback is on
+    private AccessibilityManager accessibilityManager;
+
 	private ListView createTab(String tag, int id) {
 		final TabHost host = getTabHost();
 		final String label = myResource.getResource(tag).getValue();
@@ -68,6 +74,8 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		super.onCreate(bundle);
 
 		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
+        accessibilityManager =
+            (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
@@ -226,7 +234,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 			final Book book = Book.getById(bookId);
 			if (book != null) {
 				finish();
-				Library.Instance().addBookToRecentList(book);
+                Library.addBookToRecentList(book);
 				fbreader.openBook(book, bookmark);
 			} else {
 				UIUtil.showErrorMessage(this, "cannotOpenBook");
@@ -234,6 +242,9 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		} else {
 			finish();
 			fbreader.gotoBookmark(bookmark);
+            if (accessibilityManager.isEnabled()) {
+                ZLApplication.Instance().doAction(ActionCode.SPEAK);
+            }
 		}
 	}
 
