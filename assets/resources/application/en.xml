@@ -221,7 +221,7 @@
 		<node name="returnTo" value="Return to &#8230;"/>
 		<node name="back" value="Back"/>
 		<node name="forward" value="Forward"/>
-		<node name="close" value="Close FBReader"/>
+		<node name="close" value="Close Bookshare Reader "/>
 	</node>
 	<node name="selection" value="Selection">
 		<node name="copyToClipboard" value="Copy to clipboard"/>

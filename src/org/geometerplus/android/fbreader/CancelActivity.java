@@ -35,7 +35,7 @@ public class CancelActivity extends ListActivity {
 	@Override
 	protected void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.setTitle(getResources().getString(R.string.cancel_menu_title));
 		final ActionListAdapter adapter = new ActionListAdapter(getIntent());
 		setListAdapter(adapter);
 		getListView().setOnItemClickListener(adapter);

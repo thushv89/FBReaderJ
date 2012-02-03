@@ -60,6 +60,9 @@
     <string name="bks_menu_log_out">Log Out of Bookshare</string>
     <string name="empty_search_term_error">Search Term cannot be blank!</string>
     
+    <!-- Cancel Activity -->
+    <string name="cancel_menu_title">Leaving us? Choose below ...</string>
+    
     <!-- FBReader -->
     <string name="navigate_dialog_title">Navigate to page.</string>
     <string name="navigate_dialog_label">Enter page number.</string>
