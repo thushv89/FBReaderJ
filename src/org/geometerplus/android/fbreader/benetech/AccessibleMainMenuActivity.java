@@ -47,11 +47,6 @@ public class AccessibleMainMenuActivity extends Activity {
 		list.setAdapter(adapter);
 		list.setOnItemClickListener(new MainMenuClickListener(this));
     }
-    
-    protected void onStart() {
-        super.onResume();
-        list.setSelection(0);
-    }
 
 	private class ListItemsAdapter extends ArrayAdapter<Object> {
 		public ListItemsAdapter(List<Object> items) {
