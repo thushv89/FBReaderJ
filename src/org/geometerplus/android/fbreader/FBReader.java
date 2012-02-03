@@ -21,6 +21,7 @@ package org.geometerplus.android.fbreader;
 
 import java.util.*;
 
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.*;
 import android.content.res.Resources;
@@ -28,7 +29,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
@@ -65,6 +69,10 @@ public final class FBReader extends ZLAndroidActivity {
     private Resources resources;
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
+    private Dialog dialog;
+    private EditText dialog_search_term;
+    private TextView dialog_search_title;
+    private TextView dialog_example_text;
     
 	final static int REPAINT_CODE = 1;
 	final static int CANCEL_CODE = 2;
@@ -379,97 +387,85 @@ public final class FBReader extends ZLAndroidActivity {
         String message =  resources.getString(R.string.page_navigated, page);
         finishedDialog.popup(message, 2000);
 
-        final ZLView view = ZLApplication.Instance().getCurrentView();
-        if (view instanceof ZLTextView) {
-            ZLTextView textView = (ZLTextView) view;
-            if (page == 1) {
-                textView.gotoHome();
-            }
-            else{
-                textView.gotoPage(page);
-            }
-            //todo: Rom - accessible navigate to page
-            //ZLApplication.Instance().repaintView();
+        gotoPage(page);
+    }
+    
+    private void gotoPage(int page) {
+        final ZLTextView view = (ZLTextView)FBReaderApp.Instance().getCurrentView();
+        if (page == 1) {
+            view.gotoHome();
+        } else {
+            view.gotoPage(page);
         }
+        FBReaderApp.Instance().getViewWidget().reset();
+        FBReaderApp.Instance().getViewWidget().repaint();
     }
 
 	public void navigate() {
-		((NavigationPopup)FBReaderApp.Instance().getPopupById(NavigationPopup.ID)).runNavigation();
-     /*   if(accessibilityManager.isEnabled()){
-        			dialog = new Dialog(this);
-        			dialog.setContentView(R.layout.bookshare_dialog);
-        			dialog.setTitle(resources.getString(R.string.navigate_dialog_title));
-        			dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
-        			dialog_search_term.setContentDescription(resources.getString(R.string.navigate_dialog_label));
-        			dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
-        			dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
-        			Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
-        			Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
-        			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-        			final int currentPage = textView.computeCurrentPage();
-        			final int pagesNumber = textView.computePageNumber();
-        			dialog_search_title.setText(resources.getString(R.string.navigate_dialog_label));
-        			dialog_example_text.setText(resources.getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
-        			dialog_search_term.setOnKeyListener(new OnKeyListener() {
-        			    public boolean onKey(View v, int keyCode, KeyEvent event) {
-        			        // If the event is a key-down event on the "enter" button
-        			        if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
-        			            (keyCode == KeyEvent.KEYCODE_ENTER)) {
-        			          // Perform action on key press
-        						int page = 1;
-        						try{
-        							page = Integer.parseInt(dialog_search_term.getText().toString().trim());
-        						}
-        						catch(NumberFormatException nfe){
-        							dialog.dismiss();
-        							return true;
-        						}
-        						navigateByPage(page);
-        						dialog.dismiss();
-        			          return true;
-        			        }
-        			        return false;
-        			    }
-        			});
-        			dialog_ok.setOnClickListener(new OnClickListener(){
-        				public void onClick(View v){
-        					int page = 1;
-        					try{
-        						page = Integer.parseInt(dialog_search_term.getText().toString().trim());
-        					}
-        					catch(NumberFormatException nfe){
-        						dialog.dismiss();
-        						return;
-        					}
-        					navigateByPage(page);
-        					dialog.dismiss();
-        				}
-        			});
-        			dialog_cancel.setOnClickListener(new OnClickListener(){
-        				public void onClick(View v){
-        					dialog.dismiss();
-        				}
-        			});
-        			dialog.show();
-                    dialog_search_term.requestFocus();
-        		}
-        		else{
-        			if (!myNavigatePanel.hasControlPanel()) {
-        				// Adding this block to set the control panel to a non-null value. This is necessary in showing the navigation slider
-        				final RelativeLayout root = (RelativeLayout)FBReader.this.findViewById(R.id.root_view);
-        				final ControlPanel panel = new ControlPanel(this);
-        				final View layout = getLayoutInflater().inflate(R.layout.navigate, panel, false);
-        				createNavigation(layout);
-        				panel.setExtension(layout);
-        				myNavigatePanel.setControlPanel(panel, root, true);
-        			}
-        
-        			final ZLTextView textView = (ZLTextView) ZLApplication.Instance().getCurrentView();
-        			myNavigatePanel.NavigateDragging = false;
-        			myNavigatePanel.StartPosition = new ZLTextFixedPosition(textView.getStartCursor());
-        			myNavigatePanel.show(true);
-        		}
-     */
+        if(accessibilityManager.isEnabled()){
+            dialog = new Dialog(this);
+            dialog.setContentView(R.layout.bookshare_dialog);
+            dialog.setTitle(resources.getString(R.string.navigate_dialog_title));
+            dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
+            dialog_search_term.setContentDescription(resources.getString(R.string.navigate_dialog_label));
+            dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
+            dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
+            Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
+            Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
+            
+            final ZLTextView textView = (ZLTextView)FBReaderApp.Instance().getCurrentView();
+            final ZLTextView.PagePosition pagePosition = textView.pagePosition();
+            
+            final int currentPage = pagePosition.Current;
+            final int pagesNumber = pagePosition.Total;
+            dialog_search_title.setText(resources.getString(R.string.navigate_dialog_label));
+            dialog_example_text.setText(resources.getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
+            dialog_search_term.setOnKeyListener(new View.OnKeyListener() {
+                public boolean onKey(View v, int keyCode, KeyEvent event) {
+                    // If the event is a key-down event on the "enter" button
+                    if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
+                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
+                      // Perform action on key press
+                        int page = 1;
+                        try{
+                            page = Integer.parseInt(dialog_search_term.getText().toString().trim());
+                        }
+                        catch(NumberFormatException nfe){
+                            dialog.dismiss();
+                            return true;
+                        }
+                        navigateByPage(page);
+                        dialog.dismiss();
+                      return true;
+                    }
+                    return false;
+                }
+            });
+            dialog_ok.setOnClickListener(new View.OnClickListener(){
+                public void onClick(View v){
+                    int page = 1;
+                    try{
+                        page = Integer.parseInt(dialog_search_term.getText().toString().trim());
+                    }
+                    catch(NumberFormatException nfe){
+                        dialog.dismiss();
+                        return;
+                    }
+                    navigateByPage(page);
+                    dialog.dismiss();
+                }
+            });
+            dialog_cancel.setOnClickListener(new View.OnClickListener(){
+                public void onClick(View v){
+                    dialog.dismiss();
+                }
+            });
+            dialog.show();
+            dialog_search_term.requestFocus();
+        }
+        else{
+            ((NavigationPopup)FBReaderApp.Instance().getPopupById(NavigationPopup.ID)).runNavigation();
+        }
 	}
     
     /** 
