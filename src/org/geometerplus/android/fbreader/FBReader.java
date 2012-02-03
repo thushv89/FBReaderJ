@@ -238,6 +238,9 @@ public final class FBReader extends ZLAndroidActivity {
 			UIUtil.wait("search", runnable, this);
 		} else {
 			super.onNewIntent(intent);
+            if (accessibilityManager.isEnabled()) {
+                ZLApplication.Instance().doAction(ActionCode.SPEAK);
+            }
 		}
 	}
 
