@@ -26,6 +26,7 @@ import java.util.Locale;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -37,6 +38,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -72,6 +74,17 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     private Iterator<String> sentenceListIterator;
     private ArrayList<Integer> wordIndexList;
 
+    //Added for the detecting whether the talkback is on
+    private AccessibilityManager accessibilityManager;
+
+    private static final long[] VIBE_PATTERN = {
+        0, 10, 70, 80
+    };
+    public static final String CONTENTS_EARCON = "[CONTENTS]";
+    public static final String MENU_EARCON = "[MENU]";
+    public static final String FORWARD_EARCON = "[FORWARD]";
+    public static final String BACK_EARCON = "[BACK]";
+
     private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
 	}
@@ -88,6 +101,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         this.getWindow().setAttributes(params);
         detector = new SimpleGestureFilter(this,this);
         myVib = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
+        accessibilityManager =
+            (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 
 		setListener(R.id.speak_menu_back, new View.OnClickListener() {
 			public void onClick(View v) {
@@ -260,6 +275,10 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 				}
 			}
 			myTTS.setLanguage(locale);
+            myTTS.addEarcon(CONTENTS_EARCON, "org.benetech.android", R.raw.sound_toc);
+            myTTS.addEarcon(MENU_EARCON, "org.benetech.android", R.raw.sound_main_menu);
+            myTTS.addEarcon(FORWARD_EARCON, "org.benetech.android", R.raw.sound_forward);
+            myTTS.addEarcon(BACK_EARCON, "org.benetech.android", R.raw.sound_back);
 
 			myParagraphIndex = myApi.getPageStart().ParagraphIndex;
 			myParagraphsNumber = myApi.getParagraphsNumber();
@@ -498,6 +517,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
     private void goForward() {
         stopTalking();
+        myTTS.playEarcon(FORWARD_EARCON, TextToSpeech.QUEUE_ADD, null);
         if (myParagraphIndex < myParagraphsNumber) {
             ++myParagraphIndex;
             speakParagraph(getNextParagraph());
@@ -506,15 +526,28 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
     private void goBackward() {
         stopTalking();
+        myTTS.playEarcon(BACK_EARCON, TextToSpeech.QUEUE_ADD, null);
         gotoPreviousParagraph();
         speakParagraph(getNextParagraph());
     }
 
     private void showContents() {
         stopTalking();
+        myTTS.playEarcon(CONTENTS_EARCON, TextToSpeech.QUEUE_FLUSH, null);
         setActive(false);
         Intent tocIntent = new Intent(this, TOCActivity.class);
         startActivityForResult(tocIntent, PLAY_AFTER_TOC);
+    }
+    
+    private void showMainMenu() {
+        stopTalking();
+        myTTS.playEarcon(MENU_EARCON, TextToSpeech.QUEUE_ADD, null);
+        setActive(false);
+        if (!accessibilityManager.isEnabled()) {
+            finish();
+        }
+        Intent intent = new Intent(this, AccessibleMainMenuActivity.class);
+        startActivityForResult(intent, PLAY_AFTER_TOC);
     }
 
     @Override
@@ -525,7 +558,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
     @Override
     public void onSwipe(int direction) {
-        myVib.vibrate(100);
+        myVib.vibrate(VIBE_PATTERN, -1);
         switch (direction) {
             case SimpleGestureFilter.SWIPE_RIGHT :
                 goForward();
@@ -534,7 +567,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                 goBackward();
                 break;
             case SimpleGestureFilter.SWIPE_DOWN :
-                showContents();
+                showMainMenu();
                 break;
             case SimpleGestureFilter.SWIPE_UP :
                 showContents();
@@ -544,7 +577,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
     @Override
     public void onDoubleTap() {
-        myVib.vibrate(100);
+        myVib.vibrate(VIBE_PATTERN, -1);
         playOrPause();
     }
 }

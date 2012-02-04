@@ -83,8 +83,8 @@
     
     <!-- SpeakActivity -->
     <string name="play">Play/Pause</string>
-    <string name="next">Next Para</string>
-    <string name="previous">Previous Para</string>
+    <string name="next">Next section</string>
+    <string name="previous">Prev section</string>
     <string name="toc">Table of Contents</string>
     <string name="on_press_play">Play/Pause</string>
     <string name="on_press_pause">Pause/Play</string>

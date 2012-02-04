@@ -20,7 +20,7 @@
             android:nextFocusRight="@+id/speak_menu_pause"
             android:nextFocusLeft="@+id/speak_menu_contents"
             android:layout_weight="2"
-            android:contentDescription="@string/previous"
+            android:contentDescription="previous section"
             android:text="@string/previous"/>
 
     <Button android:id="@+id/speak_menu_pause"
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:nextFocusRight="@+id/speak_menu_forward"
             android:nextFocusLeft="@+id/speak_menu_back"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:contentDescription="@string/play"
             android:text="@string/play" />
 
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:nextFocusRight="@+id/speak_menu_contents"
             android:nextFocusLeft="@+id/speak_menu_pause"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:contentDescription="@string/next"
             android:text="@string/next" />
 
