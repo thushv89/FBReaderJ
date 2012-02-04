@@ -35,6 +35,7 @@ import android.speech.tts.TextToSpeech;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -543,9 +544,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         stopTalking();
         myTTS.playEarcon(MENU_EARCON, TextToSpeech.QUEUE_ADD, null);
         setActive(false);
-        if (!accessibilityManager.isEnabled()) {
-            finish();
-        }
+        justPaused = true;
         Intent intent = new Intent(this, AccessibleMainMenuActivity.class);
         startActivityForResult(intent, PLAY_AFTER_TOC);
     }
@@ -567,7 +566,9 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                 goBackward();
                 break;
             case SimpleGestureFilter.SWIPE_DOWN :
-                showMainMenu();
+                if (accessibilityManager.isEnabled()) {
+                    showMainMenu();
+                }
                 break;
             case SimpleGestureFilter.SWIPE_UP :
                 showContents();
@@ -579,5 +580,18 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     public void onDoubleTap() {
         myVib.vibrate(VIBE_PATTERN, -1);
         playOrPause();
+    }
+
+    /*
+     * show accessible full screen menu when accessibility is turned on
+     *
+    */
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (accessibilityManager.isEnabled()) {
+            if(keyCode == KeyEvent.KEYCODE_MENU){
+                showMainMenu();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }
