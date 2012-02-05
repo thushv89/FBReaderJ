@@ -36,7 +36,7 @@ public class AccessibleMainMenuActivity extends Activity {
         setContentView(R.layout.dialog);
         resources = getApplicationContext().getResources();
 
-        int menuItemLimit = 10;
+        int menuItemLimit = 9;
 
         for ( int i = 0; i < menuItemLimit; i++ ) {
 			Object object = new Object();
