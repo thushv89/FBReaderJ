@@ -206,9 +206,9 @@
 	</node>
 	<node name="bookmarksView">
 		<node name="thisBook" value="This book"/>
-		<node name="allBooks" value="All books"/>
+		<node name="allBooks" value="For all books in library"/>
 		<node name="found" value="Found"/>
-		<node name="new" value="New bookmark"/>
+		<node name="new" value="Add new bookmark"/>
 		<node name="open" value="Open"/>
 		<node name="edit" value="Edit bookmark"/>
 		<node name="delete" value="Delete bookmark"/>

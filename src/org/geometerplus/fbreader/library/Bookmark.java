@@ -21,6 +21,8 @@ package org.geometerplus.fbreader.library;
 
 import java.util.*;
 
+import org.benetech.android.R;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.zlibrary.text.view.*;
 
 public final class Bookmark extends ZLTextFixedPosition {
@@ -174,6 +176,10 @@ public final class Bookmark extends ZLTextFixedPosition {
 		int storedWordCounter = 0;
 		boolean lineIsNonEmpty = false;
 		boolean appendLineBreak = false;
+        
+        final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
+        final ZLTextView.PagePosition pagePosition = textView.pagePosition();
+
 mainLoop:
 		while (wordCounter < maxWords && sentenceCounter < 3) {
 			while (cursor.isEndOfParagraph()) {
@@ -245,6 +251,9 @@ mainLoop:
 			}
 			builder.append(sentenceBuilder);
 		}
+        if (builder.length() > 1) {
+            builder.append(" - page ").append(pagePosition.Current);
+        }
 		return builder.toString();
 	}
 }
