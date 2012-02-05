@@ -116,6 +116,7 @@ public class AccessibleMainMenuActivity extends Activity {
         bookshare(resources.getString(R.string.menu_bookshare), new MenuOperation() {
             public void click(Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.BOOKSHARE);
+                activity.finish();
             }
         }),
         networkLibrary(resources.getString(R.string.menu_network_library), new MenuOperation() {
