@@ -143,12 +143,12 @@ public class AccessibleMainMenuActivity extends Activity {
                 activity.finish();
 	        }
 	    }),
-	    search(resources.getString(R.string.menu_search), new MenuOperation() {
+/*	    search(resources.getString(R.string.menu_search), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SEARCH);
                 activity.finish();
 	        }
-	    }),
+	    }),*/
 	    bookInfo(resources.getString(R.string.menu_book_info), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_BOOK_INFO);
