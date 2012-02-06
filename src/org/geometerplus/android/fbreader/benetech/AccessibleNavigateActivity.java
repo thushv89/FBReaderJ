@@ -1,6 +1,5 @@
 package org.geometerplus.android.fbreader.benetech;
 
-import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
@@ -20,7 +19,7 @@ public class AccessibleNavigateActivity extends Activity {
     
     private EditText searchTermEditText;
     private Activity parentActivity;
-    
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,7 +36,7 @@ public class AccessibleNavigateActivity extends Activity {
         
         final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
         final ZLTextView.PagePosition pagePosition = textView.pagePosition();
-        
+
         final int currentPage = pagePosition.Current;
         final int pagesNumber = pagePosition.Total;
         dialog_search_title.setText(getResources().getString(R.string.navigate_dialog_label));
@@ -56,7 +55,6 @@ public class AccessibleNavigateActivity extends Activity {
                         return true;
                     }
                     gotoPage(page);
-                    parentActivity.finish();
                     return true;
                 }
                 return false;
@@ -71,7 +69,7 @@ public class AccessibleNavigateActivity extends Activity {
                     return;
                 }
                 gotoPage(page);
-                parentActivity.finish();
+
             }
         });
         dialog_cancel.setOnClickListener(new View.OnClickListener(){
@@ -92,6 +90,7 @@ public class AccessibleNavigateActivity extends Activity {
         }
         FBReaderApp.Instance().getViewWidget().reset();
         FBReaderApp.Instance().getViewWidget().repaint();
+        finish();
     }
     
 }

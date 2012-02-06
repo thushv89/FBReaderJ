@@ -562,7 +562,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         stopTalking();
         myTTS.playEarcon(MENU_EARCON, TextToSpeech.QUEUE_ADD, null);
         setActive(false);
-        justPaused = true;
+        resumePlaying = true;
         Intent intent = new Intent(this, AccessibleMainMenuActivity.class);
         startActivityForResult(intent, PLAY_AFTER_TOC);
     }
