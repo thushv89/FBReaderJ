@@ -133,7 +133,7 @@ public class AccessibleMainMenuActivity extends Activity {
 	    }),
 	    navigate(resources.getString(R.string.menu_navigate), new MenuOperation() {
 	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SHOW_NAVIGATION);
+                ZLApplication.Instance().doAction(ActionCode.ACCESSIBLE_NAVIGATION);
                 activity.finish();
 	        }
 	    }),

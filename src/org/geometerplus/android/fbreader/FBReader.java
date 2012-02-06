@@ -144,6 +144,7 @@ public final class FBReader extends ZLAndroidActivity {
 
         fbReader.addAction(ActionCode.SPEAK, new ShowSpeakAction(this, fbReader));
         fbReader.addAction(ActionCode.BOOKSHARE, new ShowBookshareMenuAction(this, fbReader));
+        fbReader.addAction(ActionCode.ACCESSIBLE_NAVIGATION, new ShowAccessiblePageNavigateAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_LIBRARY, new ShowLibraryAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_PREFERENCES, new ShowPreferencesAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_BOOK_INFO, new ShowBookInfoAction(this, fbReader));
@@ -383,92 +384,8 @@ public final class FBReader extends ZLAndroidActivity {
 		}
 	}
 
-    // Method to navigate to the specified page in the book
-    private void navigateByPage(int page){
-
-        final VoiceableDialog finishedDialog = new VoiceableDialog(this);
-        String message =  resources.getString(R.string.page_navigated, page);
-        finishedDialog.popup(message, 2000);
-
-        gotoPage(page);
-    }
-    
-    private void gotoPage(int page) {
-        final ZLTextView view = (ZLTextView)FBReaderApp.Instance().getCurrentView();
-        if (page == 1) {
-            view.gotoHome();
-        } else {
-            view.gotoPage(page);
-        }
-        FBReaderApp.Instance().getViewWidget().reset();
-        FBReaderApp.Instance().getViewWidget().repaint();
-    }
-
 	public void navigate() {
-        if(accessibilityManager.isEnabled()){
-            dialog = new Dialog(this);
-            dialog.setContentView(R.layout.bookshare_dialog);
-            dialog.setTitle(resources.getString(R.string.navigate_dialog_title));
-            dialog_search_term = (EditText)dialog.findViewById(R.id.bookshare_dialog_search_edit_txt);
-            dialog_search_term.setContentDescription(resources.getString(R.string.navigate_dialog_label));
-            dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
-            dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
-            Button dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
-            Button dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
-            
-            final ZLTextView textView = (ZLTextView)FBReaderApp.Instance().getCurrentView();
-            final ZLTextView.PagePosition pagePosition = textView.pagePosition();
-            
-            final int currentPage = pagePosition.Current;
-            final int pagesNumber = pagePosition.Total;
-            dialog_search_title.setText(resources.getString(R.string.navigate_dialog_label));
-            dialog_example_text.setText(resources.getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
-            dialog_search_term.setOnKeyListener(new View.OnKeyListener() {
-                public boolean onKey(View v, int keyCode, KeyEvent event) {
-                    // If the event is a key-down event on the "enter" button
-                    if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
-                        (keyCode == KeyEvent.KEYCODE_ENTER)) {
-                      // Perform action on key press
-                        int page = 1;
-                        try{
-                            page = Integer.parseInt(dialog_search_term.getText().toString().trim());
-                        }
-                        catch(NumberFormatException nfe){
-                            dialog.dismiss();
-                            return true;
-                        }
-                        navigateByPage(page);
-                        dialog.dismiss();
-                      return true;
-                    }
-                    return false;
-                }
-            });
-            dialog_ok.setOnClickListener(new View.OnClickListener(){
-                public void onClick(View v){
-                    int page = 1;
-                    try{
-                        page = Integer.parseInt(dialog_search_term.getText().toString().trim());
-                    }
-                    catch(NumberFormatException nfe){
-                        dialog.dismiss();
-                        return;
-                    }
-                    navigateByPage(page);
-                    dialog.dismiss();
-                }
-            });
-            dialog_cancel.setOnClickListener(new View.OnClickListener(){
-                public void onClick(View v){
-                    dialog.dismiss();
-                }
-            });
-            dialog.show();
-            dialog_search_term.requestFocus();
-        }
-        else{
-            ((NavigationPopup)FBReaderApp.Instance().getPopupById(NavigationPopup.ID)).runNavigation();
-        }
+        ((NavigationPopup)FBReaderApp.Instance().getPopupById(NavigationPopup.ID)).runNavigation();
 	}
     
     /** 

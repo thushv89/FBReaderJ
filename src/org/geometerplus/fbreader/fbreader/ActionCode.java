@@ -76,4 +76,5 @@ public interface ActionCode {
 	String SELECTION_BOOKMARK = "selectionBookmark";
     String SPEAK = "speak";
     String BOOKSHARE = "bookshare";
+    String ACCESSIBLE_NAVIGATION = "accessible_navigation";
 }
