@@ -1,8 +1,6 @@
 package org.geometerplus.android.fbreader;
 
 import org.geometerplus.android.fbreader.benetech.NewSpeakActivity;
-import org.geometerplus.android.fbreader.benetech.SpeakActivity;
-import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 
 import android.content.Intent;

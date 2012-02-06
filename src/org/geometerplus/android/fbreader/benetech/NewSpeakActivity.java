@@ -38,12 +38,13 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
-import android.widget.Toast;
 
 import org.accessibility.SimpleGestureFilter;
+import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
 import org.geometerplus.android.fbreader.TOCActivity;
 import org.geometerplus.android.fbreader.api.ApiServerImplementation;
@@ -85,6 +86,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
     public static final String MENU_EARCON = "[MENU]";
     public static final String FORWARD_EARCON = "[FORWARD]";
     public static final String BACK_EARCON = "[BACK]";
+    public static final String START_READING_EARCON = "[START]";
 
     private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
@@ -94,8 +96,6 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		setContentView(R.layout.view_spokentext);
-
         WindowManager.LayoutParams params =
         getWindow().getAttributes();
         params.gravity = Gravity.BOTTOM;
@@ -104,6 +104,11 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         myVib = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
         accessibilityManager =
             (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        if (accessibilityManager.isEnabled()) {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+        }
+
+        setContentView(R.layout.view_spokentext);
 
 		setListener(R.id.speak_menu_back, new View.OnClickListener() {
 			public void onClick(View v) {
@@ -155,7 +160,9 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 			showErrorMessage(getText(R.string.no_tts_installed), true);
 		}
 
-		setTitle(R.string.initializing);
+        if (!accessibilityManager.isEnabled()) {
+		    setTitle(R.string.initializing);
+        }
 	}
 
 	@Override
@@ -187,6 +194,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 
         if (resumePlaying || justPaused) {
             resumePlaying = false;
+            myTTS.playEarcon(START_READING_EARCON, TextToSpeech.QUEUE_ADD, null);
             speakParagraph(getNextParagraph());
         }
 	}
@@ -239,8 +247,8 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	private void doFinalInitialization() {
 		myTTS.setOnUtteranceCompletedListener(this);
 
-		try {
-			setTitle(myApi.getBookTitle());
+		try {        
+            
 
 			Locale locale = null;
 			final String language = myApi.getBookLanguage();
@@ -280,9 +288,19 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
             myTTS.addEarcon(MENU_EARCON, "org.benetech.android", R.raw.sound_main_menu);
             myTTS.addEarcon(FORWARD_EARCON, "org.benetech.android", R.raw.sound_forward);
             myTTS.addEarcon(BACK_EARCON, "org.benetech.android", R.raw.sound_back);
+            myTTS.addEarcon(START_READING_EARCON, "org.benetech.android", R.raw.sound_start_reading);
 
 			myParagraphIndex = myApi.getPageStart().ParagraphIndex;
 			myParagraphsNumber = myApi.getParagraphsNumber();
+
+            myTTS.playEarcon(START_READING_EARCON, TextToSpeech.QUEUE_ADD, null);
+            
+            if (accessibilityManager.isEnabled()) {
+                speakString(myApi.getBookTitle(), 0);
+            } else {
+                setTitle(myApi.getBookTitle());
+            }
+            
 			setActionsEnabled(true);
 			speakParagraph(getNextParagraph());
 		} catch (Exception e) {
@@ -330,27 +348,27 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 	}
 
 	private void showErrorMessage(final CharSequence text, final boolean fatal) {
-		runOnUiThread(new Runnable() {
-			public void run() {
-				if (fatal) {
-					setTitle(R.string.failure);
-				}
-				Toast.makeText(NewSpeakActivity.this, text, Toast.LENGTH_SHORT).show();
-			}
-		});
+        final VoiceableDialog finishedDialog = new VoiceableDialog(this);
+        if (fatal) {
+            setTitle(R.string.failure);
+        }
+        finishedDialog.popup(text.toString(), 5000);
 	}
 
 	private volatile PowerManager.WakeLock myWakeLock;
 
 	private synchronized void setActive(final boolean active) {
-		myIsActive = active;
+
 
 		runOnUiThread(new Runnable() {
 			public void run() {
-                ((Button)findViewById(R.id.speak_menu_pause)).setText(active ? R.string.on_press_pause : R.string.on_press_play);
-                findViewById(R.id.speak_menu_pause).requestFocus();
+                if (myIsActive != active) {
+                    ((Button)findViewById(R.id.speak_menu_pause)).setText(active ? R.string.on_press_pause : R.string.on_press_play);
+                }
 			}
 		});
+
+        myIsActive = active;
 
 		if (active) {
 			if (myWakeLock == null) {
@@ -367,7 +385,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
 		}
 	}
 
-	private void speakStringNew(String text, final int sentenceNumber) {
+	private void speakString(String text, final int sentenceNumber) {
 		HashMap<String, String> callbackMap = new HashMap<String, String>();
 		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(sentenceNumber));
 		myTTS.speak(text, TextToSpeech.QUEUE_ADD, callbackMap);
@@ -462,7 +480,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
         while (sentenceListIterator.hasNext())  { 	// if there are sentences in the sentence queue
             sentenceNumber++;
             currentSentence = sentenceListIterator.next();
-            speakStringNew(currentSentence, sentenceNumber);
+            speakString(currentSentence, sentenceNumber);
         }
         
         lastSentence = sentenceNumber;
