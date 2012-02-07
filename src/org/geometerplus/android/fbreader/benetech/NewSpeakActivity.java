@@ -610,6 +610,10 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                 showMainMenu();
             }
         }
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            stopTalking();
+            finish();
+        }
         return super.onKeyDown(keyCode, event);
     }
 }

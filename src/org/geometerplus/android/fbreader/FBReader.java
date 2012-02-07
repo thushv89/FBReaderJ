@@ -298,7 +298,9 @@ public final class FBReader extends ZLAndroidActivity {
 		}
 		PopupPanel.restoreVisibilities(FBReaderApp.Instance());
 		ApiServerImplementation.sendEvent(this, ApiListener.EVENT_READ_MODE_OPENED);
-        setApplicationTitle();
+        if (!accessibilityManager.isEnabled()) {
+            setApplicationTitle();
+        }
 	}
 
 	@Override
@@ -472,14 +474,13 @@ public final class FBReader extends ZLAndroidActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
-
-
-    public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        if (accessibilityManager.isEnabled() && initialOpen) {
+    
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus && accessibilityManager.isEnabled() && initialOpen) {
             initialOpen = false;
             Intent intent = new Intent(this, NewSpeakActivity.class);
             startActivity(intent);
         }
     }
+
 }
