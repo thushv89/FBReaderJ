@@ -63,9 +63,8 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
 
-	private ListView createTab(String tag, int id) {
+	private ListView createTab(String tag, int id, final String label) {
 		final TabHost host = getTabHost();
-		final String label = myResource.getResource(tag).getValue();
 		host.addTab(host.newTabSpec(tag).setIndicator(label).setContent(id));
 		return (ListView)findViewById(id);
 	}
@@ -98,14 +97,17 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 					myThisBookBookmarks.add(bookmark);
 				}
 			}
-        
-			myThisBookView = createTab("thisBook", R.id.this_book);
+
+            final Book currentBook = Library.getRecentBook();
+            final String label = currentBook.getTitle();
+			myThisBookView = createTab("thisBook", R.id.this_book, label);
 			new BookmarksAdapter(myThisBookView, myThisBookBookmarks, true);
 		} else {
 			findViewById(R.id.this_book).setVisibility(View.GONE);
 		}
 
-		myAllBooksView = createTab("allBooks", R.id.all_books);
+        final String label = myResource.getResource("allBooks").getValue();
+		myAllBooksView = createTab("allBooks", R.id.all_books, label);
 		new BookmarksAdapter(myAllBooksView, AllBooksBookmarks, false);
 
 		findViewById(R.id.search_results).setVisibility(View.GONE);
@@ -161,7 +163,8 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 
 	void showSearchResultsTab(LinkedList<Bookmark> results) {
 		if (mySearchResultsView == null) {
-			mySearchResultsView = createTab("found", R.id.search_results);
+           final String label = myResource.getResource("found").getValue();
+			mySearchResultsView = createTab("found", R.id.search_results, label);
 			new BookmarksAdapter(mySearchResultsView, mySearchResults, false);
 		} else {
 			mySearchResults.clear();
