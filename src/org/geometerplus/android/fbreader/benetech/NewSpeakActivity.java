@@ -466,7 +466,7 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                     sentenceListIterator.next();
                 }
             }
-            if (lastSpoken > 1 && numWordIndices > 1) {
+            if (lastSpoken > 1 && numWordIndices > lastSpoken) {
                 sentenceNumber = lastSpoken - 1;
                 highlightSentence(wordIndexList.get(lastSpoken - 2) + 1, wordIndexList.get(lastSpoken - 1));
             }
