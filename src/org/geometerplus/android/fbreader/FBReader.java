@@ -21,28 +21,22 @@ package org.geometerplus.android.fbreader;
 
 import java.util.*;
 
-import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.*;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
-import org.accessibility.VoiceableDialog;
+import org.geometerplus.android.fbreader.benetech.NewSpeakActivity;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.library.ZLibrary;
 
-import org.geometerplus.zlibrary.core.view.ZLView;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
 import org.geometerplus.zlibrary.text.hyphenation.ZLTextHyphenator;
 
@@ -66,13 +60,9 @@ import org.geometerplus.android.util.UIUtil;
 public final class FBReader extends ZLAndroidActivity {
 	public static final String BOOK_PATH_KEY = "BookPath";
 
-    private Resources resources;
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
-    private Dialog dialog;
-    private EditText dialog_search_term;
-    private TextView dialog_search_title;
-    private TextView dialog_example_text;
+    private boolean initialOpen = true;
     
 	final static int REPAINT_CODE = 1;
 	final static int CANCEL_CODE = 2;
@@ -122,7 +112,7 @@ public final class FBReader extends ZLAndroidActivity {
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
-        resources = getApplicationContext().getResources();
+        
         accessibilityManager =
                     (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 		myFullScreenFlag =
@@ -391,12 +381,11 @@ public final class FBReader extends ZLAndroidActivity {
     /** 
      * If book is available, add it to application title.
      */
-    private final void setApplicationTitle() {
-        Library library = Library.Instance();
-        final Book currentBook = library.getRecentBook();
+    private void setApplicationTitle() {
+        final Book currentBook = Library.getRecentBook();
         
         if (currentBook != null) {
-            setTitle(resources.getString(R.string.app_name) + " - " + currentBook.getTitle());
+            setTitle(getResources().getString(R.string.app_name) + " - " + currentBook.getTitle());
         }
     }
 
@@ -483,8 +472,14 @@ public final class FBReader extends ZLAndroidActivity {
         }
         return super.onKeyDown(keyCode, event);
     }
-    
-    public void onWindowFocusChanged(boolean hasFocus) {
-        setApplicationTitle();
+
+
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (accessibilityManager.isEnabled() && initialOpen) {
+            initialOpen = false;
+            Intent intent = new Intent(this, NewSpeakActivity.class);
+            startActivity(intent);
+        }
     }
 }

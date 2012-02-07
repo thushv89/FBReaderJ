@@ -3,6 +3,9 @@
     <string name="app_name">Bookshare Reader</string>
     
 	<string name="empty_string"></string>
+    
+    <!-- BookmarksActivity -->
+    <string name="bookmark_added">bookmark on page %1$d added</string>
 
 	<!--  Bookshare_Webservice_login -->
 	<string name="fetch_book_data">Fetching free books data.</string>
