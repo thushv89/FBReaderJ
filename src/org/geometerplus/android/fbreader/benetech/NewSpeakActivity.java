@@ -115,11 +115,31 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                 goBackward();
 			}
 		});
+        findViewById(R.id.speak_menu_back).setOnFocusChangeListener(
+            new View.OnFocusChangeListener() {
+                public void onFocusChange(android.view.View view, boolean b) {
+                    if (b) {
+                        stopTalking();
+                        justPaused = true;
+                    }
+                }
+            }
+        );
 		setListener(R.id.speak_menu_forward, new View.OnClickListener() {
 			public void onClick(View v) {
                 goForward();
 			}
 		});
+        findViewById(R.id.speak_menu_forward).setOnFocusChangeListener(
+            new View.OnFocusChangeListener() {
+                public void onFocusChange(android.view.View view, boolean b) {
+                    if (b) {
+                        stopTalking();
+                        justPaused = true;
+                    }
+                }
+            }
+        );
 /*		setListener(R.id.button_close, new View.OnClickListener() {
 			public void onClick(View v) {
 				stopTalking();
@@ -136,6 +156,16 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                 showContents();
             }
         });
+        findViewById(R.id.speak_menu_contents).setOnFocusChangeListener(
+            new View.OnFocusChangeListener() {
+                public void onFocusChange(android.view.View view, boolean b) {
+                    if (b) {
+                        stopTalking();
+                        justPaused = true;
+                    }
+                }
+            }
+        );
 
 		((TelephonyManager)getSystemService(TELEPHONY_SERVICE)).listen(
 			new PhoneStateListener() {
@@ -529,7 +559,6 @@ public class NewSpeakActivity extends Activity implements TextToSpeech.OnInitLis
                 speakParagraph(getNextParagraph());
             } else {
                 stopTalking();
-                setActive(false);
                 justPaused = true;
             }
         }
