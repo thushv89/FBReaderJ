@@ -47,7 +47,7 @@
     <string name="search_dialog_description_author">Enter author name</string>
     <string name="search_dialog_title_isbn">ISBN Search</string>
     <string name="search_dialog_label_isbn">Enter 10 or 13 digit ISBN</string>
-    <string name="search_dialog_example_isbn">E.g. 9780670059218 or 9781416503064</string>
+    <string name="search_dialog_example_isbn"> </string>
     <string name="search_dialog_description_isbn">Enter ISBN</string>
     <string name="bks_menu_title_label">Title Search</string>
     <string name="bks_menu_title_description">Search by title</string>
