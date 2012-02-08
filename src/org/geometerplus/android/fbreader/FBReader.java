@@ -31,7 +31,7 @@ import android.widget.RelativeLayout;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
-import org.geometerplus.android.fbreader.benetech.NewSpeakActivity;
+import org.geometerplus.android.fbreader.benetech.SpeakActivity;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -478,7 +478,7 @@ public final class FBReader extends ZLAndroidActivity {
     public void onWindowFocusChanged(boolean hasFocus) {
         if (hasFocus && accessibilityManager.isEnabled() && initialOpen) {
             initialOpen = false;
-            Intent intent = new Intent(this, NewSpeakActivity.class);
+            Intent intent = new Intent(this, SpeakActivity.class);
             startActivity(intent);
         }
     }
