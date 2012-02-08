@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.accessibility.VoiceableDialog;
-import org.geometerplus.zlibrary.core.util.ZLNetworkUtil;
 import org.benetech.android.R;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
@@ -21,7 +21,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -59,8 +58,7 @@ public class Bookshare_Menu extends ListActivity {
 	private TextView dialog_search_title;
 	private TextView dialog_example_text;
 	private Button dialog_ok;
-	private Button dialog_cancel;
-	private String search_term = "";
+    private String search_term = "";
 	private String URI_String = "https://api.bookshare.org/book/";
 	private int query_type;
 	private Intent intent;
@@ -71,6 +69,7 @@ public class Bookshare_Menu extends ListActivity {
 	private String password;
 	private boolean isFree = false; 
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
+    private final Activity myActivity = this;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -91,19 +90,18 @@ public class Bookshare_Menu extends ListActivity {
             R.drawable.authors,
             R.drawable.isbn,
             R.drawable.latest,
-            R.drawable.isbn		        
+            R.drawable.isbn,
+            R.drawable.titles
 		};
+        
+        String logInMenuItem = isFree ? getResources().getString(R.string.bks_menu_log_in) : getResources().getString(R.string.bks_menu_log_out);
 		//Create a TreeMap for use in the SimpleAdapter
         String[] items = {getResources().getString(R.string.bks_menu_title_label),
                 getResources().getString(R.string.bks_menu_author_label), getResources().getString(R.string.bks_menu_isbn_label),
-                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label)};
-        String[] descriptions = {getResources().getString(R.string.bks_menu_title_description),
-                getResources().getString(R.string.bks_menu_author_description), getResources().getString(R.string.bks_menu_isbn_description),
-                getResources().getString(R.string.bks_menu_latest_description), getResources().getString(R.string.bks_menu_popular_description)};
+                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label), logInMenuItem};
 		for(int i = 0; i < drawables.length; i++){
 			TreeMap<String, Object> row_item = new TreeMap<String, Object>();
 			row_item.put("Name", items[i]);
-			row_item.put("description", descriptions[i]);
 			row_item.put("icon", drawables[i]);
 			list.add(row_item);
 		}		
@@ -111,8 +109,8 @@ public class Bookshare_Menu extends ListActivity {
 		MySimpleAdapter simpleadapter = new MySimpleAdapter(
 				this,list,
 				R.layout.bookshare_menu_item,
-				new String[]{"Name","description","icon"},
-				new int[]{R.id.text1, R.id.text2,R.id.row_icon});
+				new String[]{"Name","icon"},
+				new int[]{R.id.text1,R.id.row_icon});
 
 		//Set the adapter for this view
 		setListAdapter(simpleadapter);
@@ -125,7 +123,7 @@ public class Bookshare_Menu extends ListActivity {
 		dialog_search_title = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_txt);
 		dialog_example_text = (TextView)dialog.findViewById(R.id.bookshare_dialog_search_example);
 		dialog_ok = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_ok);
-		dialog_cancel = (Button)dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
+        Button dialog_cancel = (Button) dialog.findViewById(R.id.bookshare_dialog_btn_cancel);
 
         dialog_search_term.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 		    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -143,11 +141,11 @@ public class Bookshare_Menu extends ListActivity {
             }
 		});
 		
-		dialog_cancel.setOnClickListener(new OnClickListener(){
-			public void onClick(View v){
-				dialog.dismiss();
-			}
-		});
+		dialog_cancel.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
 		
 		//Listener for the ListView
 		lv.setOnItemClickListener(new OnItemClickListener() {
@@ -231,6 +229,34 @@ public class Bookshare_Menu extends ListActivity {
 					}
 					startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
 				}
+                else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_log_in))) {
+                    Intent intent = new Intent(getApplicationContext(), Bookshare_Webservice_Login.class);
+                    startActivity(intent);
+                    finish();
+                }
+                else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_log_out))) {
+                    new AlertDialog.Builder(myActivity)
+                    .setTitle("")
+                    .setMessage(getResources().getString(R.string.logout_dialog_message))
+                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Upon logout clear the stored login credentials
+                            SharedPreferences login = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                            SharedPreferences.Editor editor = login.edit();
+                            editor.putString("username", "");
+                            editor.putString("password", "");
+                            editor.putBoolean("isOM", false);
+                            editor.commit();
+                            finish();
+                        }
+                    })
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+                }
 			}
 		});
 	}
@@ -295,17 +321,6 @@ public class Bookshare_Menu extends ListActivity {
     }
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu){
-		if(isFree){
-			menu.add(getResources().getString(R.string.bks_menu_log_in));
-		}
-		else{
-			menu.add(getResources().getString(R.string.bks_menu_log_out));
-		}
-		return true;
-	}
-	
-	@Override
 	public boolean onOptionsItemSelected(MenuItem item){
 		if(item.getTitle().equals(getResources().getString(R.string.bks_menu_log_out))){
 			new AlertDialog.Builder(this)
@@ -366,7 +381,6 @@ public class Bookshare_Menu extends ListActivity {
             }
             final TreeMap<String, Object> data = (TreeMap<String, Object>) getItem(position);
             ((TextView) convertView.findViewById(R.id.text1)).setText((String) data.get("Name"));
-            ((TextView) convertView.findViewById(R.id.text2)).setText((String) data.get("description"));
             ((ImageView) convertView.findViewById(R.id.row_icon)).setImageResource(((Integer)data.get("icon")).intValue());
             return convertView;
         }
