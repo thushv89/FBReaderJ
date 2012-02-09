@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -18,10 +20,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.res.Resources;
-import android.util.Log;
+import android.net.Uri;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.RemoteViews;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
@@ -32,12 +38,11 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
+import org.geometerplus.android.fbreader.network.BookDownloaderService;
 import org.geometerplus.fbreader.Paths;
-import org.geometerplus.fbreader.fbreader.FBReaderApp;
-import org.geometerplus.fbreader.library.Book;
-import org.geometerplus.fbreader.library.Library;
 import org.benetech.android.R;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -97,6 +102,7 @@ public class Bookshare_Book_Details extends Activity{
 	private boolean downloadSuccess;
     private Resources resources;
     private String downloadedBookDir;
+    private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
 
 	
 	@Override
@@ -224,15 +230,7 @@ public class Bookshare_Book_Details extends Activity{
 									}
 									else {
                                         if (null != downloadedBookDir) {
-                                            ZLFile bookDir = ZLFile.createFileByPath(downloadedBookDir);
-                                            List<ZLFile> bookEntries = bookDir.children();
-                                            ZLFile opfFile = null;
-                                            for (ZLFile entry : bookEntries) {
-                                                if (entry.getExtension().equals("opf")) {
-                                                    opfFile = entry;
-                                                    break;
-                                                }
-                                            }
+                                            ZLFile opfFile = getOpfFile();
                                             if (null != opfFile) {
                                                 startActivity(
                                                     new Intent(getApplicationContext(), FBReader.class)
@@ -405,7 +403,6 @@ public class Bookshare_Book_Details extends Activity{
 						temp  = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 						bookshare_book_detail_synopsis_text.setText(temp.trim());
 						//System.out.println("Complete synopsis = "+temp.trim());
-						temp = "";
 					}
 					else if(metadata_bean.getBriefSynopsis() != null &&
 							metadata_bean.getCompleteSynopsis() == null){
@@ -423,7 +420,6 @@ public class Bookshare_Book_Details extends Activity{
 						temp = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 						bookshare_book_detail_synopsis_text.setText(temp.trim());
 						System.out.println("Brief Synopsis = "+temp);
-						temp = "";
 					}
 					else if(metadata_bean.getCompleteSynopsis() != null &&
 							metadata_bean.getBriefSynopsis() == null){
@@ -441,7 +437,6 @@ public class Bookshare_Book_Details extends Activity{
 						temp  = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 
 						bookshare_book_detail_synopsis_text.setText(temp.trim());
-						temp = "";
 					}
 					else if(metadata_bean.getBriefSynopsis() == null &&
 							metadata_bean.getCompleteSynopsis() == null){
@@ -451,6 +446,64 @@ public class Bookshare_Book_Details extends Activity{
 			}	
 		}
 	};
+
+    private ZLFile getOpfFile() {
+        ZLFile bookDir = ZLFile.createFileByPath(downloadedBookDir);
+        List<ZLFile> bookEntries = bookDir.children();
+        ZLFile opfFile = null;
+        for (ZLFile entry : bookEntries) {
+            if (entry.getExtension().equals("opf")) {
+                opfFile = entry;
+                break;
+            }
+        }
+        return opfFile;
+    }
+
+    private Intent getFBReaderIntent(final File file) {
+        final Intent intent = new Intent(getApplicationContext(), FBReader.class);
+        if (file != null) {
+            intent.setAction(Intent.ACTION_VIEW).setData(Uri.fromFile(file));
+        }
+        return intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+    
+    private Notification createDownloadFinishNotification(File file, String title, boolean success) {
+        final ZLResource resource = BookDownloaderService.getResource();
+        final String tickerText = success ?
+            resource.getResource("tickerSuccess").getValue() :
+            resource.getResource("tickerError").getValue();
+        final String contentText = success ?
+            resource.getResource("contentSuccess").getValue() :
+            resource.getResource("contentError").getValue();
+        final Notification notification = new Notification(
+            android.R.drawable.stat_sys_download_done,
+            tickerText,
+            System.currentTimeMillis()
+        );
+        notification.flags |= Notification.FLAG_AUTO_CANCEL;
+        final Intent intent = success ? getFBReaderIntent(file) : new Intent();
+        final PendingIntent contentIntent = PendingIntent.getActivity(this, 0, intent, 0);
+        notification.setLatestEventInfo(getApplicationContext(), title, contentText, contentIntent);
+        return notification;
+    }
+    
+    private Notification createDownloadProgressNotification(String title) {
+        final RemoteViews contentView = new RemoteViews(getPackageName(), R.layout.download_notification);
+        contentView.setTextViewText(R.id.download_notification_title, title);
+        contentView.setTextViewText(R.id.download_notification_progress_text, "");
+        contentView.setProgressBar(R.id.download_notification_progress_bar, 100, 0, true);
+
+        final PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(), 0);
+
+        final Notification notification = new Notification();
+        notification.icon = android.R.drawable.stat_sys_download;
+        notification.flags |= Notification.FLAG_ONGOING_EVENT;
+        notification.contentView = contentView;
+        notification.contentIntent = contentIntent;
+
+        return notification;
+    }
 	
 	// A custom AsyncTask class for carrying out the downloading task in a separate background thread
 	private class DownloadFilesTask extends AsyncTask<Void, Void, Void>{
@@ -471,7 +524,7 @@ public class Bookshare_Book_Details extends Activity{
 		@Override
 		protected Void doInBackground(Void... params) {			 
 			final String id = metadata_bean.getContentId();
-			String download_uri = "";
+			String download_uri;
 			if(isFree)
 				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1?api_key="+developerKey;
 			else if(isOM){
@@ -480,6 +533,12 @@ public class Bookshare_Book_Details extends Activity{
 			else{
 				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1/for/"+username+"?api_key="+developerKey;
 			}
+            
+            final Notification progressNotification = createDownloadProgressNotification(metadata_bean.getTitle()[0]);
+    
+            final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            myOngoingNotifications.add(Integer.valueOf(id));
+            notificationManager.notify(Integer.valueOf(id), progressNotification);
 			
 			try{
 				System.out.println("download_uri :"+download_uri);
@@ -657,6 +716,21 @@ public class Bookshare_Book_Details extends Activity{
                 downloadedBookDir = null;
 				//finish();
 			}
+            
+            final Handler downloadFinishHandler = new Handler() {
+                public void handleMessage(Message message) {
+                    final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    int id = Integer.valueOf(metadata_bean.getContentId());
+                    notificationManager.cancel(id);
+                    myOngoingNotifications.remove(Integer.valueOf(id));
+                    notificationManager.notify(
+                            id,
+                            createDownloadFinishNotification(new File(getOpfFile().getPath()), metadata_bean.getTitle()[0], message.what != 0)
+                    );
+                }
+            };
+
+            downloadFinishHandler.sendEmptyMessage(downloadSuccess ? 1 : 0);
 		}
     }
 
@@ -692,7 +766,6 @@ public class Bookshare_Book_Details extends Activity{
 	// Class that applies parsing logic
 	private class SAXHandler extends DefaultHandler{
 
-		int count;
 		boolean metadata = false;
 		boolean contentId = false;
 		boolean daisy = false;
