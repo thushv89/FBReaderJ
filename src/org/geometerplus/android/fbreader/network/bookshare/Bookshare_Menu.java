@@ -246,7 +246,7 @@ public class Bookshare_Menu extends ListActivity {
                             editor.putString("password", "");
                             editor.putBoolean("isOM", false);
                             editor.commit();
-                            finish();
+                            confirmAndClose(getResources().getString(R.string.bks_menu_log_out_confirmation));
                         }
                     })
                     .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -350,4 +350,18 @@ public class Bookshare_Menu extends ListActivity {
             return convertView;
         }
 	}
+
+    /*
+     * Display logged out confirmation and close the bookshare menu screen
+     */
+    private void confirmAndClose(String msg) {
+        final VoiceableDialog dialog = new VoiceableDialog(myActivity);
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                finish();
+            }
+        });
+        dialog.popup(msg, 2000);
+    }
 }
