@@ -21,7 +21,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.KeyEvent;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -306,7 +305,6 @@ public class Bookshare_Menu extends ListActivity {
 
         if(isMetadataSearch){
             intent.putExtra("ID_SEARCH_URI", search_term);
-            isMetadataSearch = false;
         }
         else{
             intent.putExtra(REQUEST_URI, search_term);
@@ -319,39 +317,6 @@ public class Bookshare_Menu extends ListActivity {
 
         startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
     }
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item){
-		if(item.getTitle().equals(getResources().getString(R.string.bks_menu_log_out))){
-			new AlertDialog.Builder(this)
-            .setTitle("")
-            .setMessage(getResources().getString(R.string.logout_dialog_message))
-            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {					
-					// Upon logout clear the stored login credentials
-					SharedPreferences login = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-					SharedPreferences.Editor editor = login.edit();
-					editor.putString("username", "");
-					editor.putString("password", "");
-					editor.putBoolean("isOM", false);
-					editor.commit();
-					finish();
-				}
-			})
-			.setNegativeButton("No", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					dialog.dismiss();
-				}
-			})
-            .show();
-		}
-		else if(item.getTitle().equals(getResources().getString(R.string.bks_menu_log_in))){
-			Intent intent = new Intent(getApplicationContext(), Bookshare_Webservice_Login.class);
-			startActivity(intent);
-			finish();
-		}
-		return true;
-	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -381,7 +346,7 @@ public class Bookshare_Menu extends ListActivity {
             }
             final TreeMap<String, Object> data = (TreeMap<String, Object>) getItem(position);
             ((TextView) convertView.findViewById(R.id.text1)).setText((String) data.get("Name"));
-            ((ImageView) convertView.findViewById(R.id.row_icon)).setImageResource(((Integer)data.get("icon")).intValue());
+            ((ImageView) convertView.findViewById(R.id.row_icon)).setImageResource((Integer) data.get("icon"));
             return convertView;
         }
 	}
