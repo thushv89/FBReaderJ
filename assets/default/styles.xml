@@ -39,6 +39,7 @@
 	<style id="28" partial="true" name="Bold" bold="true"/>
 	<style id="29" partial="true" name="Definition" italic="true"/>
 	<style id="30" partial="true" name="Definition Description" italic="true"/>
+	<style id="38" name="Image Description" partial="true" fontSizeDelta="-2"/>
 
 	<!-- Unused styles -->
 	<style id="23" name="Contents Table" spaceAfter="7" leftIndent="20" firstLineIndentDelta="-20" alignment="left"/>
