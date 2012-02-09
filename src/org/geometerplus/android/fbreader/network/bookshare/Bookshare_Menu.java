@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -157,6 +158,7 @@ public class Bookshare_Menu extends ListActivity {
 				TextView txt_name = (TextView)row_view.findViewById(R.id.text1);
 
 				// Clear the EditText box of any previous text
+                dialog_search_term.setInputType(InputType.TYPE_CLASS_TEXT);
 				dialog_search_term.setText("");
 
 				if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_title_label))){
@@ -186,6 +188,7 @@ public class Bookshare_Menu extends ListActivity {
 					dialog_search_title.setText(getResources().getString(R.string.search_dialog_label_isbn));
 					dialog_example_text.setText(getResources().getString(R.string.search_dialog_example_isbn));
                     dialog_search_term.setContentDescription(getResources().getString(R.string.search_dialog_description_isbn));
+                    dialog_search_term.setInputType(InputType.TYPE_CLASS_NUMBER);
 					query_type = ISBN_SEARCH_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
 					intent.putExtra(REQUEST_TYPE, ISBN_SEARCH_REQUEST);

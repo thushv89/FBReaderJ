@@ -6,6 +6,7 @@ import org.geometerplus.zlibrary.text.view.ZLTextView;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -29,6 +30,7 @@ public class AccessibleNavigateActivity extends Activity {
         setTitle(getResources().getString(R.string.navigate_dialog_title));
         searchTermEditText = (EditText)findViewById(R.id.bookshare_dialog_search_edit_txt);
         searchTermEditText.setContentDescription(getResources().getString(R.string.navigate_dialog_label));
+        searchTermEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
         TextView dialog_search_title = (TextView) findViewById(R.id.bookshare_dialog_search_txt);
         TextView dialog_example_text = (TextView) findViewById(R.id.bookshare_dialog_search_example);
         Button dialog_ok = (Button)findViewById(R.id.bookshare_dialog_btn_ok);
