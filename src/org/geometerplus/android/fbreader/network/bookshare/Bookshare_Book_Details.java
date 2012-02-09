@@ -218,7 +218,7 @@ public class Bookshare_Book_Details extends Activity{
 									}
 									else{
 										new DownloadFilesTask().execute();
-                                        showAlert("Download started");
+                                        showAlert(getResources().getString(R.string.book_details_download_started));
 									}
 								}
 								
