@@ -25,6 +25,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.res.Resources;
 import android.net.Uri;
+import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.RemoteViews;
@@ -50,7 +51,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -78,7 +78,6 @@ public class Bookshare_Book_Details extends Activity{
 	private InputStream inputStream;
 	private BookshareWebservice bws = new BookshareWebservice();
 	private final int DATA_FETCHED = 99;
-	private ProgressDialog progessDialog;
 	private View book_detail_view;
 	private TextView bookshare_book_detail_title_text;
 	private TextView bookshare_book_detail_authors_text;
@@ -103,7 +102,7 @@ public class Bookshare_Book_Details extends Activity{
     private Resources resources;
     private String downloadedBookDir;
     private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
-
+    private Activity myActivity;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -111,6 +110,7 @@ public class Bookshare_Book_Details extends Activity{
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_blank_page);
         resources = getApplicationContext().getResources();
+        myActivity = this;
 
 		// Set full screen
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -128,7 +128,9 @@ public class Bookshare_Book_Details extends Activity{
 		
 		final String uri = intent.getStringExtra("ID_SEARCH_URI");
 
-		progessDialog = ProgressDialog.show(this, null, "Fetching book details. Please wait.", true);
+        final VoiceableDialog finishedDialog = new VoiceableDialog(this);
+        String msg = "Fetching book details. Please wait.";
+        finishedDialog.popup(msg, 2000);
 		new Thread(){
 			public void run(){
 				try{
@@ -162,7 +164,6 @@ public class Bookshare_Book_Details extends Activity{
 	Handler handler = new Handler(){
 		public void handleMessage(Message msg){
 			if(msg.what==DATA_FETCHED){
-				progessDialog.cancel();
 
 				String response_HTML = bws.convertStreamToString(inputStream);
 				String response = response_HTML.replace("&apos;", "\'").replace("&quot;", "\"").replace("&amp;", "and").replace("&#xd;\n", "\n").replace("&#x97;", "-");
@@ -217,6 +218,7 @@ public class Bookshare_Book_Details extends Activity{
 									}
 									else{
 										new DownloadFilesTask().execute();
+                                        showAlert("Download started");
 									}
 								}
 								
@@ -447,6 +449,11 @@ public class Bookshare_Book_Details extends Activity{
 		}
 	};
 
+    private void showAlert(String msg) {
+        final VoiceableDialog downloadStartedDialog = new VoiceableDialog(myActivity);
+        downloadStartedDialog.popup(msg, 2000);
+    }
+
     private ZLFile getOpfFile() {
         ZLFile bookDir = ZLFile.createFileByPath(downloadedBookDir);
         List<ZLFile> bookEntries = bookDir.children();
@@ -509,7 +516,7 @@ public class Bookshare_Book_Details extends Activity{
 	private class DownloadFilesTask extends AsyncTask<Void, Void, Void>{
 		
 		private Bookshare_Error_Bean error;
-		
+
 		// Will be called in the UI thread
 		@Override
 		protected void onPreExecute(){
@@ -675,7 +682,7 @@ public class Bookshare_Book_Details extends Activity{
 							downloadSuccess  = true;
 						}
 						catch(ZipException e){
-							System.out.println("ZipException:"+e);
+                            Log.e("FBR", "Zip Exception", e);
 						}
 					}
 					else{
@@ -698,25 +705,15 @@ public class Bookshare_Book_Details extends Activity{
 		@Override
 		protected void onPostExecute(Void param){
 
-			final VoiceableDialog finishedDialog = new VoiceableDialog(btn_download.getContext());
-			
+            btn_download.setEnabled(downloadSuccess);
 			if(downloadSuccess){
-                String message =  resources.getString(R.string.book_details_download_success);
-                finishedDialog.popup(message, 1500);
 				btn_download.setText(resources.getString(R.string.book_details_download_success));
-				btn_download.setEnabled(true);
 			}
 			else{
-				//String message = error != null ? error.getMessagesFormatted() : "Download Failed!";
-				String message = resources.getString(R.string.book_details_download_error);
-                finishedDialog.popup(message, 1500);
-
 				btn_download.setText(resources.getString(R.string.book_details_download_error));
-				btn_download.setEnabled(true);
                 downloadedBookDir = null;
-				//finish();
 			}
-            
+
             final Handler downloadFinishHandler = new Handler() {
                 public void handleMessage(Message message) {
                     final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
