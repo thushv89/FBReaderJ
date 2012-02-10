@@ -9,6 +9,7 @@ import java.util.Map;
 import org.geometerplus.fbreader.bookmodel.BookReader;
 import org.geometerplus.fbreader.bookmodel.FBTextKind;
 import org.geometerplus.fbreader.formats.util.MiscUtil;
+import org.geometerplus.zlibrary.core.filesystem.ZLArchiveEntryFile;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
@@ -64,6 +65,9 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 				"Caption.", "End Caption."));
 		addAction("strong", new Daisy3XMLTagControlAction(FBTextKind.STRONG));
 		addAction("span", new Daisy3XMLTagControlAction(FBTextKind.REGULAR));
+		addAction("li", new Daisy3XMLListTagAction());
+		addAction("list", new Daisy3XMLListTagAction());
+		addAction("a", new Daisy3XMLTagHyperlinkAction());
 	}
 
 	/**
@@ -208,5 +212,16 @@ cycle:
 	}
 	
 	public void namespaceMapChangedHandler(Map<String,String> namespaceMap) {
+	}
+	
+	public final String getFileAlias(String fileName) {
+		fileName = MiscUtil.decodeHtmlReference(fileName);
+		fileName = ZLArchiveEntryFile.normalizeEntryName(fileName);
+		Integer num = myFileNumbers.get(fileName);
+		if (num == null) {
+			num = myFileNumbers.size();
+			myFileNumbers.put(fileName, num);
+		}
+		return num.toString();
 	}
 }
