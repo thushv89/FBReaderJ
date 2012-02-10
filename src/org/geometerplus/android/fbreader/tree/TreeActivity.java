@@ -22,9 +22,11 @@ package org.geometerplus.android.fbreader.tree;
 import java.util.ArrayList;
 
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.*;
+import android.view.accessibility.AccessibilityManager;
 
 import org.geometerplus.android.util.UIUtil;
 
@@ -42,12 +44,17 @@ public abstract class TreeActivity extends ListActivity {
 	// it will be changed in case of myCurrentTree.removeSelf() call
 	private FBTree.Key myCurrentKey;
 	private ArrayList<FBTree.Key> myHistory;
+    
+    //For the detecting whether talkback is on
+    protected AccessibilityManager accessibilityManager;
 
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
 		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+        accessibilityManager =
+            (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 	}
 
 	@Override
@@ -144,7 +151,15 @@ public abstract class TreeActivity extends ListActivity {
 		// because key might be null
 		myCurrentKey = myCurrentTree.getUniqueKey();
 		final TreeAdapter adapter = getListAdapter();
-		adapter.replaceAll(myCurrentTree.subTrees());
+
+        // Remove byTag (5th) tree from RootTree if accessibility is turned on
+        final ArrayList myTrees = (ArrayList)myCurrentTree.subTrees();
+        final boolean hideTagTree = accessibilityManager.isEnabled();
+        if (hideTagTree && myCurrentKey.Id.equals("@FBReaderLibraryRoot")) {
+            myTrees.remove(4);
+        }
+
+        adapter.replaceAll(myTrees);
 		setTitle(myCurrentTree.getTreeTitle());
 		final FBTree selectedTree =
 			selectedKey != null ? getTreeByKey(selectedKey) : adapter.getFirstSelectedItem();

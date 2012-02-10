@@ -19,6 +19,8 @@
 
 package org.geometerplus.android.fbreader.library;
 
+import java.util.ArrayList;
+
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.DialogInterface;
@@ -308,7 +310,15 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 			public void run() {
 				switch (code) {
 					default:
-						getListAdapter().replaceAll(getCurrentTree().subTrees());
+
+                        // Remove byTag (5th) tree from RootTree if accessibility is turned on
+                        final ArrayList myTrees = (ArrayList)getCurrentTree().subTrees();
+                        final boolean hideTagTree = accessibilityManager.isEnabled();
+                        if (hideTagTree && getCurrentTree().getUniqueKey().Id.equals("@FBReaderLibraryRoot")) {
+                            myTrees.remove(4);
+                        }
+
+						getListAdapter().replaceAll(myTrees);
 						break;
 					case StatusChanged:
 						setProgressBarIndeterminateVisibility(!myLibrary.isUpToDate());
