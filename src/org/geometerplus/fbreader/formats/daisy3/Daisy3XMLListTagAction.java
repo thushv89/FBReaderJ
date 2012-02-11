@@ -21,17 +21,17 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 	private static class ListTypeItem {
 		private final ListType listType;
 		private final boolean alphabetic;
-		private static Integer itemNumber;
+		private Integer itemNumber;
 		
 		
 		public ListTypeItem(final ListType listType, final boolean alphabetic, final int start) {
 			this.listType = listType;
 			this.alphabetic = alphabetic;
-			itemNumber = start;
+			this.itemNumber = start;
 		}
 		
 		public void incrementItemNumber() {
-			itemNumber++;
+			this.itemNumber++;
 		}
 		
 		public ListType getListType() {
@@ -91,14 +91,13 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 		} else {
 			final StringBuilder itemDesc = new StringBuilder();
 			if (!currentList.isAlphabetic()) {
-			    //Increment item.
-			    currentList.incrementItemNumber();
 			    itemDesc.append(currentList.getItemNumber());
 			} else {
 				itemDesc.append(getAlphabeticValue(currentList.getItemNumber()));
-				currentList.incrementItemNumber();
 			}
 			modelReader.addData(itemDesc.append(". ").toString().toCharArray());
+			//Increment item.
+		    currentList.incrementItemNumber();
 		}
 	}
 
@@ -127,7 +126,7 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 						}
 					}
 					//See if start attribute was specified.
-					int start = 0;
+					int start = 1;
 					if (xmlattributes.getValue("start") != null) {
 						start = Integer.valueOf(xmlattributes.getValue("start"));
 					}
