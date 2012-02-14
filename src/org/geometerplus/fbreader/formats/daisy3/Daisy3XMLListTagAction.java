@@ -86,7 +86,7 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 		final BookReader modelReader = reader.getModelReader();
 		modelReader.beginParagraph();
 		final ListTypeItem currentList = listStack.peek();
-		if (currentList.getListType().equals(ListType.UL) || currentList.getListType().equals(ListType.PL)) {
+		if (currentList.getListType().equals(ListType.UL)) {
 			modelReader.addData(BULLET);
 		} else {
 			final StringBuilder itemDesc = new StringBuilder();
