@@ -543,11 +543,13 @@ public final class Library {
 			return false;
 		}
 		final LibraryTree rootFavorites = getFirstLevelTree(ROOT_FAVORITES);
-		for (FBTree tree : rootFavorites.subTrees()) {
-			if (tree instanceof BookTree && book.equals(((BookTree)tree).Book)) {
-				return true;
-			}
-		}
+        if (null != rootFavorites.subTrees()) {
+            for (FBTree tree : rootFavorites.subTrees()) {
+                if (tree instanceof BookTree && book.equals(((BookTree)tree).Book)) {
+                    return true;
+                }
+            }
+        }
 		return false;
 	}
 
