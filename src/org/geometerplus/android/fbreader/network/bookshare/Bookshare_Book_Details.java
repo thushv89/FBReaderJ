@@ -80,13 +80,13 @@ public class Bookshare_Book_Details extends Activity{
 	private final int DATA_FETCHED = 99;
 	private View book_detail_view;
 	private TextView bookshare_book_detail_title_text;
-	private TextView bookshare_book_detail_authors_text;
-	private TextView bookshare_book_detail_isbn_text;
-	private TextView bookshare_book_detail_language_text;
-	private TextView bookshare_book_detail_category_text;
-	private TextView bookshare_book_detail_publish_date_text;
-	private TextView bookshare_book_detail_publisher_text;
-	private TextView bookshare_book_detail_copyright_text;
+	private TextView bookshare_book_detail_authors;
+	private TextView bookshare_book_detail_isbn;
+	private TextView bookshare_book_detail_language;
+	private TextView bookshare_book_detail_category;
+	private TextView bookshare_book_detail_publish_date;
+	private TextView bookshare_book_detail_publisher;
+	private TextView bookshare_book_detail_copyright;
 	private TextView bookshare_book_detail_synopsis_text;
 	private TextView bookshare_download_not_available_text;
 	private Button btn_download;
@@ -186,14 +186,14 @@ public class Bookshare_Book_Details extends Activity{
 					setIsDownloadable(metadata_bean);
 					setContentView(R.layout.bookshare_book_detail);
 					book_detail_view = (View)findViewById(R.id.book_detail_view);
-					bookshare_book_detail_title_text = (TextView)findViewById(R.id.bookshare_book_detail_title_text);
-					bookshare_book_detail_authors_text = (TextView)findViewById(R.id.bookshare_book_detail_authors_text);
-					bookshare_book_detail_isbn_text= (TextView)findViewById(R.id.bookshare_book_detail_isbn_text);
-					bookshare_book_detail_language_text = (TextView)findViewById(R.id.bookshare_book_detail_language_text);
-					bookshare_book_detail_category_text = (TextView)findViewById(R.id.bookshare_book_detail_category_text);
-					bookshare_book_detail_publish_date_text = (TextView)findViewById(R.id.bookshare_book_detail_publish_date_text);
-					bookshare_book_detail_publisher_text = (TextView)findViewById(R.id.bookshare_book_detail_publisher_text);
-					bookshare_book_detail_copyright_text = (TextView)findViewById(R.id.bookshare_book_detail_copyright_text);
+					bookshare_book_detail_title_text = (TextView)findViewById(R.id.bookshare_book_detail_title);
+					bookshare_book_detail_authors = (TextView)findViewById(R.id.bookshare_book_detail_authors);
+					bookshare_book_detail_isbn= (TextView)findViewById(R.id.bookshare_book_detail_isbn);
+					bookshare_book_detail_language = (TextView)findViewById(R.id.bookshare_book_detail_language);
+					bookshare_book_detail_category = (TextView)findViewById(R.id.bookshare_book_detail_category);
+					bookshare_book_detail_publish_date = (TextView)findViewById(R.id.bookshare_book_detail_publish_date);
+					bookshare_book_detail_publisher = (TextView)findViewById(R.id.bookshare_book_detail_publisher);
+					bookshare_book_detail_copyright = (TextView)findViewById(R.id.bookshare_book_detail_copyright);
 					bookshare_book_detail_synopsis_text = (TextView)findViewById(R.id.bookshare_book_detail_synopsis_text);
 					btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
@@ -257,7 +257,7 @@ public class Bookshare_Book_Details extends Activity{
 						if(temp == null){
 							temp = "";
 						}
-						bookshare_book_detail_title_text.setText(temp);
+                        bookshare_book_detail_title_text.append(temp);
 						temp = "";
 					}
 
@@ -274,29 +274,29 @@ public class Bookshare_Book_Details extends Activity{
 							temp = "";
 						}
 						temp = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
-						bookshare_book_detail_authors_text.setText(temp);
+						bookshare_book_detail_authors.append(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_authors_text.setText(getResources().getString(R.string.book_details_not_available));
+						bookshare_book_detail_authors.setText(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getIsbn() != null){
 						temp = metadata_bean.getIsbn().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getIsbn();
-						bookshare_book_detail_isbn_text.setText(temp);
+						bookshare_book_detail_isbn.append(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_isbn_text.setText(getResources().getString(R.string.book_details_not_available));
+						bookshare_book_detail_isbn.append(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getLanguage() != null){
 						temp = metadata_bean.getLanguage().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getLanguage();
-						bookshare_book_detail_language_text.setText(temp);
+						bookshare_book_detail_language.append(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_language_text.setText(getResources().getString(R.string.book_details_not_available));
+						bookshare_book_detail_language.append(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getCategory() != null){
@@ -313,11 +313,11 @@ public class Bookshare_Book_Details extends Activity{
 							temp = "";
 						}
 						temp = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
-						bookshare_book_detail_category_text.setText(temp);
+						bookshare_book_detail_category.append(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_category_text.setText(getResources().getString(R.string.book_details_not_available));
+						bookshare_book_detail_category.append(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getPublishDate() != null){
@@ -363,29 +363,29 @@ public class Bookshare_Book_Details extends Activity{
 
 						String publish_date = str_date.substring(2, 4) + " "+month+" " + str_date.substring(4);
 						temp = publish_date.trim().equals("") ? "Not available" : publish_date;
-						bookshare_book_detail_publish_date_text.setText(temp);
+						bookshare_book_detail_publish_date.append(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_publish_date_text.setText(getResources().getString(R.string.book_details_not_available));
+						bookshare_book_detail_publish_date.append(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getPublisher() != null){
 						temp = metadata_bean.getPublisher().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getPublisher();
-						bookshare_book_detail_publisher_text.setText(temp);
+						bookshare_book_detail_publisher.append(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_publisher_text.setText(getResources().getString(R.string.book_details_not_available));
+						bookshare_book_detail_publisher.append(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getCopyright() != null){
 						temp = metadata_bean.getCopyright().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getCopyright();
-						bookshare_book_detail_copyright_text.setText(temp);
+						bookshare_book_detail_copyright.append(temp);
 						temp = "";
 					}
 					else{
-						bookshare_book_detail_copyright_text.setText(getResources().getString(R.string.book_details_not_available));
+						bookshare_book_detail_copyright.append(getResources().getString(R.string.book_details_not_available));
 					}
 
 					if(metadata_bean.getCompleteSynopsis() != null &&
@@ -444,6 +444,8 @@ public class Bookshare_Book_Details extends Activity{
 							metadata_bean.getCompleteSynopsis() == null){
 						bookshare_book_detail_synopsis_text.setText("No Synopsis available");
 					}
+
+                    findViewById(R.id.bookshare_book_detail_title).requestFocus();
 				}
 			}	
 		}
