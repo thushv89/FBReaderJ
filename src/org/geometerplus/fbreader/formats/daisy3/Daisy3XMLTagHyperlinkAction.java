@@ -11,12 +11,13 @@ import org.geometerplus.zlibrary.core.xml.ZLStringMap;
  */
 public class Daisy3XMLTagHyperlinkAction extends Daisy3XMLTagAction {
 	
+	private static byte kind; 
 	
 	/**
 	 * Default constructor.
 	 */
 	public Daisy3XMLTagHyperlinkAction() {
-		//empty.
+		//empty
 	}
 	
 	/**
@@ -26,11 +27,12 @@ public class Daisy3XMLTagHyperlinkAction extends Daisy3XMLTagAction {
 	protected void doAtStart(Daisy3XMLReader reader, ZLStringMap xmlattributes) {
 		final BookReader modelReader = reader.getModelReader();
 		final String href = xmlattributes.getValue("href");
+		final String external = xmlattributes.getValue("external");
 		
 		if ((href != null) && (href.length() > 0)) {
 			String link = href;
 			final byte hyperlinkType;
-			if (isReference(link)) {
+			if (external != null && external.toLowerCase().equals("true")) {
 				hyperlinkType = FBTextKind.EXTERNAL_HYPERLINK;
 			} else {
 				hyperlinkType = FBTextKind.INTERNAL_HYPERLINK;
@@ -43,9 +45,10 @@ public class Daisy3XMLTagHyperlinkAction extends Daisy3XMLTagAction {
 					link = reader.getFileAlias(reader.myLocalPathPrefix + href);
 				}
 			}
-			modelReader.pushKind(hyperlinkType);
+			kind = hyperlinkType;
 			modelReader.addHyperlinkControl(hyperlinkType, link);
 		} else {
+			kind = FBTextKind.REGULAR;
 			modelReader.pushKind(FBTextKind.REGULAR);
 		}
 		final String name = xmlattributes.getValue("name");
@@ -59,20 +62,9 @@ public class Daisy3XMLTagHyperlinkAction extends Daisy3XMLTagAction {
 	 */
 	@Override
 	protected void doAtEnd(Daisy3XMLReader reader) {
-		reader.getModelReader().popKind();
-	}
-	
-	/**
-	 * @param text not null
-	 * @return true if ref.
-	 */
-	private static boolean isReference(String text) {
-		return
-			text.startsWith("fbreader-action://") ||
-			text.startsWith("http://") ||
-			text.startsWith("https://") ||
-			text.startsWith("mailto:") ||
-			text.startsWith("ftp://");
+		if (kind != FBTextKind.REGULAR) {
+		     reader.getModelReader().addControl(kind, false);
+		}
 	}
 
 }

@@ -65,8 +65,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 				"Caption.", "End Caption."));
 		addAction("strong", new Daisy3XMLTagControlAction(FBTextKind.STRONG));
 		addAction("span", new Daisy3XMLTagControlAction(FBTextKind.REGULAR));
-		addAction("li", new Daisy3XMLListTagAction());
-		addAction("list", new Daisy3XMLListTagAction());
+		addAction("li", Daisy3XMLListTagAction.getInstance());
 		addAction("a", new Daisy3XMLTagHyperlinkAction());
 	}
 
@@ -121,13 +120,18 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		}
 
 		tag = tag.toLowerCase();
-		Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag);
-		if (action != null) {
-			if(tag=="level1" || tag=="level2" || tag=="level3"){
-				Daisy3XMLTagLevelControlAction level_action = (Daisy3XMLTagLevelControlAction)action;
-				level_action.storeParagraphNumforLevel(id, myModelReader.Model.BookTextModel.getParagraphsNumber());
+		
+		if (tag.equals("list")) {
+			Daisy3XMLListTagAction.getInstance().startList(this, attributes);
+		} else {
+			Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag);
+			if (action != null) {
+				if(tag=="level1" || tag=="level2" || tag=="level3"){
+					Daisy3XMLTagLevelControlAction level_action = (Daisy3XMLTagLevelControlAction)action;
+					level_action.storeParagraphNumforLevel(id, myModelReader.Model.BookTextModel.getParagraphsNumber());
+				}
+				action.doAtStart(this, attributes);
 			}
-			action.doAtStart(this, attributes);
 		}
 		return false;
 	}
@@ -138,9 +142,13 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	 * @return Indicates status of operation.
 	 */
 	public boolean endElementHandler(String tag) {
-		Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag.toLowerCase());
-		if (action != null) {
-			action.doAtEnd(this);
+		if (tag.toLowerCase().equals("list")) {
+			Daisy3XMLListTagAction.getInstance().endList(this);
+		} else {
+			Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag.toLowerCase());
+			if (action != null) {
+				action.doAtEnd(this);
+			}
 		}
 		return false;
 	}
