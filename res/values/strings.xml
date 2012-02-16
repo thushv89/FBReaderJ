@@ -64,6 +64,7 @@
     <string name="bks_menu_log_out">Log Out of Bookshare</string>
     <string name="bks_menu_log_out_confirmation">Logged out!</string>
     <string name="empty_search_term_error">Search Term cannot be blank!</string>
+    <string name="accessible_alert_title">Are you sure?</string>
     
     <!-- Cancel Activity -->
     <string name="cancel_menu_title">Leaving us? Choose below ...</string>

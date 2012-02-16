@@ -237,11 +237,17 @@ public class Bookshare_Menu extends ListActivity {
                     finish();
                 }
                 else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_log_out))) {
-                    new AlertDialog.Builder(myActivity)
-                    .setTitle("")
-                    .setMessage(getResources().getString(R.string.logout_dialog_message))
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
+                    final Dialog confirmDialog = new Dialog(myActivity);
+                    confirmDialog.setTitle(getResources().getString(R.string.accessible_alert_title));
+                    confirmDialog.setContentView(R.layout.accessible_alert_dialog);
+                    TextView confirmation = (TextView)confirmDialog.findViewById(R.id.bookshare_confirmation_message);
+                    confirmation.setText(getResources().getString(R.string.logout_dialog_message));
+                    Button yesButton = (Button)confirmDialog.findViewById(R.id.bookshare_dialog_btn_yes);
+                    Button noButton = (Button) confirmDialog.findViewById(R.id.bookshare_dialog_btn_no);
+                    
+                    yesButton.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v){
                             // Upon logout clear the stored login credentials
                             SharedPreferences login = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                             SharedPreferences.Editor editor = login.edit();
@@ -251,13 +257,16 @@ public class Bookshare_Menu extends ListActivity {
                             editor.commit();
                             confirmAndClose(getResources().getString(R.string.bks_menu_log_out_confirmation));
                         }
-                    })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
+                    });
+                    
+                    noButton.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            confirmDialog.dismiss();
                         }
-                    })
-                    .show();
+                    });
+                    
+                    confirmDialog.show();
                 }
 			}
 		});
