@@ -61,12 +61,21 @@
 						android:id="@+id/bookshare_dialog_btn_ok"
 						android:layout_height="wrap_content"
 						android:gravity="center"
+                        android:nextFocusLeft="@+id/bookshare_dialog_search_edit_txt"
+                        android:nextFocusUp="@+id/bookshare_dialog_search_edit_txt"
+                        android:nextFocusRight="@+id/bookshare_dialog_btn_cancel"
+                        android:nextFocusDown="@+id/bookshare_dialog_btn_cancel"
+
 						android:text="OK"/>
 			
 					<Button
 						android:id="@+id/bookshare_dialog_btn_cancel"
 						android:layout_height="wrap_content"
 						android:gravity="center"
+                        android:nextFocusLeft="@+id/bookshare_dialog_btn_ok"
+                        android:nextFocusUp="@+id/bookshare_dialog_btn_ok"
+                        android:nextFocusRight="@+id/bookshare_dialog_search_edit_txt"
+                        android:nextFocusDown="@+id/bookshare_dialog_search_edit_txt"
 						android:text="Cancel"/>
 				</TableRow>
 
