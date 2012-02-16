@@ -47,9 +47,7 @@ public class Bookshare_Webservice_Login extends Activity{
 	private String SIGNUP_URL = "https://www.bookshare.org/signUpType";
 
 	private Button btn_login;
-	private Button btn_reset;
 	private Button btn_continue_without_login;
-	private Button btn_free_content;
 	private TextView text_username;
 	private TextView text_password;
 	private EditText editText_username;
@@ -95,7 +93,6 @@ public class Bookshare_Webservice_Login extends Activity{
 		setContentView(R.layout.bookshare_webservice_login);
 
 		btn_login = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_login);
-		btn_reset = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_password);
 		btn_continue_without_login = (Button)findViewById(R.id.btn_bookshare_bookshare_continue_without_login);
 		
 		text_username = (TextView)findViewById(R.id.bookshare_login_username_text);
@@ -144,15 +141,6 @@ public class Bookshare_Webservice_Login extends Activity{
 			}
 		});
 		
-		// Listener for reset button
-		btn_reset.setOnClickListener(new OnClickListener(){
-			public void onClick(View v){
-				editText_username.setText("");
-				editText_password.setText("");
-				editText_username.requestFocus();
-			}
-		});
-		
 		btn_continue_without_login.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
 				getFreeContent();
@@ -194,15 +182,10 @@ public class Bookshare_Webservice_Login extends Activity{
 		isOM = false;
 		username = null;
 		password = null;
-		
-		if(isFree){
-			pd_spinning = ProgressDialog.show(this, null, "Fetching free books data.", Boolean.TRUE);
-		}
-		else{
-			pd_spinning = ProgressDialog.show(this, null, "Authenticating.", Boolean.TRUE);
-		}
 
-		// Start a new AsyncTask for background processing
+        pd_spinning = ProgressDialog.show(this, null, "Fetching free books data.", Boolean.TRUE);
+
+        // Start a new AsyncTask for background processing
 		new AuthenticationTask().execute();
 	}
 	
@@ -258,8 +241,7 @@ public class Bookshare_Webservice_Login extends Activity{
 		protected void onPreExecute(){
 			
 			btn_login.setEnabled(false);
-			btn_reset.setEnabled(false);
-			
+
 			if(isFree){
 				editText_username.setText("");
 				editText_password.setText("");
@@ -355,7 +337,6 @@ public class Bookshare_Webservice_Login extends Activity{
 
             final VoiceableDialog finishedDialog = new VoiceableDialog(btn_login.getContext());
 			btn_login.setEnabled(true);
-			btn_reset.setEnabled(true);
 			editText_username.setEnabled(true);
 			editText_password.setEnabled(true);
 			editText_username.requestFocus();
