@@ -38,7 +38,9 @@
 			android:inputType="text"
             android:contentDescription="@string/login_dialog_username_label"
             android:nextFocusRight="@+id/bookshare_login_password_edit_text"
+            android:nextFocusDown="@+id/bookshare_login_password_edit_text"
             android:nextFocusLeft="@+id/btn_bookshare_bookshare_continue_without_login"
+            android:nextFocusUp="@+id/btn_bookshare_bookshare_continue_without_login"
 			android:imeOptions="actionNext"/>
 			
 		<TextView
@@ -62,8 +64,10 @@
 			android:layout_height="50dip"
 			android:focusable="true"
             android:contentDescription="@string/login_dialog_password_label"
-            android:nextFocusRight="@+id/bookshare_login_username_edit_text"
-            android:nextFocusLeft="@+id/bookshare_login_password_text"
+            android:nextFocusRight="@+id/btn_bookshare_bookshare_webservice_login"
+            android:nextFocusDown="@+id/btn_bookshare_bookshare_webservice_login"
+            android:nextFocusLeft="@+id/bookshare_login_username_edit_text"
+            android:nextFocusUp="@+id/bookshare_login_username_edit_text"
 			android:imeOptions="actionSend"/>
 	</LinearLayout>
 
@@ -80,18 +84,22 @@
 				android:textSize="16dip"
 				android:typeface="sans"
 				android:textStyle="bold"
-                android:nextFocusRight="@+id/btn_bookshare_bookshare_webservice_password"
+                android:nextFocusRight="@+id/btn_bookshare_login_reset"
+                android:nextFocusDown="@+id/btn_bookshare_login_reset"
                 android:nextFocusLeft="@+id/bookshare_login_password_edit_text"
+                android:nextFocusUp="@+id/bookshare_login_password_edit_text"
 				android:layout_width="130dip"
 				android:layout_height="50dip"/>
 			<Button
-				android:id="@+id/btn_bookshare_bookshare_webservice_password"
+				android:id="@+id/btn_bookshare_login_reset"
 				android:text="@string/login_dialog_reset_button"
 				android:textSize="16dip"
 				android:typeface="sans"
 				android:textStyle="bold"
-                android:nextFocusRight="@+id/btn_bookshare_bookshare_continue_without_login"
+                android:nextFocusRight="@+id/bookshare_login_username_text"
+                android:nextFocusDown="@+id/bookshare_login_username_text"
                 android:nextFocusLeft="@+id/btn_bookshare_bookshare_webservice_login"
+                android:nextFocusUp="@+id/btn_bookshare_bookshare_webservice_login"
 				android:layout_marginTop="30dip"
 				android:layout_weight="1"
 				android:layout_width="130dip"
@@ -107,8 +115,10 @@
 				android:textSize="16dip"
 				android:typeface="sans"
 				android:textStyle="bold"
+                android:nextFocusLeft="@+id/btn_bookshare_login_reset"
+                android:nextFocusUp="@+id/btn_bookshare_login_reset"
+                android:nextFocusDown="@+id/bookshare_login_username_edit_text"
                 android:nextFocusRight="@+id/bookshare_login_username_edit_text"
-                android:nextFocusLeft="@+id/btn_bookshare_bookshare_webservice_password"
 				android:layout_marginTop="80dip"
 				android:layout_weight="1"
 				android:layout_width="match_parent"
