@@ -21,7 +21,9 @@ package org.geometerplus.android.fbreader.library;
 
 import java.util.ArrayList;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.view.*;
@@ -29,6 +31,7 @@ import android.os.Bundle;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -51,6 +54,10 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 	private Library myLibrary;
 
 	private Book mySelectedBook;
+    private Dialog dialog;
+    private static final ZLResource resource = Library.resource();
+    ListView list;
+    Activity myActivity;
 
 	@Override
 	public void onCreate(Bundle icicle) {
@@ -76,11 +83,17 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 		}
 
 		new LibraryTreeAdapter(this);
+        myActivity = this;
 
 		init(getIntent());
 
 		getListView().setTextFilterEnabled(true);
 		getListView().setOnCreateContextMenuListener(this);
+
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.accessible_long_press_dialog);
+        list = (ListView) dialog.findViewById(R.id.accessible_list);
+
 	}
 
 	@Override
@@ -111,8 +124,30 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 	protected void onListItemClick(ListView listView, View view, int position, long rowId) {
 		final LibraryTree tree = (LibraryTree)getListAdapter().getItem(position);
 		final Book book = tree.getBook();
+        mySelectedBook = book;
 		if (book != null) {
-			showBookInfo(book);
+            if (!accessibilityManager.isEnabled()) {
+			    showBookInfo(book);
+            } else {
+
+                ArrayList<Object> listItems = new ArrayList<Object>();
+                listItems.add(resource.getResource("openBook").getValue());
+                listItems.add(resource.getResource("showBookInfo").getValue());
+                if (myLibrary.isBookInFavorites(book)) {
+                    listItems.add(resource.getResource("removeFromFavorites").getValue());
+                } else {
+                    listItems.add(resource.getResource("addToFavorites").getValue());
+                }
+                if ((myLibrary.getRemoveBookMode(book) & Library.REMOVE_FROM_DISK) != 0) {
+                    listItems.add(resource.getResource("deleteBook").getValue());
+                }
+
+                LabelsListAdapter adapter = new LabelsListAdapter(listItems, this);
+                list.setAdapter(adapter);
+                list.setOnItemClickListener(new MenuClickListener(book));
+
+                dialog.show();
+            }
 		} else {
 			openTree(tree);
 		}
@@ -333,4 +368,37 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 			}
 		});
 	}
+    
+    
+    private class MenuClickListener implements AdapterView.OnItemClickListener {
+        private Book book;
+
+        private MenuClickListener(Book book) {
+            this.book = book;
+        }
+
+        public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+            dialog.hide();
+            int i = 0;
+            switch (position) {
+                case OPEN_BOOK_ITEM_ID:
+                    openBook(book);
+                    break;
+                case SHOW_BOOK_INFO_ITEM_ID:
+                    showBookInfo(book);
+                    break;
+                case 2:
+                    if (myLibrary.isBookInFavorites(book)) {
+                        myLibrary.removeBookFromFavorites(book);
+                        getListView().invalidateViews();
+                    } else {
+                        myLibrary.addBookToFavorites(book);
+                    }
+                    break;
+                case 3:
+                    tryToDeleteBook(book);
+                    break;
+            }
+        }
+    }
 }
