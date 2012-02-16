@@ -1,10 +1,12 @@
 package org.geometerplus.android.fbreader.benetech;
 
+import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.KeyEvent;
@@ -27,20 +29,23 @@ public class AccessibleNavigateActivity extends Activity {
         parentActivity = this;
 
         setContentView(R.layout.bookshare_dialog);
+
+        final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
+        final ZLTextView.PagePosition pagePosition = textView.pagePosition();
+
+        final int currentPage = pagePosition.Current;
+        final int pagesNumber = pagePosition.Total;
+
         setTitle(getResources().getString(R.string.navigate_dialog_title));
         searchTermEditText = (EditText)findViewById(R.id.bookshare_dialog_search_edit_txt);
-        searchTermEditText.setContentDescription(getResources().getString(R.string.navigate_dialog_label));
+        searchTermEditText.setContentDescription(getResources().getString(R.string.navigate_dialog_label) + " " +
+            getResources().getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
         searchTermEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
         TextView dialog_search_title = (TextView) findViewById(R.id.bookshare_dialog_search_txt);
         TextView dialog_example_text = (TextView) findViewById(R.id.bookshare_dialog_search_example);
         Button dialog_ok = (Button)findViewById(R.id.bookshare_dialog_btn_ok);
         Button dialog_cancel = (Button)findViewById(R.id.bookshare_dialog_btn_cancel);
         
-        final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
-        final ZLTextView.PagePosition pagePosition = textView.pagePosition();
-
-        final int currentPage = pagePosition.Current;
-        final int pagesNumber = pagePosition.Total;
         dialog_search_title.setText(getResources().getString(R.string.navigate_dialog_label));
         dialog_example_text.setText(getResources().getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
         searchTermEditText.setOnKeyListener(new View.OnKeyListener() {
@@ -85,6 +90,7 @@ public class AccessibleNavigateActivity extends Activity {
     
     private void gotoPage(int page) {
         final ZLTextView view = (ZLTextView)FBReaderApp.Instance().getCurrentView();
+        
         if (page == 1) {
             view.gotoHome();
         } else {
@@ -92,7 +98,24 @@ public class AccessibleNavigateActivity extends Activity {
         }
         FBReaderApp.Instance().getViewWidget().reset();
         FBReaderApp.Instance().getViewWidget().repaint();
-        finish();
+        
+        String message =  getResources().getString(R.string.page_navigated, page);
+        confirmAndClose(message);
+        
+    }
+    
+    /*
+     * Display logged out confirmation and close the bookshare menu screen
+     */
+    private void confirmAndClose(String msg) {
+        final VoiceableDialog dialog = new VoiceableDialog(this);
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                finish();
+            }
+        });
+        dialog.popup(msg, 2000);
     }
     
 }
