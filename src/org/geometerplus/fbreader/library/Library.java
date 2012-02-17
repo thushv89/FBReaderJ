@@ -23,6 +23,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
+import org.geometerplus.fbreader.formats.daisy3.Daisy3Plugin;
 import org.geometerplus.zlibrary.core.filesystem.*;
 import org.geometerplus.zlibrary.core.image.ZLImage;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -608,7 +609,27 @@ public final class Library {
 
 		BooksDatabase.Instance().deleteFromBookList(book.getId());
 		if ((removeMode & REMOVE_FROM_DISK) != 0) {
-			book.File.getPhysicalFile().delete();
+            boolean isDaisy = false;
+            ZLFile parent = book.File.getPhysicalFile().getParent();
+            final FormatPlugin plugin = PluginCollection.Instance().getPlugin(book.File);
+            if (plugin instanceof Daisy3Plugin) {
+                isDaisy = true;
+            }
+            
+            book.File.getPhysicalFile().delete();
+            if (isDaisy) {
+                //remove all files in directory in addition to .opf file and remove directory
+                String parentDirectoryPath = parent.getPath();
+                File directory = new File(parentDirectoryPath);
+
+                File[] files = directory.listFiles();
+                for (File file : files)
+                {
+                   // Delete each file
+                   file.delete();
+                }
+                directory.delete();
+            }
 		}
 	}
 
