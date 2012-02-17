@@ -183,7 +183,7 @@ public class Bookshare_Webservice_Login extends Activity{
 		username = null;
 		password = null;
 
-        pd_spinning = ProgressDialog.show(this, null, "Fetching free books data.", Boolean.TRUE);
+        pd_spinning = ProgressDialog.show(this, null, "Connecting to Bookshare", Boolean.TRUE);
 
         // Start a new AsyncTask for background processing
 		new AuthenticationTask().execute();
@@ -384,12 +384,7 @@ public class Bookshare_Webservice_Login extends Activity{
 		}
 	}
 	private void startProgressDialog(){
-		if(isFree){
-			pd_spinning = ProgressDialog.show(this, null, "Fetching free books data. Please wait.", Boolean.TRUE);
-		}
-		else{
-			pd_spinning = ProgressDialog.show(this, null, "Authenticating. Please wait.", Boolean.TRUE);
-		}
+        pd_spinning = ProgressDialog.show(this, null, "Authenticating. Please wait.", Boolean.TRUE);
 	}
 
 }
