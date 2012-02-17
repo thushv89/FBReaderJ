@@ -29,6 +29,7 @@ import android.widget.*;
 import android.content.*;
 
 import org.accessibility.VoiceableDialog;
+import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.util.ZLMiscUtil;
@@ -62,6 +63,9 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
+    private Dialog dialog;
+    ListView list;
+    Activity myActivity;
 
 	private ListView createTab(String tag, int id, final String label) {
 		final TabHost host = getTabHost();
@@ -76,6 +80,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
         accessibilityManager =
             (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
+        myActivity = this;
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
@@ -111,6 +116,10 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		new BookmarksAdapter(myAllBooksView, AllBooksBookmarks, false);
 
 		findViewById(R.id.search_results).setVisibility(View.GONE);
+
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.accessible_long_press_dialog);
+        list = (ListView) dialog.findViewById(R.id.accessible_list);
 	}
 
 	@Override
@@ -333,10 +342,47 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		public final void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 			final Bookmark bookmark = getItem(position);
 			if (bookmark != null) {
-				gotoBookmark(bookmark);
+                if (!accessibilityManager.isEnabled()) {
+				    gotoBookmark(bookmark);
+                } else {
+                    // show 'long press' context menu to open or remove a bookmark
+                    ArrayList<Object> listItems = new ArrayList<Object>();
+                    final ZLResource resource = ZLResource.resource("bookmarksView");
+                    listItems.add(resource.getResource("open").getValue());
+                    listItems.add(resource.getResource("delete").getValue());
+                    LabelsListAdapter adapter = new LabelsListAdapter(listItems, myActivity);
+                    list.setAdapter(adapter);
+                    list.setOnItemClickListener(new MenuClickListener(bookmark));
+                    dialog.show();
+                }
 			} else {
 				addBookmark();
 			}
 		}
+
+        private class MenuClickListener implements AdapterView.OnItemClickListener {
+            private Bookmark bookmark;
+
+            private MenuClickListener(Bookmark bookmark) {
+                this.bookmark = bookmark;
+            }
+
+            public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                dialog.hide();
+
+                switch (position) {
+                    case 0:
+                        gotoBookmark(bookmark);
+                        break;
+                    case 1:
+                        bookmark.delete();
+                        myThisBookBookmarks.remove(bookmark);
+                        AllBooksBookmarks.remove(bookmark);
+                        mySearchResults.remove(bookmark);
+                        invalidateAllViews();
+                        break;
+                }
+            }
+        }
 	}
 }
