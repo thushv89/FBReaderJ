@@ -26,8 +26,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.view.*;
 import android.os.Bundle;
 import android.widget.AdapterView;
