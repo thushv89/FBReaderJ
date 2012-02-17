@@ -26,10 +26,14 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.*;
 import android.os.Bundle;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
@@ -132,7 +136,6 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 
                 ArrayList<Object> listItems = new ArrayList<Object>();
                 listItems.add(resource.getResource("openBook").getValue());
-                listItems.add(resource.getResource("showBookInfo").getValue());
                 if (myLibrary.isBookInFavorites(book)) {
                     listItems.add(resource.getResource("removeFromFavorites").getValue());
                 } else {
@@ -379,15 +382,11 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 
         public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
             dialog.hide();
-            int i = 0;
             switch (position) {
                 case OPEN_BOOK_ITEM_ID:
                     openBook(book);
                     break;
-                case SHOW_BOOK_INFO_ITEM_ID:
-                    showBookInfo(book);
-                    break;
-                case 2:
+                case 1:
                     if (myLibrary.isBookInFavorites(book)) {
                         myLibrary.removeBookFromFavorites(book);
                         getListView().invalidateViews();
@@ -395,10 +394,41 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
                         myLibrary.addBookToFavorites(book);
                     }
                     break;
-                case 3:
-                    tryToDeleteBook(book);
+                case 2:
+                    tryToAccessiblyDeleteBook(book);
                     break;
             }
         }
+    }
+
+    private void tryToAccessiblyDeleteBook(final Book book) {
+
+        final ZLResource dialogResource = ZLResource.resource("dialog");
+        final ZLResource boxResource = dialogResource.getResource("deleteBookBox");
+
+        final Dialog confirmDialog = new Dialog(myActivity);
+        confirmDialog.setTitle(getResources().getString(R.string.accessible_alert_title));
+        confirmDialog.setContentView(R.layout.accessible_alert_dialog);
+        TextView confirmation = (TextView)confirmDialog.findViewById(R.id.bookshare_confirmation_message);
+        confirmation.setText(boxResource.getResource("message").getValue());
+        Button yesButton = (Button)confirmDialog.findViewById(R.id.bookshare_dialog_btn_yes);
+        Button noButton = (Button) confirmDialog.findViewById(R.id.bookshare_dialog_btn_no);
+
+        yesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                deleteBook(book, Library.REMOVE_FROM_DISK);
+
+            }
+        });
+
+        noButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                confirmDialog.dismiss();
+            }
+        });
+
+        confirmDialog.show();
     }
 }
