@@ -39,8 +39,8 @@
             android:contentDescription="@string/login_dialog_username_label"
             android:nextFocusRight="@+id/bookshare_login_password_edit_text"
             android:nextFocusDown="@+id/bookshare_login_password_edit_text"
-            android:nextFocusLeft="@+id/btn_bookshare_bookshare_continue_without_login"
-            android:nextFocusUp="@+id/btn_bookshare_bookshare_continue_without_login"
+            android:nextFocusLeft="@+id/btn_login_sign_up"
+            android:nextFocusUp="@+id/btn_login_sign_up"
 			android:imeOptions="actionNext"/>
 			
 		<TextView
@@ -104,12 +104,40 @@
 				android:textStyle="bold"
                 android:nextFocusLeft="@+id/btn_bookshare_bookshare_webservice_login"
                 android:nextFocusUp="@+id/btn_bookshare_bookshare_webservice_login"
-                android:nextFocusDown="@+id/bookshare_login_username_edit_text"
-                android:nextFocusRight="@+id/bookshare_login_username_edit_text"
-				android:layout_marginTop="80dip"
+                android:nextFocusDown="@+id/btn_login_forgot_pwd"
+                android:nextFocusRight="@+id/btn_login_forgot_pwd"
 				android:layout_weight="1"
 				android:layout_width="match_parent"
 				android:layout_height="50dip"/>
 	</LinearLayout>
+    <TableLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dip"
+        android:stretchColumns="*">
+
+        <TableRow>
+            <Button
+                android:id="@+id/btn_login_forgot_pwd"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:nextFocusLeft="@+id/btn_bookshare_bookshare_continue_without_login"
+                android:nextFocusUp="@+id/btn_bookshare_bookshare_continue_without_login"
+                android:nextFocusRight="@+id/btn_login_sign_up"
+                android:nextFocusDown="@+id/btn_login_sign_up"
+                android:text="@string/login_forgot_password"/>
+
+            <Button
+                android:id="@+id/btn_login_sign_up"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:nextFocusLeft="@+id/btn_login_forgot_pwd"
+                android:nextFocusUp="@+id/btn_login_forgot_pwd"
+                android:nextFocusRight="@+id/bookshare_login_username_edit_text"
+                android:nextFocusDown="@+id/bookshare_login_username_edit_text"
+                android:text="@string/login_signup"/>
+        </TableRow>
+
+    </TableLayout>
 
 </LinearLayout>

@@ -20,6 +20,8 @@
 	<string name="login_error_non_blank_username">Username field cannot be blank!</string>
 	<string name="login_failed">Log in Failed!</string>
 	<string name="login_network_error">Network Error</string>
+    <string name="login_forgot_password">Forgot password</string>
+    <string name="login_signup">Sign up!</string>
 
     
     <!-- Bookshare_Book_Details -->

@@ -146,6 +146,22 @@ public class Bookshare_Webservice_Login extends Activity{
 				getFreeContent();
 			}
 		});
+
+        findViewById(R.id.btn_login_forgot_pwd).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(FORGOT_PW_URL));
+                startActivity(myIntent);
+            }
+        });
+
+        findViewById(R.id.btn_login_sign_up).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent myIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(SIGNUP_URL));
+                startActivity(myIntent);
+            }
+        });
 	}
 	private void loginAction(){
 
