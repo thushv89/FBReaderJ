@@ -153,13 +153,16 @@ public abstract class TreeActivity extends ListActivity {
 		final TreeAdapter adapter = getListAdapter();
 
         // Remove byTag (5th) tree from RootTree if accessibility is turned on
-        final ArrayList myTrees = (ArrayList)myCurrentTree.subTrees();
-        final boolean hideTagTree = accessibilityManager.isEnabled();
-        if (hideTagTree && myCurrentKey.Id.equals("@FBReaderLibraryRoot")) {
-            myTrees.remove(4);
+        if (accessibilityManager.isEnabled() && myCurrentTree.subTrees().size() > 0) {
+            final ArrayList myTrees = (ArrayList)myCurrentTree.subTrees();
+            if (myCurrentKey.Id.equals("@FBReaderLibraryRoot")) {
+                myTrees.remove(4);
+            }
+            adapter.replaceAll(myTrees);
+        } else {
+            adapter.replaceAll(myCurrentTree.subTrees());
         }
 
-        adapter.replaceAll(myTrees);
 		setTitle(myCurrentTree.getTreeTitle());
 		final FBTree selectedTree =
 			selectedKey != null ? getTreeByKey(selectedKey) : adapter.getFirstSelectedItem();
