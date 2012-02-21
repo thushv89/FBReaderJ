@@ -182,6 +182,8 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		mySearchResultsView.invalidateViews();
 		mySearchResultsView.requestLayout();
 		getTabHost().setCurrentTabByTag("found");
+        mySearchResultsView.setFocusable(true);
+        mySearchResultsView.requestFocus();
 	}
 
 	public boolean onMenuItemClick(MenuItem item) {
