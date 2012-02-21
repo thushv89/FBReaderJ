@@ -72,13 +72,14 @@
 		                    android:id="@+id/bookshare_download_not_available_msg"
 							android:layout_width="fill_parent"
 							android:layout_height="wrap_content"
-							android:text="You must sign in to Bookshare to download."
+							android:text="You must sign in to Bookshare to download this book."
 		                    android:gravity="left"
 		                    android:textColor="#ffffff"
 							android:textStyle="bold"
 							android:textSize="16dip"
 							android:typeface="serif"
 							android:paddingBottom="3dip"
+                            android:focusable="true"
 							android:layout_span="2"/>
 					</TableRow>
 					<View
