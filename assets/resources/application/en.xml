@@ -190,7 +190,7 @@
 		</node>
 	</node>
 	<node name="bookDownloader">
-		<node name="tickerSuccess" value="Book has been downloaded"/>
+		<node name="tickerSuccess" value="Book downloaded! Read book."/>
 		<node name="tickerError" value="Book download error"/>
 		<node name="contentSuccess" value="Download complete"/>
 		<node name="contentError" value="Download failed"/>

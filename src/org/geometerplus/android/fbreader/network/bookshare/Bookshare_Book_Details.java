@@ -728,7 +728,7 @@ public class Bookshare_Book_Details extends Activity{
                     );
                 }
             };
-
+            btn_download.requestFocus();
             downloadFinishHandler.sendEmptyMessage(downloadSuccess ? 1 : 0);
 		}
     }
