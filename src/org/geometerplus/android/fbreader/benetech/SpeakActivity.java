@@ -73,6 +73,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     private int lastSpoken = 0;
     private boolean justPaused = false;
     private boolean resumePlaying = false;
+    private boolean abortedTOCReturn = false;
     private Iterator<String> sentenceListIterator;
     private ArrayList<Integer> wordIndexList;
 
@@ -204,11 +205,11 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
                 startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
             }
         } else {
-            if (resultCode != TOCActivity.BACK_PRESSED) {
+            if (resultCode == TOCActivity.BACK_PRESSED) {
+                abortedTOCReturn = true;
+            } else {
                 resumePlaying = true;
-           } else {
-               justPaused = true;
-           }
+            }
         }
 	}
 
@@ -217,10 +218,11 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 		super.onResume();
         findViewById(R.id.speak_menu_pause).requestFocus();
 
-        if (! justPaused) {
+        if (! abortedTOCReturn) {
             myParagraphIndex = myApi.getPageStart().ParagraphIndex;
             myParagraphsNumber = myApi.getParagraphsNumber();
         }
+        abortedTOCReturn = false;
 
         if (resumePlaying || justPaused) {
             resumePlaying = false;
