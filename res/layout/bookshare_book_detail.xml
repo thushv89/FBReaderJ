@@ -33,6 +33,7 @@
 								android:typeface="serif"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
+                                android:layout_span="2"
 								android:gravity="left"/>
 
 					</TableRow>
@@ -46,6 +47,7 @@
 								android:typeface="serif"
 								android:paddingBottom="3dip"
                                 android:focusable="true"
+                                android:layout_span="2"
 								android:gravity="left"/>
 					</TableRow>				
 					<View
@@ -95,6 +97,7 @@
 								android:typeface="serif"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
+                                android:layout_span="2"
 								android:gravity="left"/>
 					</TableRow>
 					<TableRow>
@@ -107,6 +110,7 @@
 								android:typeface="serif"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
+                                android:layout_span="2"
 								android:gravity="left"/>
 					</TableRow>
 					<TableRow>
@@ -119,6 +123,7 @@
 								android:paddingBottom="4dip"
 								android:textStyle="bold"
                                 android:focusable="true"
+                                android:layout_span="2"
 								android:gravity="left"/>
 					</TableRow>
 					<TableRow>
@@ -131,6 +136,7 @@
 								android:paddingBottom="4dip"
 								android:textStyle="bold"
                                 android:focusable="true"
+                                android:layout_width="wrap_content"
 								android:gravity="left"/>
 					</TableRow>
 					<TableRow>
@@ -143,6 +149,7 @@
 								android:textStyle="bold"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
+                                android:layout_span="2"
 								android:gravity="left"/>
 					</TableRow>
 					<TableRow>
