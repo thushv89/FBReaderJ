@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- English FBReaderJ resources, by Geometer Plus -->
 <resources>
-	<node name="library" value="FBReader library">
+	<node name="library" value="Bookshare Reader library">
 		<node name="unknownAuthor" value="Unknown author"/>
 		<node name="booksWithNoTags" value="Books with no tags"/>
 		<node name="demo" value="sample"/>
@@ -35,8 +35,8 @@
 		<node name="fileTreeCard" value="Memory card">
 			<node name="summary" value="Memory card inserted into the device"/>
 		</node>
-		<node name="fileTreeLibrary" value="FBReader library">
-			<node name="summary" value="FBReader books directory"/>
+		<node name="fileTreeLibrary" value="Bookshare Reader library">
+			<node name="summary" value="Bookshare Reader books directory"/>
 		</node>
 		<node name="menu">
 			<node name="localSearch" value="Search"/>
@@ -47,7 +47,7 @@
 		<node name="addToFavorites" value="Add to favorites"/>
 		<node name="removeFromFavorites" value="Remove from favorites"/>
 	</node>
-	<node name="networkLibrary" value="FBReader network library">
+	<node name="networkLibrary" value="Bookshare Reader network library">
 		<node name="byAuthor" value="By author">
 			<node name="summary" value="Books sorted by author"/>
 		</node>
@@ -633,12 +633,12 @@
 					<node name="summaryOff" value="Don't show items for last 3 positions in the book"/>
 				</node>
 				<node name="backKeyAction" value="Back key action">
-					<node name="exit" value="Close FBReader"/>
+					<node name="exit" value="Close Bookshare Reader"/>
 					<node name="goBack" value="Navigate back"/>
 					<node name="cancelMenu" value="Show cancel menu"/>
 				</node>
 				<node name="backKeyLongPressAction" value="Back key long press action">
-					<node name="exit" value="Close FBReader"/>
+					<node name="exit" value="Close Bookshare Reader"/>
 					<node name="goBack" value="Navigate back"/>
 					<node name="cancelMenu" value="Show cancel menu"/>
 					<node name="none" value="No action"/>
@@ -651,17 +651,17 @@
 					<node name="summaryOff" value="Do not show"/>
 				</node>
 			</node>
-			<node name="about" value="About FBReader">
+			<node name="about" value="About Bookshare Reader">
 				<node name="summary" value="Version info, contacts"/>
 				<node name="version" value="Version"/>
 				<node name="site" value="Visit our website">
-					<node name="url" value="http://www.fbreader.org/"/>
+					<node name="url" value="http://www.bookshare.org/"/>
 				</node>
 				<node name="email" value="Send us an e-mail">
-					<node name="url" value="mailto:contact@geometerplus.com"/>
+					<node name="url" value="mailto:android-dev@benetech.org"/>
 				</node>
 				<node name="twitter" value="Follow us at twitter">
-					<node name="url" value="http://twitter.com/fbreader"/>
+					<node name="url" value="http://twitter.com/bookshare"/>
 				</node>
 			</node>
 		</node>
