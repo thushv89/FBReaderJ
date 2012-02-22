@@ -31,8 +31,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -66,8 +64,9 @@ public class Bookshare_Books_Listing extends ListActivity{
 	private final int START_BOOKSHARE_BOOK_DETAILS_ACTIVITY = 0;
 	private final int BOOKSHARE_BOOK_DETAILS_FINISHED = 1;
 	private final int BOOKSHARE_BOOKS_LISTING_FINISHED = 2;
+    private final int PREVIOUS_PAGE_BOOK_ID = -1;
+    private final int NEXT_PAGE_BOOK_ID = -2;
 	private ArrayList<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
-	TreeMap<Integer,Object> icons_map = new TreeMap<Integer,Object>();
 	InputStream inputStream;
 	final BookshareWebservice bws = new BookshareWebservice();
 	private int total_pages_result;
@@ -139,44 +138,23 @@ public class Bookshare_Books_Listing extends ListActivity{
 		}.start();
 	}
 	
-
-	@Override
-	public boolean onPrepareOptionsMenu(Menu menu){
-		super.onPrepareOptionsMenu(menu);
-		menu.clear();
-
-		if(current_result_page > 1 ){
-			MenuItem item = menu.add("Previous Page");
-			item.setIcon(R.drawable.arrow_left_blue);			
-		}
-
-		if(current_result_page < total_pages_result ){
-			MenuItem item = menu.add("Next Page");
-			item.setIcon(R.drawable.arrow_right_blue);
-		}
-
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item){
-		if(item.getTitle().equals("Next Page")){
+	public void pageChangeSelected(int selectorId){
+		if(selectorId == NEXT_PAGE_BOOK_ID){
 			current_result_page++;
 		}
-		else if(item .getTitle().equals("Previous Page")){
+		else if(selectorId == PREVIOUS_PAGE_BOOK_ID){
 			current_result_page--;
 		}
 		list.clear();
 		
 		StringBuilder strBuilder = new StringBuilder(requestURI);
-		int index = -1;
+		int index;
 		
 		if((index = strBuilder.indexOf("?api_key=")) != -1){
 			strBuilder.delete(index, strBuilder.length());
 			strBuilder.append("/page/"+current_result_page+"?api_key="+developerKey);
 		}
 		getListing(strBuilder.toString());
-		return true;
 	}
 
 	// Handler for dealing with the stream obtained as a result of search 
@@ -245,6 +223,14 @@ public class Bookshare_Books_Listing extends ListActivity{
 						}
 						list.add(row_item);
 					}
+
+                    if(current_result_page > 1 ){
+                        createPageChanger("Previous Page", PREVIOUS_PAGE_BOOK_ID, R.drawable.arrow_left_blue);
+                    }
+
+                    if(current_result_page < total_pages_result ){
+                        createPageChanger("Next Page", NEXT_PAGE_BOOK_ID, R.drawable.arrow_right_blue);
+                    }
 				}
 				
 				// Instantiate the custom SimpleAdapter for populating the ListView
@@ -280,6 +266,13 @@ public class Bookshare_Books_Listing extends ListActivity{
 
 						//Obtain the book ID
 						TextView bookId = (TextView)row_view.findViewById(R.id.bookId);
+                        if (null != bookId.getText().toString() ) {
+                            int numericId =  Integer.valueOf(bookId.getText().toString());
+                            if (numericId < 0) {
+                                pageChangeSelected(numericId);
+                                return;
+                            }
+                        }
 						
 						// Find the corresponding bean object for this row
 						for(Bookshare_Result_Bean bean : vectorResults){
@@ -289,7 +282,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 							if(bean.getId().equalsIgnoreCase(bookId.getText().toString())){
 								String bookshare_ID = bean.getId();
 								Intent intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
-								String uri = "";
+								String uri;
 								if(isFree)
 									uri = URI_BOOKSHARE_ID_SEARCH + bookshare_ID + "?api_key="+developerKey;
 								else
@@ -317,7 +310,17 @@ public class Bookshare_Books_Listing extends ListActivity{
 				});
 			}
 		}
-	};
+
+        private void createPageChanger(String title, int id, int iconId) {
+            TreeMap<String, Object> row_item = new TreeMap<String, Object>();
+            row_item.put("title", title);
+            row_item.put("authors", "");
+            row_item.put("icon", iconId);
+            row_item.put("book_id", String.valueOf(id));
+            row_item.put("download_icon", iconId);
+            list.add(row_item);
+        }
+    };
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -368,7 +371,6 @@ public class Bookshare_Books_Listing extends ListActivity{
 	// Class containing the logic for parsing the response of search results
 	private class SAXHandler extends DefaultHandler{
 
-		int count;
 		boolean result = false;
 		boolean id = false;
 		boolean title = false;
@@ -523,10 +525,13 @@ public class Bookshare_Books_Listing extends ListActivity{
 			((TextView) convertView.findViewById(R.id.text1))
 			.setText((String) data.get("title"));
 
-            StringBuilder authorsBuilder = new StringBuilder("by ");
-            authorsBuilder.append((String) data.get("authors"));
-            if((Integer)data.get("download_icon") == R.drawable.black_icon) {
-                authorsBuilder.append(" ( not downloadable )");
+            StringBuilder authorsBuilder = new StringBuilder("");
+            if (((String)data.get("authors")).length() > 0) {
+                authorsBuilder = new StringBuilder("by ");
+                authorsBuilder.append((String) data.get("authors"));
+                if((Integer)data.get("download_icon") == R.drawable.black_icon) {
+                    authorsBuilder.append(" ( not downloadable )");
+                }
             }
 
             // would have preferred to set this as setContentDescription, but that didn't voice
@@ -534,11 +539,11 @@ public class Bookshare_Books_Listing extends ListActivity{
 			.setText(authorsBuilder.toString());
 
 			((ImageView) convertView.findViewById(R.id.row_icon))
-			.setImageResource(((Integer)data.get("icon")).intValue());
+			.setImageResource((Integer) data.get("icon"));
 
 			if(data.get("download_icon") != null){
 				((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
-				.setImageResource(((Integer)data.get("download_icon")).intValue());
+				.setImageResource((Integer) data.get("download_icon"));
 
 				((TextView) convertView.findViewById(R.id.bookId))
 				.setText((String) data.get("book_id"));
