@@ -238,6 +238,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 			myThisBookBookmarks.add(0, bookmark);
 			AllBooksBookmarks.add(0, bookmark);
 			invalidateAllViews();
+            myAllBooksView.setFocusable(true);
 
             final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
             final ZLTextView.PagePosition pagePosition = textView.pagePosition();
