@@ -18,6 +18,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.InputType;
@@ -72,7 +74,7 @@ public class Bookshare_Menu extends ListActivity {
     private final Activity myActivity = this;
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState){
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_menu_main);
@@ -255,7 +257,7 @@ public class Bookshare_Menu extends ListActivity {
                             editor.putString("password", "");
                             editor.putBoolean("isOM", false);
                             editor.commit();
-                            confirmAndClose(getResources().getString(R.string.bks_menu_log_out_confirmation));
+                            confirmAndClose(getResources().getString(R.string.bks_menu_log_out_confirmation), 2000);
                         }
                     });
                     
@@ -271,6 +273,14 @@ public class Bookshare_Menu extends ListActivity {
 			}
 		});
 	}
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!isNetworkAvailable()) {
+            confirmAndClose(getResources().getString(R.string.bks_menu_no_internet), 3500);
+        }
+    }
 
     private void doSearch() {
         // Hide the virtual keyboard
@@ -366,7 +376,7 @@ public class Bookshare_Menu extends ListActivity {
     /*
      * Display logged out confirmation and close the bookshare menu screen
      */
-    private void confirmAndClose(String msg) {
+    private void confirmAndClose(String msg, int timeout) {
         final VoiceableDialog dialog = new VoiceableDialog(myActivity);
         dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
@@ -374,6 +384,13 @@ public class Bookshare_Menu extends ListActivity {
                 finish();
             }
         });
-        dialog.popup(msg, 2000);
+        dialog.popup(msg, timeout);
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+              = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null;
     }
 }

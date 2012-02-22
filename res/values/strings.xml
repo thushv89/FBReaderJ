@@ -65,6 +65,7 @@
     <string name="bks_menu_log_in">Log In to Bookshare</string>
     <string name="bks_menu_log_out">Log Out of Bookshare</string>
     <string name="bks_menu_log_out_confirmation">Logged out!</string>
+    <string name="bks_menu_no_internet">You must first enable internet connectivity!</string>
     <string name="empty_search_term_error">Search Term cannot be blank!</string>
     <string name="accessible_alert_title">Are you sure?</string>
     
