@@ -11,6 +11,7 @@ import org.benetech.android.R;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -177,14 +178,17 @@ public class Bookshare_Webservice_Login extends Activity{
 		if(username.equals("") && password.equals("")) {
             String message = getResources().getString(R.string.login_error_non_blank_password_and_username);
             finishedDialog.popup(message, 5000);
+            editText_username.requestFocus();
 		}
 		else if(username.equals("") && !password.equals("")) {
             String message = getResources().getString(R.string.login_error_non_blank_username);
             finishedDialog.popup(message, 5000);
+            editText_username.requestFocus();
 		}
 		else if(!username.equals("") && password.equals("")) {
             String message = getResources().getString(R.string.login_error_non_blank_password) ;
             finishedDialog.popup(message, 5000);
+            editText_password.requestFocus();
 		}
 		else{
 			startProgressDialog();
@@ -355,7 +359,6 @@ public class Bookshare_Webservice_Login extends Activity{
 			btn_login.setEnabled(true);
 			editText_username.setEnabled(true);
 			editText_password.setEnabled(true);
-			editText_username.requestFocus();
 			if(pd_spinning != null)
 				pd_spinning.cancel();
 
@@ -384,13 +387,13 @@ public class Bookshare_Webservice_Login extends Activity{
 			// Give the failure notification and show the login screen
 			case LOGIN_FAILED:
                 String message =  getResources().getString(R.string.login_failed);
-                finishedDialog.popup(message, 5000);
+                confirmAndClose(message);
 				editText_username.setText("");
 				editText_password.setText("");
 				break;
 			case NETWORK_ERROR:
                 String nMessage =  getResources().getString(R.string.login_network_error);
-                finishedDialog.popup(nMessage, 5000);
+                confirmAndClose(nMessage);
 				editText_username.setText("");
 				editText_password.setText("");
 				break;
@@ -402,6 +405,17 @@ public class Bookshare_Webservice_Login extends Activity{
 	private void startProgressDialog(){
         pd_spinning = ProgressDialog.show(this, null, "Authenticating. Please wait.", Boolean.TRUE);
 	}
+
+    private void confirmAndClose(String msg) {
+        final VoiceableDialog dialog = new VoiceableDialog(this);
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                editText_username.requestFocus();
+            }
+        });
+        dialog.popup(msg, 4500);
+    }
 
 }
 
