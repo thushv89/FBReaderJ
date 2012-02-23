@@ -89,7 +89,7 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 				? listStack.peek() : new ListTypeItem(ListType.UL, false, 1);
 		if (currentList.getListType().equals(ListType.UL)) {
 			modelReader.addData(BULLET);
-		} else {
+		} else if (currentList.getListType().equals(ListType.OL)){
 			final StringBuilder itemDesc = new StringBuilder();
 			if (!currentList.isAlphabetic()) {
 			    itemDesc.append(currentList.getItemNumber());
