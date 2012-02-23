@@ -526,7 +526,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 			.setText((String) data.get("title"));
 
             StringBuilder authorsBuilder = new StringBuilder("");
-            if (((String)data.get("authors")).length() > 0) {
+            if ( (data.get("authors") != null) &&   ((String)data.get("authors")).length() > 0) {
                 authorsBuilder = new StringBuilder("by ");
                 authorsBuilder.append((String) data.get("authors"));
                 if((Integer)data.get("download_icon") == R.drawable.black_icon) {
