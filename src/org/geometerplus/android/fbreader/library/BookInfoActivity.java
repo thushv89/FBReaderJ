@@ -24,6 +24,7 @@ import java.text.DateFormat;
 import java.util.*;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -32,6 +33,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.*;
 
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -61,6 +63,9 @@ public class BookInfoActivity extends Activity {
 	private ZLImage myImage;
 	private boolean myDontReloadBook;
 
+    //Added for the detecting whether the talkback is on
+    private AccessibilityManager accessibilityManager;
+
 	@Override
 	protected void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
@@ -82,6 +87,9 @@ public class BookInfoActivity extends Activity {
 		setContentView(R.layout.book_info);
 
 		setResult(1, getIntent());
+
+        accessibilityManager =
+            (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 	}
 
 	@Override
@@ -96,6 +104,8 @@ public class BookInfoActivity extends Activity {
 			setupAnnotation(book);
 			setupFileInfo(book);
 		}
+
+
 
 		setupButton(R.id.book_info_button_open, "openBook", new View.OnClickListener() {
 			public void onClick(View view) {
@@ -133,7 +143,10 @@ public class BookInfoActivity extends Activity {
 		final View root = findViewById(R.id.book_info_root);
 		root.invalidate();
 		root.requestLayout();
+
+
 	}
+
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -312,4 +325,14 @@ public class BookInfoActivity extends Activity {
 		}
 		return DateFormat.getDateTimeInstance().format(new Date(date));
 	}
+
+    @Override
+    public void onWindowFocusChanged (boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (accessibilityManager.isEnabled()) {
+            findButton(R.id.book_info_button_edit).setVisibility(View.GONE);
+            findButton(R.id.book_info_button_reload).setVisibility(View.GONE);
+        }
+        (findViewById(R.id.book_title)).requestFocus();
+    }
 }
