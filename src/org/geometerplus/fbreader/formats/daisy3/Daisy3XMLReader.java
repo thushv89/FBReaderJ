@@ -65,7 +65,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 				"Caption.", "End Caption."));
 		addAction("strong", new Daisy3XMLTagControlAction(FBTextKind.STRONG));
 		addAction("span", new Daisy3XMLTagControlAction(FBTextKind.REGULAR));
-		addAction("li", Daisy3XMLListTagAction.getInstance());
+		addAction("li", Daisy3XMLTagListAction.getInstance());
 		addAction("a", new Daisy3XMLTagHyperlinkAction());
 	}
 
@@ -122,7 +122,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		tag = tag.toLowerCase();
 		
 		if (tag.equals("list")) {
-			Daisy3XMLListTagAction.getInstance().startList(this, attributes);
+			Daisy3XMLTagListAction.getInstance().startList(this, attributes);
 		} else {
 			Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag);
 			if (action != null) {
@@ -143,7 +143,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	 */
 	public boolean endElementHandler(String tag) {
 		if (tag.toLowerCase().equals("list")) {
-			Daisy3XMLListTagAction.getInstance().endList(this);
+			Daisy3XMLTagListAction.getInstance().endList(this);
 		} else {
 			Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag.toLowerCase());
 			if (action != null) {

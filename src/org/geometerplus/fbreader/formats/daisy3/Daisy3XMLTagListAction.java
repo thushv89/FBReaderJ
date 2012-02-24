@@ -10,12 +10,12 @@ import org.geometerplus.zlibrary.core.xml.ZLStringMap;
  * @author meghan larson
  *
  */
-public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
+public class Daisy3XMLTagListAction extends Daisy3XMLTagAction {
 	
 	private static final char[] BULLET = { '\u2022', '\240' };
 	private static final char[] BASE26CHARS = "abcdefghijklmnopqrstuvwxyz".toCharArray(); 
 	
-	private static Daisy3XMLListTagAction instance = null;
+	private static Daisy3XMLTagListAction instance = null;
 	private Stack<ListTypeItem> listStack = new Stack<ListTypeItem>();
 	
 	private static class ListTypeItem {
@@ -71,9 +71,9 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 	/**
 	 * Default constructor.
 	 */
-	public static Daisy3XMLListTagAction getInstance() {
+	public static Daisy3XMLTagListAction getInstance() {
 		if (instance == null) {
-			instance = new Daisy3XMLListTagAction();
+			instance = new Daisy3XMLTagListAction();
 		}
 		return instance;
 	}
