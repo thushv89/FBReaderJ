@@ -403,7 +403,7 @@ public class Bookshare_Book_Details extends Activity{
 							temp = "";
 						}
 						temp  = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
-						bookshare_book_detail_synopsis_text.setText(temp.trim());
+						bookshare_book_detail_synopsis_text.append(temp.trim());
 						//System.out.println("Complete synopsis = "+temp.trim());
 					}
 					else if(metadata_bean.getBriefSynopsis() != null &&
@@ -420,7 +420,7 @@ public class Bookshare_Book_Details extends Activity{
 							temp = "";
 						}
 						temp = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
-						bookshare_book_detail_synopsis_text.setText(temp.trim());
+						bookshare_book_detail_synopsis_text.append(temp.trim());
 						System.out.println("Brief Synopsis = "+temp);
 					}
 					else if(metadata_bean.getCompleteSynopsis() != null &&
@@ -438,11 +438,11 @@ public class Bookshare_Book_Details extends Activity{
 						}
 						temp  = temp.trim().equals("") ? getResources().getString(R.string.book_details_not_available) : temp;
 
-						bookshare_book_detail_synopsis_text.setText(temp.trim());
+						bookshare_book_detail_synopsis_text.append(temp.trim());
 					}
 					else if(metadata_bean.getBriefSynopsis() == null &&
 							metadata_bean.getCompleteSynopsis() == null){
-						bookshare_book_detail_synopsis_text.setText("No Synopsis available");
+						bookshare_book_detail_synopsis_text.append("No Synopsis available");
 					}
 
                     findViewById(R.id.bookshare_book_detail_title).requestFocus();
