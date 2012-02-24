@@ -60,7 +60,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 
 	private final ZLResource myResource = ZLResource.resource("bookmarksView");
 	private final ZLStringOption myBookmarkSearchPatternOption =
-		new ZLStringOption("BookmarkSearch", "Pattern", "");
+		new ZLStringOption("BookmarkSearch", "Pattern", "bookmark search");
 
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
@@ -141,7 +141,13 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		if (!bookmarks.isEmpty()) {
 			showSearchResultsTab(bookmarks);
 		} else {
-			UIUtil.showErrorMessage(this, "bookmarkNotFound");
+            if (!accessibilityManager.isEnabled()) {
+			    UIUtil.showErrorMessage(this, "bookmarkNotFound");
+            } else {
+                final VoiceableDialog finishedDialog = new VoiceableDialog(this);
+                String msg = ZLResource.resource("errorMessage").getResource("bookmarkNotFound").getValue();
+                finishedDialog.popup(msg, 4000);
+            }
 		}
 	}
 
@@ -154,7 +160,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 	}
 
     /*
-     * show accessible full screen menu when accessibility is turned on
+     * show accessible search menu when accessibility is turned on
      *
     */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
