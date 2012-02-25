@@ -47,7 +47,7 @@
 		<node name="addToFavorites" value="Add to favorites"/>
 		<node name="removeFromFavorites" value="Remove from favorites"/>
 	</node>
-	<node name="networkLibrary" value="Bookshare Reader network library">
+	<node name="networkLibrary" value="Other catalogs">
 		<node name="byAuthor" value="By author">
 			<node name="summary" value="Books sorted by author"/>
 		</node>
@@ -62,7 +62,7 @@
 		</node>
 		<node name="search" value="Search">
 			<node name="summary" value="Search books on %s"/>
-			<node name="summaryAllCatalogs" value="Search books in all catalogs"/>
+			<node name="summaryAllCatalogs" value="Search books in other catalogs"/>
 			<node name="summaryInProgress" value="Search in progress"/>
 		</node>
 		<node name="found" value="Found">
