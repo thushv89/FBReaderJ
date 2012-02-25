@@ -85,10 +85,11 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 	protected void doAtStart(Daisy3XMLReader reader, ZLStringMap xmlattributes) {
 		final BookReader modelReader = reader.getModelReader();
 		modelReader.beginParagraph();
-		final ListTypeItem currentList = listStack.peek();
+		final ListTypeItem currentList = !listStack.isEmpty() 
+				? listStack.peek() : new ListTypeItem(ListType.UL, false, 1);
 		if (currentList.getListType().equals(ListType.UL)) {
 			modelReader.addData(BULLET);
-		} else {
+		} else if (currentList.getListType().equals(ListType.OL)){
 			final StringBuilder itemDesc = new StringBuilder();
 			if (!currentList.isAlphabetic()) {
 			    itemDesc.append(currentList.getItemNumber());
@@ -115,6 +116,7 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 	 */
 	public void startList(Daisy3XMLReader reader, ZLStringMap xmlattributes) {
 		final String type = xmlattributes.getValue("type");
+		ListTypeItem list = null;
 		if (type != null) {
 			for (final ListType lt : ListType.values()) {
 				if (lt.getName().equals(type.toLowerCase())) {
@@ -130,12 +132,12 @@ public class Daisy3XMLListTagAction extends Daisy3XMLTagAction {
 					if (xmlattributes.getValue("start") != null) {
 						start = Integer.valueOf(xmlattributes.getValue("start"));
 					}
-					final ListTypeItem list = new ListTypeItem(lt, alphabetic, start);
-					listStack.push(list);
+					list = new ListTypeItem(lt, alphabetic, start);
 					break;
 				}
 			}
-		}
+		} 
+		listStack.push(list != null ? list : new ListTypeItem(ListType.UL, false, 1));
 		reader.getModelReader().beginParagraph();
 	}
 	
