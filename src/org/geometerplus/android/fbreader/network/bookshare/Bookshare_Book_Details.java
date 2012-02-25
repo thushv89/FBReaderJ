@@ -23,6 +23,7 @@ import javax.xml.parsers.SAXParserFactory;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.util.Log;
@@ -33,6 +34,7 @@ import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 
+import org.accessibility.ParentCloserDialog;
 import org.accessibility.VoiceableDialog;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -176,11 +178,16 @@ public class Bookshare_Book_Details extends Activity{
 					TextView txtView_msg = (TextView)findViewById(R.id.bookshare_blank_txtView_msg);
                     String noBookFoundMsg = "Book not found.";
 					txtView_msg.setText(noBookFoundMsg);
+                    //todo : return book not found result code
 
                     View decorView = getWindow().getDecorView();
                     if (null != decorView) {
                         decorView.setContentDescription(noBookFoundMsg);
                     }
+                    
+                    setResult(InternalReturnCodes.NO_BOOK_FOUND);
+                    confirmAndClose(noBookFoundMsg, 3000);
+                    return;
 				}
 				if(metadata_bean != null){
 					setIsDownloadable(metadata_bean);
@@ -1032,4 +1039,12 @@ public class Bookshare_Book_Details extends Activity{
 	private void setIsDownloadable(final Bookshare_Metadata_Bean bean) {
 		isDownloadable = (bean.getDownloadFormats() != null && bean.getDownloadFormats().length > 0);
 	}
+    
+    /*
+     * Display voiceable message and then close
+     */
+    private void confirmAndClose(String msg, int timeout) {
+        final ParentCloserDialog dialog = new ParentCloserDialog(this, this);
+        dialog.popup(msg, timeout);
+    }
 }

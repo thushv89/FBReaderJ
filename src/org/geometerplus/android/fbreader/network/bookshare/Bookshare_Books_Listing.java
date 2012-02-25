@@ -14,6 +14,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.accessibility.ParentCloserDialog;
+import org.accessibility.VoiceableDialog;
 import org.bookshare.net.BookshareWebservice;
 import org.benetech.android.R;
 import org.xml.sax.Attributes;
@@ -25,6 +27,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -106,6 +109,14 @@ public class Bookshare_Books_Listing extends ListActivity{
 		}
 		getListing(requestURI);
 	}
+    
+    /*
+     * Display voiceable message and then close
+     */
+    private void confirmAndClose(String msg, int timeout) {
+        final ParentCloserDialog dialog = new ParentCloserDialog(this, this);
+        dialog.popup(msg, timeout);
+    }
 	
 	/*
 	 * Spawn a new Thread for carrying out the search
@@ -251,6 +262,8 @@ public class Bookshare_Books_Listing extends ListActivity{
                     String resultsMessage;
                     if (vectorResults.isEmpty()) {
                         resultsMessage = resources.getString(R.string.search_complete_no_books);
+                        setResult(InternalReturnCodes.NO_BOOKS_FOUND);
+                        confirmAndClose("no books found", 3000);
                     } else {
                         resultsMessage = resources.getString(R.string.search_complete_with_books);
                     }
@@ -328,7 +341,10 @@ public class Bookshare_Books_Listing extends ListActivity{
 			if(resultCode == BOOKSHARE_BOOK_DETAILS_FINISHED){
 				setResult(BOOKSHARE_BOOKS_LISTING_FINISHED);
 				finish();
-			}
+			} else if (resultCode == InternalReturnCodes.NO_BOOK_FOUND) {
+                setResult(resultCode);
+                finish();
+            }
 		}
 	}
 

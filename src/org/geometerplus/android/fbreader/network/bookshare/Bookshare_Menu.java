@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.accessibility.ParentCloserDialog;
 import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
 
@@ -159,43 +160,14 @@ public class Bookshare_Menu extends ListActivity {
 				// Obtain the text of the row
 				TextView txt_name = (TextView)row_view.findViewById(R.id.text1);
 
-				// Clear the EditText box of any previous text
-                dialog_search_term.setInputType(InputType.TYPE_CLASS_TEXT);
-				dialog_search_term.setText("");
-
 				if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_title_label))){
-					dialog.setTitle(getResources().getString(R.string.search_dialog_title_title));
-					dialog_search_title.setText(getResources().getString(R.string.search_dialog_label_title));
-					dialog_example_text.setText(getResources().getString(R.string.search_dialog_example_title));
-                    dialog_search_term.setContentDescription(getResources().getString(R.string.search_dialog_description_title));
-					query_type = TITLE_SEARCH_REQUEST;
-					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
-					intent.putExtra(REQUEST_TYPE, TITLE_SEARCH_REQUEST);
-                    dialog_search_term.requestFocus();
-					dialog.show();
+                    showTitleSearch();
 				}
 				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_author_label))){
-					dialog.setTitle(getResources().getString(R.string.search_dialog_title_author));
-					dialog_search_title.setText(getResources().getString(R.string.search_dialog_label_author));
-					dialog_example_text.setText(getResources().getString(R.string.search_dialog_example_author));
-                    dialog_search_term.setContentDescription(getResources().getString(R.string.search_dialog_description_author));
-					query_type = AUTHOR_SEARCH_REQUEST;
-					intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
-					intent.putExtra(REQUEST_TYPE, AUTHOR_SEARCH_REQUEST);
-                    dialog_search_term.requestFocus();
-					dialog.show();
+                    showAuthorSearch();
 				}
 				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_isbn_label))){
-					dialog.setTitle(getResources().getString(R.string.search_dialog_title_isbn));
-					dialog_search_title.setText(getResources().getString(R.string.search_dialog_label_isbn));
-					dialog_example_text.setText(getResources().getString(R.string.search_dialog_example_isbn));
-                    dialog_search_term.setContentDescription(getResources().getString(R.string.search_dialog_description_isbn));
-                    dialog_search_term.setInputType(InputType.TYPE_CLASS_NUMBER);
-					query_type = ISBN_SEARCH_REQUEST;
-					intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
-					intent.putExtra(REQUEST_TYPE, ISBN_SEARCH_REQUEST);
-                    dialog_search_term.requestFocus();
-					dialog.show();
+                    showISBNSearch();
 				}
 				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_latest_label))){
 	                // Changed the behavior to search for the latest book without having to enter the date range
@@ -274,6 +246,45 @@ public class Bookshare_Menu extends ListActivity {
 		});
 	}
 
+    private void showAuthorSearch() {
+        intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
+        intent.putExtra(REQUEST_TYPE, AUTHOR_SEARCH_REQUEST);
+        showSearch(R.string.search_dialog_title_author, R.string.search_dialog_label_author, 
+            R.string.search_dialog_example_author, R.string.search_dialog_description_author, AUTHOR_SEARCH_REQUEST, 
+            InputType.TYPE_CLASS_TEXT);
+    }
+
+    private void showTitleSearch() {
+        intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
+        intent.putExtra(REQUEST_TYPE, TITLE_SEARCH_REQUEST);
+        showSearch(R.string.search_dialog_title_title, R.string.search_dialog_label_title, 
+            R.string.search_dialog_example_title, R.string.search_dialog_description_title, TITLE_SEARCH_REQUEST, 
+            InputType.TYPE_CLASS_TEXT);
+    }
+
+    private void showISBNSearch() {
+        intent = new Intent(getApplicationContext(),Bookshare_Book_Details.class);
+        intent.putExtra(REQUEST_TYPE, ISBN_SEARCH_REQUEST);
+        showSearch(R.string.search_dialog_title_isbn, R.string.search_dialog_label_isbn, 
+            R.string.search_dialog_example_isbn, R.string.search_dialog_description_isbn, ISBN_SEARCH_REQUEST, 
+            InputType.TYPE_CLASS_NUMBER);
+    }
+    
+    private void showSearch(int titleId, int labelId, int exampleId, int contentDescriptionId, int queryType, 
+            int inputType) {
+        // Clear the EditText box of any previous text
+        dialog_search_term.setText("");
+
+        dialog_search_term.setInputType(inputType);
+        dialog.setTitle(getResources().getString(titleId));
+        dialog_search_title.setText(getResources().getString(labelId));
+        dialog_example_text.setText(getResources().getString(exampleId));
+        dialog_search_term.setContentDescription(getResources().getString(contentDescriptionId));
+        query_type = queryType;
+        dialog_search_term.requestFocus();
+        dialog.show();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -345,8 +356,19 @@ public class Bookshare_Menu extends ListActivity {
 		if(requestCode == START_BOOKSHARE_BOOKS_LISTING_ACTIVITY){
 			if(resultCode == BOOKSHARE_BOOKS_LISTING_FINISHED){
 				setResult(BOOKSHARE_MENU_FINISHED);
-				finish();
-			}
+				finish();              
+			} else if (resultCode == InternalReturnCodes.NO_BOOK_FOUND) {
+                // can only get here from failed ISBN search (other search return no books found)
+                // take back to ISBN search since we assume user mistake
+                showISBNSearch();
+            } else if (resultCode == InternalReturnCodes.NO_BOOKS_FOUND) {
+                // go back to either title or author search
+                if (query_type == TITLE_SEARCH_REQUEST) {
+                    showTitleSearch();    
+                } else if (query_type == AUTHOR_SEARCH_REQUEST) {
+                    showAuthorSearch();
+                }
+            }
 		}
 	}
  	// A custom SimpleAdapter class for providing data to the ListView
@@ -377,13 +399,7 @@ public class Bookshare_Menu extends ListActivity {
      * Display logged out confirmation and close the bookshare menu screen
      */
     private void confirmAndClose(String msg, int timeout) {
-        final VoiceableDialog dialog = new VoiceableDialog(myActivity);
-        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialogInterface) {
-                finish();
-            }
-        });
+        final ParentCloserDialog dialog = new ParentCloserDialog(this, this);
         dialog.popup(msg, timeout);
     }
 
