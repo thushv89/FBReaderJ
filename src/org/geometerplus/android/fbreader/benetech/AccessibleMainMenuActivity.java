@@ -36,7 +36,7 @@ public class AccessibleMainMenuActivity extends Activity {
         setContentView(R.layout.dialog);
         resources = getApplicationContext().getResources();
 
-        int menuItemLimit = 9;
+        int menuItemLimit = MenuControl.values().length;
 
         for ( int i = 0; i < menuItemLimit; i++ ) {
 			Object object = new Object();
@@ -140,18 +140,6 @@ public class AccessibleMainMenuActivity extends Activity {
 	    bookmarks(resources.getString(R.string.menu_bookmarks), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_BOOKMARKS);
-                activity.finish();
-	        }
-	    }),
-/*	    search(resources.getString(R.string.menu_search), new MenuOperation() {
-	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SEARCH);
-                activity.finish();
-	        }
-	    }),*/
-	    bookInfo(resources.getString(R.string.menu_book_info), new MenuOperation() {
-	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SHOW_BOOK_INFO);
                 activity.finish();
 	        }
 	    }),

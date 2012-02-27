@@ -29,6 +29,7 @@ import android.widget.*;
 import android.content.*;
 
 import org.accessibility.VoiceableDialog;
+import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
@@ -59,7 +60,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 
 	private final ZLResource myResource = ZLResource.resource("bookmarksView");
 	private final ZLStringOption myBookmarkSearchPatternOption =
-		new ZLStringOption("BookmarkSearch", "Pattern", "");
+		new ZLStringOption("BookmarkSearch", "Pattern", "bookmark search");
 
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
@@ -140,7 +141,13 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		if (!bookmarks.isEmpty()) {
 			showSearchResultsTab(bookmarks);
 		} else {
-			UIUtil.showErrorMessage(this, "bookmarkNotFound");
+            if (!accessibilityManager.isEnabled()) {
+			    UIUtil.showErrorMessage(this, "bookmarkNotFound");
+            } else {
+                final VoiceableDialog finishedDialog = new VoiceableDialog(this);
+                String msg = ZLResource.resource("errorMessage").getResource("bookmarkNotFound").getValue();
+                finishedDialog.popup(msg, 4000);
+            }
 		}
 	}
 
@@ -152,15 +159,30 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		super.onPause();
 	}
 
+    /*
+     * show accessible search menu when accessibility is turned on
+     *
+    */
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (accessibilityManager.isEnabled()) {
+            if(keyCode == KeyEvent.KEYCODE_MENU){
+                showAccessibleMenu();
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		final MenuItem item = menu.add(
-			0, 1, Menu.NONE,
-			myResource.getResource("menu").getResource("search").getValue()
-		);
-		item.setOnMenuItemClickListener(this);
-		item.setIcon(R.drawable.ic_menu_search);
+        if (!accessibilityManager.isEnabled()) {
+            final MenuItem item = menu.add(
+                0, 1, Menu.NONE,
+                myResource.getResource("menu").getResource("search").getValue()
+            );
+            item.setOnMenuItemClickListener(this);
+            item.setIcon(R.drawable.ic_menu_search);
+        }
 		return true;
 	}
 
@@ -269,6 +291,33 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
             }
 		}
 	}
+
+    private void showAccessibleMenu() {
+        final Dialog menuDialog = new Dialog(myActivity);
+        menuDialog.setTitle("Search bookmarks?");
+        menuDialog.setContentView(R.layout.accessible_alert_dialog);
+        TextView confirmation = (TextView)menuDialog.findViewById(R.id.bookshare_confirmation_message);
+        confirmation.setText("");
+        Button yesButton = (Button)menuDialog.findViewById(R.id.bookshare_dialog_btn_yes);
+        Button noButton = (Button) menuDialog.findViewById(R.id.bookshare_dialog_btn_no);
+
+        yesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onSearchRequested();
+                menuDialog.dismiss();
+            }
+        });
+
+        noButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                menuDialog.dismiss();
+            }
+        });
+
+        menuDialog.show();
+    }
 
 	private final class BookmarksAdapter extends BaseAdapter implements AdapterView.OnItemClickListener, View.OnCreateContextMenuListener {
 		private final List<Bookmark> myBookmarks;

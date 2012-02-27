@@ -416,7 +416,7 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
             @Override
             public void onClick(View v){
                 deleteBook(book, Library.REMOVE_FROM_DISK);
-
+                confirmDialog.dismiss();
             }
         });
 
