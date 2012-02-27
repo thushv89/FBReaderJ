@@ -19,12 +19,18 @@
 
 package org.geometerplus.android.fbreader;
 
+import java.util.ArrayList;
+
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
 import android.app.ListActivity;
 
+import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
+import org.geometerplus.fbreader.library.Bookmark;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.tree.ZLTree;
@@ -41,6 +47,9 @@ public class TOCActivity extends ListActivity {
 
     public static final int BACK_PRESSED = 10;
     private Resources resources;
+    private Dialog dialog;
+    ListView list;
+    Activity myActivity;
 
 	@Override
 	public void onCreate(Bundle bundle) {
@@ -62,6 +71,11 @@ public class TOCActivity extends ListActivity {
 		TOCTree treeToSelect = fbreader.getCurrentTOCElement();
 		myAdapter.selectItem(treeToSelect);
 		mySelectedItem = treeToSelect;
+
+        dialog = new Dialog(this);
+        dialog.setContentView(R.layout.accessible_long_press_dialog);
+        list = (ListView) dialog.findViewById(R.id.accessible_list);
+        myActivity = this;
 	}
 
 	private static final int PROCESS_TREE_ITEM_ID = 0;
@@ -140,5 +154,48 @@ public class TOCActivity extends ListActivity {
 			openBookText((TOCTree)tree);
 			return true;
 		}
+
+        public final void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            ZLTree<?> tree = getItem(position);
+            if (!tree.hasChildren()) {
+                runTreeItem(getItem(position));
+            } else {
+                // popup window to ask for subheadings or heading
+                ArrayList<Object> listItems = new ArrayList<Object>();
+                listItems.add(getResources().getString(R.string.toc_goto_heading));
+                listItems.add(getResources().getString(R.string.toc_view_subheadings));
+                LabelsListAdapter adapter = new LabelsListAdapter(listItems, myActivity);
+                list.setAdapter(adapter);
+                list.setOnItemClickListener(new MenuClickListener(tree));
+                TextView header = (TextView)dialog.findViewById(R.id.accessible_list_heading);
+                header.requestFocus();
+                dialog.show();
+            }
+
+        }
+
+        /*
+         * Performs action based on item clicked in view sub heading or go to heading popup
+         */
+        private class MenuClickListener implements AdapterView.OnItemClickListener {
+            private ZLTree<?> tree;
+
+            private MenuClickListener(ZLTree<?> tree) {
+                this.tree = tree;
+            }
+
+            public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+                dialog.hide();
+
+                switch (position) {
+                    case 0:
+                        openBookText((TOCTree)tree);
+                        break;
+                    case 1:
+                        runTreeItem(tree);
+                        break;
+                }
+            }
+        }
 	}
 }

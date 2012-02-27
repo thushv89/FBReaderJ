@@ -177,7 +177,7 @@ abstract class ZLTreeAdapter extends BaseAdapter implements AdapterView.OnItemCl
 		notifyDataSetChanged();
 	}
 
-	public final void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		runTreeItem(getItem(position));
 	}
 

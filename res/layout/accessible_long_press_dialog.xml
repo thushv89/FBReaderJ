@@ -6,6 +6,7 @@
     android:paddingRight="0dip">
     
 	<TextView
+        android:id="@+id/accessible_list_heading"
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:paddingTop="10sp"
@@ -13,6 +14,7 @@
 		android:textSize="25sp"
 		android:maxLines="1"
 		android:text="Choose action below"
+        android:focusable="true"
 		android:gravity="center"/>
 	
 	<View android:layout_width="fill_parent" 
