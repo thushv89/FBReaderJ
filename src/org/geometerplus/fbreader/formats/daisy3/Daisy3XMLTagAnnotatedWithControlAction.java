@@ -32,9 +32,10 @@ public class Daisy3XMLTagAnnotatedWithControlAction extends Daisy3XMLTagAction {
 	@Override
 	protected void doAtStart(Daisy3XMLReader reader, ZLStringMap xmlattributes) {
 		final BookReader modelReader = reader.getModelReader();
-		modelReader.pushKind(myControl);
+		modelReader.addControl(myControl, true);
 		modelReader.beginParagraph();
 		modelReader.addData(myPrelude.toCharArray());
+		modelReader.endParagraph();
 		
 	}
 
@@ -44,9 +45,11 @@ public class Daisy3XMLTagAnnotatedWithControlAction extends Daisy3XMLTagAction {
 	@Override
 	protected void doAtEnd(Daisy3XMLReader reader) {
 		final BookReader modelReader = reader.getModelReader();
+		modelReader.beginParagraph();
 		modelReader.addData(myPostlude.toCharArray());
 		modelReader.endParagraph();
-		modelReader.popKind();
+		modelReader.addControl(myControl, false);
+		
 	}
 }
 
