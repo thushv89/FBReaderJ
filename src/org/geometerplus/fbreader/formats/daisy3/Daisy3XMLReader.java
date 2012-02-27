@@ -28,6 +28,18 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	boolean myPreformatted;
 	boolean myInsideBody;
 	private final Map<String,Integer> myFileNumbers;
+	
+	private static final String[] BLOCK_ELEMENTS = {"blockquote", "bodymatter", "book", 
+		"byline", "cite", "covertitle", "div", "docauthor", "doctitle", "dateline", "frontmatter", "head", 
+		"rearmatter", "sidebar" 
+    };
+	
+	private static final String[] NO_FORMAT_ELEMENTS = {"abbr", "acronym", "address", "annoref",
+		"annotation", "author", "bdo", "bridgehead", "code", "col", "colgroup", "dd",
+		"dfn", "dl", "dt", "dtbook", "epigraph", "img", "imggroup", "kbd", "lic", "line", 
+		"linegroup", "linenum", "link", "meta", "note", "noteref", "pagenum", "poem", "q",
+		"samp", "sent", "span", "sub", "sup", "title", "w"
+	};
 
 	/**
 	 * Add action class corresponding to the tag into the HashMap.
@@ -57,18 +69,37 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		addAction("h5", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H5));
 		addAction("h6", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H6));
 		addAction("hd", new Daisy3XMLTagParagraphAction());
-		addAction("sidebar", new Daisy3XMLTagParagraphAction());
+		
+		addAction("level", Daisy3XMLTagLevelControlAction.getInstance());
 		addAction("level1", Daisy3XMLTagLevelControlAction.getInstance());
 		addAction("level2", Daisy3XMLTagLevelControlAction.getInstance());
 		addAction("level3", Daisy3XMLTagLevelControlAction.getInstance());
+		addAction("level4", Daisy3XMLTagLevelControlAction.getInstance());
+		addAction("level5", Daisy3XMLTagLevelControlAction.getInstance());
+		addAction("level6", Daisy3XMLTagLevelControlAction.getInstance());
+		
+		addAction("br", new Daisy3XMLTagRestartParagraphAction());
+		
+		//Image descriptions.
 		addAction("prodnote",  new Daisy3XMLTagAnnotatedWithControlAction(FBTextKind.PRODNOTE,
 				"Image Description.", "End Image Description."));
 		addAction("caption",  new Daisy3XMLTagAnnotatedWithControlAction(FBTextKind.PRODNOTE,
 				"Caption.", "End Caption."));
+		
+		//Special formatting.
 		addAction("strong", new Daisy3XMLTagControlAction(FBTextKind.STRONG));
-		addAction("span", new Daisy3XMLTagControlAction(FBTextKind.REGULAR));
+		addAction("em", new Daisy3XMLTagControlAction(FBTextKind.ITALIC));
+		
 		addAction("li", Daisy3XMLTagListAction.getInstance());
 		addAction("a", new Daisy3XMLTagHyperlinkAction());
+		
+		for (final String tag : BLOCK_ELEMENTS) {
+			addAction(tag, new Daisy3XMLTagParagraphAction());
+		}
+		
+		for (final String tag : NO_FORMAT_ELEMENTS) {
+			addAction(tag, new Daisy3XMLTagControlAction(FBTextKind.REGULAR));
+		}
 	}
 
 	/**
