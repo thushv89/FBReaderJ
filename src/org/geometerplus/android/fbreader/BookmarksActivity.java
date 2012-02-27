@@ -29,7 +29,6 @@ import android.widget.*;
 import android.content.*;
 
 import org.accessibility.VoiceableDialog;
-import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
@@ -60,7 +59,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 
 	private final ZLResource myResource = ZLResource.resource("bookmarksView");
 	private final ZLStringOption myBookmarkSearchPatternOption =
-		new ZLStringOption("BookmarkSearch", "Pattern", "bookmark search");
+		new ZLStringOption("BookmarkSearch", "Pattern", "");
 
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;

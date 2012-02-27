@@ -4,7 +4,8 @@
     <string name="book_info_activity">Book Info</string>
     
 	<string name="empty_string"></string>
-    
+	<string name="search_hint">enter search query</string>
+
     <!-- BookmarksActivity -->
     <string name="bookmark_added">bookmark on page %1$d added</string>
 
@@ -90,6 +91,9 @@
     <string name="menu_library">Downloaded Books</string>
     <string name="menu_network_library">Get books from other catalogs</string>
     <string name="menu_settings">Settings</string>
+    
+    <!-- LibraryActivity -->
+    <string name="library_search_books_popup">Search downloaded books?</string>
     
     <!-- SpeakActivity -->
     <string name="play">Play/Pause</string>
