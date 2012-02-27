@@ -30,14 +30,15 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	private final Map<String,Integer> myFileNumbers;
 	
 	private static final String[] BLOCK_ELEMENTS = {"blockquote", "bodymatter", "book", 
-		"byline", "cite", "covertitle", "div", "docauthor", "doctitle", "dateline", "frontmatter", "head", 
-		"rearmatter", "sidebar" 
+		"byline", "cite", "covertitle", "div", "docauthor", "doctitle", "dateline", 
+		"epigraph", "frontmatter", "head", 
+		"line", "rearmatter", "sidebar" 
     };
 	
 	private static final String[] NO_FORMAT_ELEMENTS = {"abbr", "acronym", "address", "annoref",
 		"annotation", "author", "bdo", "bridgehead", "code", "col", "colgroup", "dd",
-		"dfn", "dl", "dt", "dtbook", "epigraph", "img", "imggroup", "kbd", "lic", "line", 
-		"linegroup", "linenum", "link", "meta", "note", "noteref", "pagenum", "poem", "q",
+		"dfn", "dl", "dt", "dtbook", "img", "imggroup", "kbd", "lic", 
+		"linegroup", "linenum", "link", "meta", "note", "noteref", "pagenum", "q",
 		"samp", "sent", "span", "sub", "sup", "title", "w"
 	};
 
@@ -69,6 +70,8 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		addAction("h5", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H5));
 		addAction("h6", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.H6));
 		addAction("hd", new Daisy3XMLTagParagraphAction());
+		
+		addAction("poem", new Daisy3XMLTagParagraphWithControlAction(FBTextKind.VERSE));
 		
 		addAction("level", Daisy3XMLTagLevelControlAction.getInstance());
 		addAction("level1", Daisy3XMLTagLevelControlAction.getInstance());
