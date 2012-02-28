@@ -26,6 +26,9 @@
 		<node name="found" value="Found">
 			<node name="summary" value="Search results for: %s"/>
 		</node>
+        <node name="search" value="Search">
+            <node name="summary" value="Search downloaded books"/>
+        </node>
 		<node name="fileTree" value="File tree">
 			<node name="summary" value="Browse file system"/>
 		</node>

@@ -54,6 +54,7 @@ public final class Library {
 	public static final String ROOT_BY_SERIES = "bySeries";
 	public static final String ROOT_BY_TAG = "byTag";
 	public static final String ROOT_FILE_TREE = "fileTree";
+    public static final String ROOT_SEARCH = "search";
 
 	private static Library ourInstance;
 	public static Library Instance() {
@@ -89,6 +90,7 @@ public final class Library {
 		new FirstLevelTree(myRootTree, ROOT_BY_TITLE);
 		new FirstLevelTree(myRootTree, ROOT_BY_TAG);
 		new FileFirstLevelTree(myRootTree, ROOT_FILE_TREE);
+        new FirstLevelTree(myRootTree,ROOT_SEARCH);
 	}
 
 	public LibraryTree getRootTree() {

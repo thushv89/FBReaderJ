@@ -150,7 +150,12 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
                 dialog.show();
             }
 		} else {
-			openTree(tree);
+            String id = tree.getUniqueKey().Id;
+            if (id.equals(Library.ROOT_SEARCH))  {
+                onSearchRequested();
+            } else {
+			    openTree(tree);
+            }
 		}
 	}
 
@@ -272,17 +277,6 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 		);
 	}
 
-	//
-	// Options menu
-	//
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		super.onCreateOptionsMenu(menu);
-		//addMenuItem(menu, 1, "localSearch", R.drawable.ic_menu_search);
-		return true;
-	}
-
 	public boolean onMenuItemClick(MenuItem item) {
 		switch (item.getItemId()) {
 			case 1:
@@ -361,46 +355,6 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 			}
 		});
 	}
-
-    /*
-     * show accessible search menu when accessibility is turned on
-     *
-    */
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (getCurrentTree().getUniqueKey().Id.equals("@FBReaderLibraryRoot")) {
-            if(keyCode == KeyEvent.KEYCODE_MENU){
-                showAccessibleMenu();
-            }
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    private void showAccessibleMenu() {
-        final Dialog menuDialog = new Dialog(myActivity);
-        menuDialog.setTitle(getResources().getString(R.string.library_search_books_popup));
-        menuDialog.setContentView(R.layout.accessible_alert_dialog);
-        TextView confirmation = (TextView)menuDialog.findViewById(R.id.bookshare_confirmation_message);
-        confirmation.setText("");
-        Button yesButton = (Button)menuDialog.findViewById(R.id.bookshare_dialog_btn_yes);
-        Button noButton = (Button) menuDialog.findViewById(R.id.bookshare_dialog_btn_no);
-
-        yesButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onSearchRequested();
-                menuDialog.dismiss();
-            }
-        });
-
-        noButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                menuDialog.dismiss();
-            }
-        });
-
-        menuDialog.show();
-    }
     
     
     private class MenuClickListener implements AdapterView.OnItemClickListener {
