@@ -279,16 +279,8 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		addMenuItem(menu, 1, "localSearch", R.drawable.ic_menu_search);
+		//addMenuItem(menu, 1, "localSearch", R.drawable.ic_menu_search);
 		return true;
-	}
-
-	private MenuItem addMenuItem(Menu menu, int index, String resourceKey, int iconId) {
-		final String label = Library.resource().getResource("menu").getResource(resourceKey).getValue();
-		final MenuItem item = menu.add(0, index, Menu.NONE, label);
-		item.setOnMenuItemClickListener(this);
-		item.setIcon(iconId);
-		return item;
 	}
 
 	public boolean onMenuItemClick(MenuItem item) {
@@ -375,7 +367,7 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
      *
     */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (accessibilityManager.isEnabled()) {
+        if (getCurrentTree().getUniqueKey().Id.equals("@FBReaderLibraryRoot")) {
             if(keyCode == KeyEvent.KEYCODE_MENU){
                 showAccessibleMenu();
             }
