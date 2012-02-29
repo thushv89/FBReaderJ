@@ -19,12 +19,18 @@
 
 package org.geometerplus.android.fbreader;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 import android.app.SearchManager;
 import android.content.*;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
@@ -32,6 +38,7 @@ import android.widget.RelativeLayout;
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
 import org.geometerplus.android.fbreader.benetech.SpeakActivity;
+import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -59,6 +66,7 @@ import org.geometerplus.android.util.UIUtil;
 
 public final class FBReader extends ZLAndroidActivity {
 	public static final String BOOK_PATH_KEY = "BookPath";
+    public static final String PREFS_HAVE_COPIED_MANUAL = "bks_haveCopiedManual";
 
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
@@ -165,6 +173,15 @@ public final class FBReader extends ZLAndroidActivity {
 			fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_PORTRAIT, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_REVERSE_PORTRAIT));
 			fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_LANDSCAPE, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_REVERSE_LANDSCAPE));
 		}
+        
+/*        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        boolean haveCopiedManual = prefs.getBoolean(PREFS_HAVE_COPIED_MANUAL, false);
+        if (!haveCopiedManual) {
+            copyManual();
+            SharedPreferences.Editor prefsEditor = prefs.edit();
+            prefsEditor.putBoolean(PREFS_HAVE_COPIED_MANUAL, true);
+            prefsEditor.commit();
+        }*/
 	}
 
  	@Override
@@ -480,6 +497,39 @@ public final class FBReader extends ZLAndroidActivity {
             initialOpen = false;
             Intent intent = new Intent(this, SpeakActivity.class);
             startActivity(intent);
+        }
+    }
+
+    private void copyManual() {
+
+        //todo : delete old copy of manual
+
+        InputStream from = null;
+        FileOutputStream to = null;
+        try {
+            from = getAssets().open("kipling-plain-tales-from-the-hills.epub");
+            File outFile = new File(Paths.BooksDirectoryOption().getValue(), "kipling-plain-tales-from-the-hills.epub");
+            to = new FileOutputStream(outFile);
+
+            byte[] buffer = new byte[4096];
+            int bytes_read;
+            while ((bytes_read = from.read(buffer)) > 0)
+                to.write(buffer, 0, bytes_read);
+        } catch (Exception e) {
+            Log.w("FBR", e.getMessage());
+        } finally {
+              if (from != null)
+                try {
+                  from.close();
+                } catch (IOException e) {
+                  // do nothing
+                }
+              if (to != null)
+                try {
+                  to.close();
+                } catch (IOException e) {
+                  // do nothing
+                }
         }
     }
 
