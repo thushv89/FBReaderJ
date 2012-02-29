@@ -22,16 +22,17 @@ package org.geometerplus.android.fbreader.network;
 import java.util.*;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.*;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import org.geometerplus.zlibrary.core.network.ZLNetworkManager;
+import org.accessibility.VoiceableDialog;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.util.ZLBoolean3;
 
@@ -56,10 +57,12 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 	final List<Action> myListClickActions = new ArrayList<Action>();
 	private Intent myDeferredIntent;
 	private boolean mySingleCatalog;
+    
+    private AccessibilityManager accessibilityManager;
+    boolean showAccessibilityWarning = true;
 
 	@Override
 	public void onCreate(Bundle icicle) {
-        Log.w("NetworkLibraryActivity","****  NetworkLibraryActivity onCreate ****");
 		super.onCreate(icicle);
 
 		AuthenticationActivity.initCredentialsCreator(this);
@@ -90,6 +93,9 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 				openTreeByIntent(intent);
 			}
 		}
+        
+        accessibilityManager =
+            (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
 	}
 
 	@Override
@@ -109,6 +115,14 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 	@Override
 	public void onResume() {
 		super.onResume();
+        
+        if (showAccessibilityWarning && accessibilityManager.isEnabled()) {
+            showAccessibilityWarning = true;
+            final VoiceableDialog finishedDialog = new VoiceableDialog(this);
+            String msg = "Warning! Other catalogs have not been made accessible to vision impaired users.";
+            finishedDialog.popup(msg, 6000);
+        }
+        
 		getListView().setOnCreateContextMenuListener(this);
 		NetworkLibrary.Instance().fireModelChangedEvent(NetworkLibrary.ChangeListener.Code.SomeCode);
 	}
