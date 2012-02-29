@@ -117,7 +117,7 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 		super.onResume();
         
         if (showAccessibilityWarning && accessibilityManager.isEnabled()) {
-            showAccessibilityWarning = true;
+            showAccessibilityWarning = false;
             final VoiceableDialog finishedDialog = new VoiceableDialog(this);
             String msg = "Warning! Other catalogs have not been made accessible to vision impaired users.";
             finishedDialog.popup(msg, 6000);
