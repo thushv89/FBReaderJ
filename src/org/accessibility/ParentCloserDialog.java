@@ -6,7 +6,8 @@ import android.content.DialogInterface;
 
 /**
  * @author roms
- *         Date: 2/24/12
+ *
+ *  An accessible dialog that will close its parent Activity when it gets cancelled
  */
 public class ParentCloserDialog extends VoiceableDialog {
     public ParentCloserDialog(Context context, final Activity parentActivity) {
