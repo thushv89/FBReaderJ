@@ -22,7 +22,6 @@ package org.geometerplus.android.fbreader.benetech;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -279,66 +278,25 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 	private void doFinalInitialization() {
 		myTTS.setOnUtteranceCompletedListener(this);
 
-		try {        
-            
+        myTTS.addEarcon(CONTENTS_EARCON, "org.benetech.android", R.raw.sound_toc);
+        myTTS.addEarcon(MENU_EARCON, "org.benetech.android", R.raw.sound_main_menu);
+        myTTS.addEarcon(FORWARD_EARCON, "org.benetech.android", R.raw.sound_forward);
+        myTTS.addEarcon(BACK_EARCON, "org.benetech.android", R.raw.sound_back);
+        myTTS.addEarcon(START_READING_EARCON, "org.benetech.android", R.raw.sound_start_reading);
 
-			Locale locale = null;
-			final String language = myApi.getBookLanguage();
-			if ("other".equals(language)) {
-				locale = Locale.getDefault();
-				if (myTTS.isLanguageAvailable(locale) < 0) {
-					locale = Locale.ENGLISH;
-				}
-				showErrorMessage(
-					getText(R.string.language_is_not_set).toString()
-						.replace("%0", locale.getDisplayLanguage()),
-					false
-				);
-			} else {
-				final String languageCode = myApi.getBookLanguage();
-				try {
-					locale = new Locale(languageCode);
-				} catch (Exception e) {
-				}
-				if (locale == null || myTTS.isLanguageAvailable(locale) < 0) {
-					final Locale originalLocale = locale;
-					locale = Locale.getDefault();
-					if (myTTS.isLanguageAvailable(locale) < 0) {
-						locale = Locale.ENGLISH;
-					}
-					showErrorMessage(
-						getText(R.string.no_data_for_language).toString()
-							.replace("%0", originalLocale != null
-								? originalLocale.getDisplayLanguage() : languageCode)
-							.replace("%1", locale.getDisplayLanguage()),
-						false
-					);
-				}
-			}
-			myTTS.setLanguage(locale);
-            myTTS.addEarcon(CONTENTS_EARCON, "org.benetech.android", R.raw.sound_toc);
-            myTTS.addEarcon(MENU_EARCON, "org.benetech.android", R.raw.sound_main_menu);
-            myTTS.addEarcon(FORWARD_EARCON, "org.benetech.android", R.raw.sound_forward);
-            myTTS.addEarcon(BACK_EARCON, "org.benetech.android", R.raw.sound_back);
-            myTTS.addEarcon(START_READING_EARCON, "org.benetech.android", R.raw.sound_start_reading);
+        myParagraphIndex = myApi.getPageStart().ParagraphIndex;
+        myParagraphsNumber = myApi.getParagraphsNumber();
 
-			myParagraphIndex = myApi.getPageStart().ParagraphIndex;
-			myParagraphsNumber = myApi.getParagraphsNumber();
+        myTTS.playEarcon(START_READING_EARCON, TextToSpeech.QUEUE_ADD, null);
 
-            myTTS.playEarcon(START_READING_EARCON, TextToSpeech.QUEUE_ADD, null);
-            
-            if (accessibilityManager.isEnabled()) {
-                speakString(myApi.getBookTitle(), 0);
-            } else {
-                setTitle(myApi.getBookTitle());
-            }
-            
-			setActionsEnabled(true);
-			speakParagraph(getNextParagraph());
-		} catch (Exception e) {
-			setActionsEnabled(false);
-			showErrorMessage(getText(R.string.initialization_error), true);
-		}
+        if (accessibilityManager.isEnabled()) {
+            speakString(myApi.getBookTitle(), 0);
+        } else {
+            setTitle(myApi.getBookTitle());
+        }
+
+        setActionsEnabled(true);
+        speakParagraph(getNextParagraph());
 	}
 
 	@Override
