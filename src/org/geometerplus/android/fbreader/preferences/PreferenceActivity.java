@@ -50,7 +50,7 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 
 	@Override
 	protected void init(Intent intent) {
-        
+
         accessibilityManager =
             (AccessibilityManager) getApplicationContext().getSystemService(Context.ACCESSIBILITY_SERVICE);
         
@@ -65,8 +65,9 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 		}
 		directoriesScreen.addOption(Paths.WallpapersDirectoryOption(), "wallpapers");
 
-		final Screen appearanceScreen = createPreferenceScreen("appearance");
         if (!accessibilityManager.isEnabled()) {
+		    final Screen appearanceScreen = createPreferenceScreen("appearance");
+
             appearanceScreen.addPreference(new ZLStringChoicePreference(
                 this, appearanceScreen.Resource, "screenOrientation",
                 androidLibrary.OrientationOption, androidLibrary.allOrientations()
@@ -86,13 +87,12 @@ public class PreferenceActivity extends ZLPreferenceActivity {
                     androidLibrary.ScreenBrightnessLevelOption.setValue(isChecked() ? myLevel : 0);
                 }
             });
-        }
-		appearanceScreen.addPreference(new BatteryLevelToTurnScreenOffPreference(
-			this,
-			androidLibrary.BatteryLevelToTurnScreenOffOption,
-			appearanceScreen.Resource,
-			"dontTurnScreenOff"
-		));
+            appearanceScreen.addPreference(new BatteryLevelToTurnScreenOffPreference(
+                this,
+                androidLibrary.BatteryLevelToTurnScreenOffOption,
+                appearanceScreen.Resource,
+                "dontTurnScreenOff"
+            ));
 		/*
 		appearanceScreen.addPreference(new ZLBooleanPreference(
 			this,
@@ -101,7 +101,6 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 			"dontTurnScreenOffDuringCharging"
 		));
 		*/
-        if (!accessibilityManager.isEnabled()) {
             appearanceScreen.addOption(androidLibrary.ShowStatusBarOption, "showStatusBar");
             appearanceScreen.addOption(androidLibrary.DisableButtonLightsOption, "disableButtonLights");
 
@@ -323,7 +322,7 @@ public class PreferenceActivity extends ZLPreferenceActivity {
             footerPreferences.setEnabled(
                 fbReader.ScrollbarTypeOption.getValue() == FBView.SCROLLBAR_SHOW_AS_FOOTER
             );
-        }
+
 		/*
 		final Screen colorProfileScreen = createPreferenceScreen("colorProfile");
 		final ZLResource resource = colorProfileScreen.Resource;
@@ -335,96 +334,94 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 		}
 		*/
 
-		final ScrollingPreferences scrollingPreferences = ScrollingPreferences.Instance();
+            final ScrollingPreferences scrollingPreferences = ScrollingPreferences.Instance();
 
-		//final Screen tapZonesScreen = createPreferenceScreen("tapZones");
-		//tapZonesScreen.addOption(scrollingPreferences.TapZonesSchemeOption, "tapZonesScheme");
+            //final Screen tapZonesScreen = createPreferenceScreen("tapZones");
+            //tapZonesScreen.addOption(scrollingPreferences.TapZonesSchemeOption, "tapZonesScheme");
 
-		final ZLKeyBindings keyBindings = fbReader.keyBindings();
+            final ZLKeyBindings keyBindings = fbReader.keyBindings();
 
-		final Screen scrollingScreen = createPreferenceScreen("scrolling");
-		scrollingScreen.addOption(scrollingPreferences.FingerScrollingOption, "fingerScrolling");
-		scrollingScreen.addOption(fbReader.EnableDoubleTapOption, "enableDoubleTapDetection");
+            final Screen scrollingScreen = createPreferenceScreen("scrolling");
+            scrollingScreen.addOption(scrollingPreferences.FingerScrollingOption, "fingerScrolling");
+            scrollingScreen.addOption(fbReader.EnableDoubleTapOption, "enableDoubleTapDetection");
 
-		final ZLPreferenceSet volumeKeysPreferences = new ZLPreferenceSet();
-		scrollingScreen.addPreference(new ZLCheckBoxPreference(
-			this, scrollingScreen.Resource, "volumeKeys"
-		) {
-			{
-				setChecked(fbReader.hasActionForKey(KeyEvent.KEYCODE_VOLUME_UP, false));
-			}
+            final ZLPreferenceSet volumeKeysPreferences = new ZLPreferenceSet();
+            scrollingScreen.addPreference(new ZLCheckBoxPreference(
+                this, scrollingScreen.Resource, "volumeKeys"
+            ) {
+                {
+                    setChecked(fbReader.hasActionForKey(KeyEvent.KEYCODE_VOLUME_UP, false));
+                }
 
-			@Override
-			protected void onClick() {
-				super.onClick();
-				if (isChecked()) {
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, ActionCode.VOLUME_KEY_SCROLL_FORWARD);
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, ActionCode.VOLUME_KEY_SCROLL_BACK);
-				} else {
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, FBReaderApp.NoAction);
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, FBReaderApp.NoAction);
-				}
-				volumeKeysPreferences.setEnabled(isChecked());
-			}
-		});
-		volumeKeysPreferences.add(scrollingScreen.addPreference(new ZLCheckBoxPreference(
-			this, scrollingScreen.Resource, "invertVolumeKeys"
-		) {
-			{
-				setChecked(ActionCode.VOLUME_KEY_SCROLL_FORWARD.equals(
-					keyBindings.getBinding(KeyEvent.KEYCODE_VOLUME_UP, false)
-				));
-			}
+                @Override
+                protected void onClick() {
+                    super.onClick();
+                    if (isChecked()) {
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, ActionCode.VOLUME_KEY_SCROLL_FORWARD);
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, ActionCode.VOLUME_KEY_SCROLL_BACK);
+                    } else {
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, FBReaderApp.NoAction);
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, FBReaderApp.NoAction);
+                    }
+                    volumeKeysPreferences.setEnabled(isChecked());
+                }
+            });
+            volumeKeysPreferences.add(scrollingScreen.addPreference(new ZLCheckBoxPreference(
+                this, scrollingScreen.Resource, "invertVolumeKeys"
+            ) {
+                {
+                    setChecked(ActionCode.VOLUME_KEY_SCROLL_FORWARD.equals(
+                        keyBindings.getBinding(KeyEvent.KEYCODE_VOLUME_UP, false)
+                    ));
+                }
 
-			@Override
-			protected void onClick() {
-				super.onClick();
-				if (isChecked()) {
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, ActionCode.VOLUME_KEY_SCROLL_BACK);
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, ActionCode.VOLUME_KEY_SCROLL_FORWARD);
-				} else {
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, ActionCode.VOLUME_KEY_SCROLL_FORWARD);
-					keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, ActionCode.VOLUME_KEY_SCROLL_BACK);
-				}
-			}
-		}));
-		volumeKeysPreferences.setEnabled(fbReader.hasActionForKey(KeyEvent.KEYCODE_VOLUME_UP, false));
+                @Override
+                protected void onClick() {
+                    super.onClick();
+                    if (isChecked()) {
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, ActionCode.VOLUME_KEY_SCROLL_BACK);
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, ActionCode.VOLUME_KEY_SCROLL_FORWARD);
+                    } else {
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_DOWN, false, ActionCode.VOLUME_KEY_SCROLL_FORWARD);
+                        keyBindings.bindKey(KeyEvent.KEYCODE_VOLUME_UP, false, ActionCode.VOLUME_KEY_SCROLL_BACK);
+                    }
+                }
+            }));
+            volumeKeysPreferences.setEnabled(fbReader.hasActionForKey(KeyEvent.KEYCODE_VOLUME_UP, false));
 
-        if (!accessibilityManager.isEnabled()) {
-            scrollingScreen.addOption(scrollingPreferences.AnimationOption, "animation");
-            scrollingScreen.addPreference(new AnimationSpeedPreference(
+            if (!accessibilityManager.isEnabled()) {
+                scrollingScreen.addOption(scrollingPreferences.AnimationOption, "animation");
+                scrollingScreen.addPreference(new AnimationSpeedPreference(
+                    this,
+                    scrollingScreen.Resource,
+                    "animationSpeed",
+                    scrollingPreferences.AnimationSpeedOption
+                ));
+            }
+            scrollingScreen.addOption(scrollingPreferences.HorizontalOption, "horizontal");
+
+            final Screen dictionaryScreen = createPreferenceScreen("dictionary");
+            dictionaryScreen.addPreference(new DictionaryPreference(
                 this,
-                scrollingScreen.Resource,
-                "animationSpeed",
-                scrollingPreferences.AnimationSpeedOption
+                dictionaryScreen.Resource,
+                "dictionary",
+                DictionaryUtil.singleWordTranslatorOption()
             ));
-        }
-		scrollingScreen.addOption(scrollingPreferences.HorizontalOption, "horizontal");
+            dictionaryScreen.addPreference(new DictionaryPreference(
+                this,
+                dictionaryScreen.Resource,
+                "translator",
+                DictionaryUtil.multiWordTranslatorOption()
+            ));
+            dictionaryScreen.addPreference(new ZLBooleanPreference(
+                this,
+                fbReader.NavigateAllWordsOption,
+                dictionaryScreen.Resource,
+                "navigateOverAllWords"
+            ));
 
-		final Screen dictionaryScreen = createPreferenceScreen("dictionary");
-		dictionaryScreen.addPreference(new DictionaryPreference(
-			this,
-			dictionaryScreen.Resource,
-			"dictionary",
-			DictionaryUtil.singleWordTranslatorOption()
-		));
-		dictionaryScreen.addPreference(new DictionaryPreference(
-			this,
-			dictionaryScreen.Resource,
-			"translator",
-			DictionaryUtil.multiWordTranslatorOption()
-		));
-		dictionaryScreen.addPreference(new ZLBooleanPreference(
-			this,
-			fbReader.NavigateAllWordsOption,
-			dictionaryScreen.Resource,
-			"navigateOverAllWords"
-		));
-        if (!accessibilityManager.isEnabled()) {
 		    dictionaryScreen.addOption(fbReader.WordTappingActionOption, "tappingAction");
-        }
 
-        if (!accessibilityManager.isEnabled()) {
             final Screen imagesScreen = createPreferenceScreen("images");
             imagesScreen.addOption(fbReader.ImageTappingActionOption, "tappingAction");
             imagesScreen.addOption(fbReader.ImageViewBackgroundOption, "backgroundColor");
