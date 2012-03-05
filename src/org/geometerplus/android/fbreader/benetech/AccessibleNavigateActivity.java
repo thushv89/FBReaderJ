@@ -77,8 +77,10 @@ public class AccessibleNavigateActivity extends Activity {
         
         final FBReaderApp fbreader = (FBReaderApp)FBReaderApp.Instance();
         LinkedHashMap<String, Integer> pageMap = fbreader.getDaisyPageMap();
+        String examplePrefix = "";
         if (null != pageMap && pageMap.size() > 1) {
             pageHandler = new DaisyPageHandler(fbreader, pageMap);
+            examplePrefix = " DAISY ";
         } else {
             pageHandler = new DefaultPageHandler(fbreader);
         }
@@ -93,11 +95,11 @@ public class AccessibleNavigateActivity extends Activity {
         String currentPage = pageHandler.getCurrentPage();
         String lastPage = pageHandler.getLastPage();
         
-        
+
         TextView dialog_example_text = (TextView) findViewById(R.id.bookshare_dialog_search_example);
-        dialog_example_text.setText(getResources().getString(R.string.navigate_dialog_example, currentPage, lastPage, nonNumeric));
+        dialog_example_text.setText(getResources().getString(R.string.navigate_dialog_example, examplePrefix, currentPage, lastPage, nonNumeric));
         searchTermEditText.setContentDescription(getResources().getString(R.string.navigate_dialog_label) + " " +
-            getResources().getString(R.string.navigate_dialog_example, currentPage, lastPage, nonNumeric));
+            getResources().getString(R.string.navigate_dialog_example, examplePrefix, currentPage, lastPage, nonNumeric));
     }
     
     private void gotoPage(String page) {
