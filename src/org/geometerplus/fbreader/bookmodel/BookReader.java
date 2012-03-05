@@ -24,6 +24,7 @@ import org.geometerplus.zlibrary.core.util.*;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetDecoder;
+import java.util.LinkedHashMap;
 
 import org.geometerplus.zlibrary.core.image.ZLImage;
 import org.geometerplus.zlibrary.text.model.*;
@@ -418,4 +419,19 @@ public class BookReader {
 			myCurrentTextModel.addFixedHSpace(length);
 		}
 	}
+
+     /*
+      * Set Map of page text names (usually numbers) to paragraph number
+      */
+    public void setDaisyPageMap(LinkedHashMap<String,Integer> pageMap) {
+        Model.setDaisyPageMap(pageMap);
+    }
+    
+    public void setLastDaisyPage(String page) {
+        Model.setLastDaisyPage(page);
+    }
+
+    public void setAllDaisyPagesIntegers(boolean isAllIntegers) {
+        Model.setAllDaisyPagesIntegers(isAllIntegers);
+    }
 }

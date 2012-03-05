@@ -2,8 +2,10 @@ package org.geometerplus.fbreader.formats.daisy3;
 
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.geometerplus.fbreader.bookmodel.BookModel;
@@ -11,7 +13,6 @@ import org.geometerplus.fbreader.bookmodel.BookReader;
 import org.geometerplus.fbreader.bookmodel.FBTextKind;
 import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 import org.geometerplus.fbreader.formats.util.MiscUtil;
-import org.geometerplus.zlibrary.core.constants.XMLNamespaces;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.xml.ZLStringMap;
 import org.geometerplus.zlibrary.core.xml.ZLXMLReaderAdapter;
@@ -51,21 +52,21 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 		// Get the xml file to be read
 		final String extension = file.getExtension().intern();
 		String name = file.getShortName();
-		if(extension == "opf" && !name.startsWith("._")){
+		if(extension.equals("opf") && !name.startsWith("._")){
 			ZLFile parentDirectory = file.getParent();
 			List<ZLFile> children =  parentDirectory.children();
 			for(ZLFile daisy3content : children){
 				String str = daisy3content.getShortName();
 				
 				// Get the NCX file name
-				if(daisy3content.getExtension() == "ncx"){
+				if(daisy3content.getExtension().equals("ncx")){
 					if(!str.startsWith("._")){
 						myNCXTOCFileName = daisy3content.getLongName();
 					}
 				}
 				
 				//Get the XML file name. This file contains the Daisy3 content
-				if(daisy3content.getExtension() == "xml"){
+				if(daisy3content.getExtension().equals("xml")){
 					if(!str.startsWith("._"))
 					{
 						daisy3XMLFileName = daisy3content.getLongName();
@@ -88,10 +89,35 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 	 * HashMap stored in Daisy3XMLTagLevelControlAction class.
 	 */
 	private void generateTOC() {
-		HashMap<String, Integer> toc_para_map = Daisy3XMLTagLevelControlAction.getToc_paragraph_map();
+        LinkedHashMap<String, Integer> pageIdToPara = Daisy3XMLTagPageControlAction.getPageNumToParagraphMap();
+		LinkedHashMap<String, Integer> toc_para_map = Daisy3XMLTagLevelControlAction.getToc_paragraph_map();
 		if (myNCXTOCFileName != null && toc_para_map != null) {
 			final NCXReader ncxReader = new NCXReader(myModelReader);
 			if (ncxReader.readFile(myFilePrefix + myNCXTOCFileName)) {
+                
+                //populate pageTextToParagraph map
+                LinkedHashMap<String, Integer> pageToParagraph = new LinkedHashMap<String, Integer>();
+                Set<String> pageIds = pageIdToPara.keySet();
+                Map<String, String> pageIdToPage = ncxReader.pageMap();
+                String page = "";
+                boolean isAllIntegers = true;
+                for (String pageId : pageIds) {
+                    page = pageIdToPage.get(pageId);
+                    Integer paragraph = pageIdToPara.get(pageId);
+                    if (isAllIntegers) {
+                        try {
+                            Integer.valueOf(page);
+                        } catch (NumberFormatException nfe) {
+                            isAllIntegers = false;    
+                        }
+                    }
+                    pageToParagraph.put(page, paragraph);
+                }
+                myModelReader.setLastDaisyPage(page);
+                myModelReader.setDaisyPageMap(pageToParagraph);
+                myModelReader.setAllDaisyPagesIntegers(isAllIntegers);
+
+                //populate table of contents
 				navigationMap = ncxReader.navigationMap();
 				if (!navigationMap.isEmpty()) {
 					int level = 0;
@@ -99,12 +125,12 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 						
 						String id = point.id;
 						int para;
-						if(id.trim() != ""){
+						if(!id.trim().equals("")){
 							
 							// If the retrieved value is null, then set the para value to 0.
 							// This will take the link in TOC to the start of the book.
 							if(toc_para_map.get(point.id) != null){
-								para = toc_para_map.get(point.id).intValue();
+								para = toc_para_map.get(point.id);
 							}
 							else{
 								para = 0;
@@ -131,8 +157,7 @@ class Daisy3OPFReader extends ZLXMLReaderAdapter implements XMLNamespaces {
 						myModelReader.endContentsParagraph();
 						--level;
 					}
-					return;
-				}
+                }
 			}
 		}
 	}

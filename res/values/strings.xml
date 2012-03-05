@@ -77,8 +77,9 @@
     <!-- FBReader -->
     <string name="navigate_dialog_title">Navigate to page.</string>
     <string name="navigate_dialog_label">Enter page number.</string>
-    <string name="navigate_dialog_example">Current page is %1$d of %2$d.</string>
-    <string name="page_navigated">Page %1$d</string>
+    <string name="navigate_dialog_example">Current page is %1$s of %2$s. %3$s</string>
+    <string name="navigate_dialog_example_non_numeric">(has non numeric page numbers)</string>
+    <string name="page_navigated">Page %1$s</string>
 
     <!-- AccessibleMainMenuActivity -->
     <string name="menu_speak">Read to Me</string>

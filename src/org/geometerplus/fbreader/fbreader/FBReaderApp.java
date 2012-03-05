@@ -463,4 +463,24 @@ public final class FBReaderApp extends ZLApplication {
 		}
 		return treeToSelect;
 	}
+    
+    public LinkedHashMap<String, Integer> getDaisyPageMap() {
+        if (null != Model) {
+            return Model.getDaisyPageMap();    
+        } else {
+            return new LinkedHashMap<String, Integer>();
+        }
+    }
+    
+    public String getLastDaisyPage() {
+        if (null != Model) {
+            return Model.getLastDaisyPage();
+        } else {
+            return "";
+        }
+    }
+
+    public boolean isAllDaisyPagesIntegers() {
+        return Model.isAllDaisyPagesIntegers();
+    }
 }

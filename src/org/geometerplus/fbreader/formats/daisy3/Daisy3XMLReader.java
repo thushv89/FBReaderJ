@@ -38,7 +38,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	private static final String[] NO_FORMAT_ELEMENTS = {"abbr", "acronym", "address", "annoref",
 		"annotation", "author", "bdo", "bridgehead", "code", "col", "colgroup", "dd",
 		"dfn", "dl", "dt", "dtbook", "img", "imggroup", "kbd", "lic", 
-		"linegroup", "linenum", "link", "meta", "note", "noteref", "pagenum", "q",
+		"linegroup", "linenum", "link", "meta", "note", "noteref", "q",
 		"samp", "sent", "span", "sub", "sup", "title", "w"
 	};
 
@@ -95,6 +95,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		
 		addAction("li", Daisy3XMLTagListAction.getInstance());
 		addAction("a", new Daisy3XMLTagHyperlinkAction());
+        addAction("pagenum", Daisy3XMLTagPageControlAction.getInstance());
 		
 		for (final String tag : BLOCK_ELEMENTS) {
 			addAction(tag, new Daisy3XMLTagParagraphAction());
@@ -128,6 +129,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	 * Read this Daisy3 XML file.
 	 * @param file ZLFile Represents the XML file.
 	 * @param referencePrefix String used in accordance with other ZLXMLReader(s).
+     * @return
 	 */
 	public boolean readFile(ZLFile file, String referencePrefix) {
 		fillTagTable();
@@ -159,8 +161,15 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		
 		if (tag.equals("list")) {
 			Daisy3XMLTagListAction.getInstance().startList(this, attributes);
+        } else if (tag.equals("pagenum")) {
+            Daisy3XMLTagAction action = ourTagActions.get(tag);
+            if (action != null) {
+                Daisy3XMLTagPageControlAction pageAction =  (Daisy3XMLTagPageControlAction)action;
+                pageAction.storeParagraphNumforPage(id, myModelReader.Model.BookTextModel.getParagraphsNumber());
+                action.doAtStart(this, attributes);
+            }
 		} else {
-			Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag);
+			Daisy3XMLTagAction action = ourTagActions.get(tag);
 			if (action != null) {
 				if(tag=="level1" || tag=="level2" || tag=="level3"){
 					Daisy3XMLTagLevelControlAction level_action = (Daisy3XMLTagLevelControlAction)action;
@@ -181,7 +190,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		if (tag.toLowerCase().equals("list")) {
 			Daisy3XMLTagListAction.getInstance().endList(this);
 		} else {
-			Daisy3XMLTagAction action = (Daisy3XMLTagAction)ourTagActions.get(tag.toLowerCase());
+			Daisy3XMLTagAction action = ourTagActions.get(tag.toLowerCase());
 			if (action != null) {
 				action.doAtEnd(this);
 			}

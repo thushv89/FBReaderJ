@@ -2,6 +2,7 @@
 package org.geometerplus.fbreader.formats.daisy3;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -28,11 +29,22 @@ class NCXReader extends ZLXMLReaderAdapter {
 
 		NavPoint(int order, int level) {
 			Order = order;
-			Level = level;			
+			Level = level;			    
 		}
 	}
+    
+    static class Page {
+        String text = "";
+        String id = "";
+
+        Page(String pageId) {
+            id = pageId;
+        }                                     
+    }
 
 	private final TreeMap<Integer,NavPoint> myNavigationMap = new TreeMap<Integer,NavPoint>();
+    private LinkedHashMap<String, String> pageIdToPageText = new LinkedHashMap<String, String>();
+    private Page currentPage;
 	private final ArrayList<NavPoint> myPointStack = new ArrayList<NavPoint>();
 	private BookReader myModelReader;
 	private static final int READ_NONE = 0;
@@ -40,12 +52,15 @@ class NCXReader extends ZLXMLReaderAdapter {
 	private static final int READ_POINT = 2;
 	private static final int READ_LABEL = 3;
 	private static final int READ_TEXT = 4;
+    private static final int READ_PAGE_LIST = 5;
+    private static final int READ_PAGE_TARGET = 6;
+    private static final int READ_PAGE_LABEL = 7;
+    private static final int READ_PAGE_TEXT = 8;
 
 	int myReadState = READ_NONE;
 	int myPlayIndex = -65535;
 	private String myLocalPathPrefix;
-	private boolean firstNavPointStart = true;
-	
+
 
 	NCXReader(BookReader modelReader) {
 		myModelReader = modelReader;
@@ -60,6 +75,10 @@ class NCXReader extends ZLXMLReaderAdapter {
 	Map<Integer,NavPoint> navigationMap() {
 		return myNavigationMap;
 	}
+    
+    LinkedHashMap<String,String> pageMap() {
+        return pageIdToPageText;
+    }
 
 	private static final String TAG_NAVMAP = "navmap";
 	private static final String TAG_NAVPOINT = "navpoint";
@@ -69,7 +88,10 @@ class NCXReader extends ZLXMLReaderAdapter {
 
 	private static final String ATTRIBUTE_ID = "id";
 	private static final String ATTRIBUTE_PLAYORDER = "playOrder";
-	
+    
+    private static final String TAG_PAGE_LIST = "pagelist";
+    private static final String TAG_PAGE_TARGET = "pagetarget";
+
 
 	private int atoi(String number) {
 		try {
@@ -84,12 +106,14 @@ class NCXReader extends ZLXMLReaderAdapter {
 		tag = tag.toLowerCase().intern();
 		switch (myReadState) {
 			case READ_NONE:
-				if (tag == TAG_NAVMAP) {
+				if (tag.equals(TAG_NAVMAP)) {
 					myReadState = READ_MAP;
-				}
+				} else if (tag.equals(TAG_PAGE_LIST)) {
+                    myReadState = READ_PAGE_LIST;
+                }
 				break;
 			case READ_MAP:
-				if (tag == TAG_NAVPOINT) {
+				if (tag.equals(TAG_NAVPOINT)) {
 					final String order = attributes.getValue(ATTRIBUTE_PLAYORDER);
 					final String id = attributes.getValue(ATTRIBUTE_ID);
 					final int index = (order != null) ? atoi(order) : myPlayIndex++;
@@ -100,28 +124,45 @@ class NCXReader extends ZLXMLReaderAdapter {
 					myReadState = READ_POINT;
 				}
 				break;
+            case READ_PAGE_LIST:
+                if (tag.equals(TAG_PAGE_TARGET)) {
+                    final String id = attributes.getValue(ATTRIBUTE_ID);
+                    currentPage = new Page(id);
+                    myReadState = READ_PAGE_TARGET;
+                }
+                break;
 			case READ_POINT:
-				if (tag == TAG_NAVPOINT) {
+				if (tag.equals(TAG_NAVPOINT)) {
 					final String order = attributes.getValue(ATTRIBUTE_PLAYORDER);
 					final String id = attributes.getValue(ATTRIBUTE_ID);
 					final int index = (order != null) ? atoi(order) : myPlayIndex++;
 					NavPoint navpoint = new NavPoint(index, myPointStack.size());
 					navpoint.id = id;
 					myPointStack.add(navpoint);
-				} else if (tag == TAG_NAVLABEL) {
+				} else if (tag.equals(TAG_NAVLABEL)) {
 					myReadState = READ_LABEL;
-				} else if (tag == TAG_CONTENT) {
+				} else if (tag.equals(TAG_CONTENT)) {
 					final int size = myPointStack.size();
 					if (size > 0) {
 					//	myPointStack.get(size - 1).id = myLocalPathPrefix + attributes.getValue("id");
 					}
 				}
 				break;
+            case READ_PAGE_TARGET:
+                if (tag.equals(TAG_NAVLABEL)) {
+                    myReadState = READ_PAGE_LABEL;
+                }
+                break;
 			case READ_LABEL:
-				if (TAG_TEXT == tag) {
+				if (TAG_TEXT.equals(tag)) {
 					myReadState = READ_TEXT;
 				}
 				break;
+            case READ_PAGE_LABEL:
+                if (tag.equals(TAG_TEXT)) {
+                    myReadState = READ_PAGE_TEXT;
+                }
+                break;
 			case READ_TEXT:
 				break;
 		}
@@ -135,12 +176,23 @@ class NCXReader extends ZLXMLReaderAdapter {
 			case READ_NONE:
 				break;
 			case READ_MAP:
-				if (TAG_NAVMAP == tag) {
+				if (TAG_NAVMAP.equals(tag)) {
 					myReadState = READ_NONE;
-				}
+				} 
 				break;
+            case READ_PAGE_LIST:
+                if (tag.equals(TAG_PAGE_LIST)) {
+                    myReadState = READ_NONE;
+                }
+                break;
+            case READ_PAGE_TARGET:
+                if (tag.equals(TAG_PAGE_TARGET)) {
+                    pageIdToPageText.put(currentPage.id, currentPage.text);
+                    myReadState = READ_PAGE_LIST;
+                }
+                break;
 			case READ_POINT:
-				if (TAG_NAVPOINT == tag) {
+				if (TAG_NAVPOINT.equals(tag)) {
 					NavPoint last = myPointStack.get(myPointStack.size() - 1);
 					if (last.Text.length() == 0) {
 						last.Text = "...";
@@ -150,15 +202,25 @@ class NCXReader extends ZLXMLReaderAdapter {
 					myReadState = (myPointStack.isEmpty()) ? READ_MAP : READ_POINT;
 				}
 			case READ_LABEL:
-				if (TAG_NAVLABEL == tag) {
+				if (TAG_NAVLABEL.equals(tag)) {
 					myReadState = READ_POINT;
 				}
 				break;
+            case READ_PAGE_LABEL:
+                if (tag.equals(TAG_NAVLABEL)) {
+                    myReadState = READ_PAGE_TARGET;
+                }
+                break;
 			case READ_TEXT:
-				if (TAG_TEXT == tag) {
+				if (TAG_TEXT.equals(tag)) {
 					myReadState = READ_LABEL;
-				}
+				} 
 				break;
+            case READ_PAGE_TEXT:
+                if (tag.equals(TAG_TEXT)) {
+                    myReadState = READ_PAGE_LABEL;
+                }
+                break;
 		}
 		return false;
 	}
@@ -169,7 +231,9 @@ class NCXReader extends ZLXMLReaderAdapter {
 			final ArrayList<NavPoint> stack = myPointStack;
 			final NavPoint last = stack.get(stack.size() - 1);
 			last.Text += new String(ch, start, length);
-		}
+		} else if (myReadState == READ_PAGE_TEXT) {
+            currentPage.text = new String(ch, start, length);
+        }
 	}
 
 	@Override

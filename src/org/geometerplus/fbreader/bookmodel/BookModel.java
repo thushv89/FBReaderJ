@@ -50,8 +50,12 @@ public final class BookModel {
 	public final TOCTree TOCTree = new TOCTree();
 
 	private final HashMap<String,ZLTextModel> myFootnotes = new HashMap<String,ZLTextModel>();
+    private LinkedHashMap<String,Integer> myDaisyPageMap;
+    private String lastDaisyPage;
+    private boolean allIntegerPages = true;
 
-	public static final class Label {
+
+    public static final class Label {
 		public final String ModelId;
 		public final int ParagraphIndex;
 		
@@ -166,4 +170,34 @@ public final class BookModel {
 	void addImage(String id, ZLImage image) {
 		myImageMap.put(id, image);
 	}
+
+    /*
+     * set map of page name (usually number) to paragraph number
+     */
+    public void setDaisyPageMap(LinkedHashMap<String, Integer> pageMap) {
+        myDaisyPageMap = pageMap;
+    }
+
+    /*
+     * get map of page name (usually number) to paragraph number
+     */
+    public LinkedHashMap<String,Integer> getDaisyPageMap() {
+        return myDaisyPageMap;
+    }
+    
+    public void setLastDaisyPage(String page) {
+        lastDaisyPage = page;    
+    }
+    
+    public String getLastDaisyPage() {
+        return lastDaisyPage;
+    }
+
+    public void setAllDaisyPagesIntegers(boolean allIntegers) {
+        allIntegerPages = allIntegers;
+    }
+
+    public boolean isAllDaisyPagesIntegers() {
+        return allIntegerPages;
+    }
 }

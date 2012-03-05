@@ -1,9 +1,10 @@
 package org.geometerplus.android.fbreader.benetech;
 
+import java.util.LinkedHashMap;
+
 import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
-import org.geometerplus.zlibrary.text.view.ZLTextView;
 
 import android.app.Activity;
 import android.content.DialogInterface;
@@ -22,6 +23,7 @@ public class AccessibleNavigateActivity extends Activity {
     
     private EditText searchTermEditText;
     private Activity parentActivity;
+    private PageHandler pageHandler;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -30,37 +32,25 @@ public class AccessibleNavigateActivity extends Activity {
 
         setContentView(R.layout.bookshare_dialog);
 
-        final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
-        final ZLTextView.PagePosition pagePosition = textView.pagePosition();
-
-        final int currentPage = pagePosition.Current;
-        final int pagesNumber = pagePosition.Total;
-
         setTitle(getResources().getString(R.string.navigate_dialog_title));
         searchTermEditText = (EditText)findViewById(R.id.bookshare_dialog_search_edit_txt);
-        searchTermEditText.setContentDescription(getResources().getString(R.string.navigate_dialog_label) + " " +
-            getResources().getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
-        searchTermEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        
+        
+        
         TextView dialog_search_title = (TextView) findViewById(R.id.bookshare_dialog_search_txt);
-        TextView dialog_example_text = (TextView) findViewById(R.id.bookshare_dialog_search_example);
+
         Button dialog_ok = (Button)findViewById(R.id.bookshare_dialog_btn_ok);
         Button dialog_cancel = (Button)findViewById(R.id.bookshare_dialog_btn_cancel);
         
         dialog_search_title.setText(getResources().getString(R.string.navigate_dialog_label));
-        dialog_example_text.setText(getResources().getString(R.string.navigate_dialog_example, currentPage, pagesNumber));
+        
         searchTermEditText.setOnKeyListener(new View.OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 // If the event is a key-down event on the "enter" button
                 if ((event.getAction() == KeyEvent.ACTION_DOWN) &&
                         (keyCode == KeyEvent.KEYCODE_ENTER)) {
                     // Perform action on key press
-                    int page;
-                    try {
-                        page = Integer.parseInt(searchTermEditText.getText().toString().trim());
-                    } catch (NumberFormatException nfe) {
-                        parentActivity.finish();
-                        return true;
-                    }
+                    String page =  searchTermEditText.getText().toString().trim();
                     gotoPage(page);
                     return true;
                 }
@@ -69,14 +59,8 @@ public class AccessibleNavigateActivity extends Activity {
         });
         dialog_ok.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                int page;
-                try {
-                    page = Integer.parseInt(searchTermEditText.getText().toString().trim());
-                } catch (NumberFormatException nfe) {
-                    return;
-                }
+                String page =  searchTermEditText.getText().toString().trim();
                 gotoPage(page);
-
             }
         });
         dialog_cancel.setOnClickListener(new View.OnClickListener(){
@@ -87,21 +71,43 @@ public class AccessibleNavigateActivity extends Activity {
         searchTermEditText.requestFocus();
     }
 
-    
-    private void gotoPage(int page) {
-        final ZLTextView view = (ZLTextView)FBReaderApp.Instance().getCurrentView();
+    @Override
+    protected void onStart() {
+        super.onStart();
         
-        if (page == 1) {
-            view.gotoHome();
+        final FBReaderApp fbreader = (FBReaderApp)FBReaderApp.Instance();
+        LinkedHashMap<String, Integer> pageMap = fbreader.getDaisyPageMap();
+        if (null != pageMap && pageMap.size() > 1) {
+            pageHandler = new DaisyPageHandler(fbreader, pageMap);
         } else {
-            view.gotoPage(page);
+            pageHandler = new DefaultPageHandler(fbreader);
         }
-        FBReaderApp.Instance().getViewWidget().reset();
-        FBReaderApp.Instance().getViewWidget().repaint();
         
-        String message =  getResources().getString(R.string.page_navigated, page);
+        String nonNumeric = "";
+        if (pageHandler.isNumeric()) {
+            searchTermEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        } else {
+            searchTermEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+            nonNumeric = getResources().getString(R.string.navigate_dialog_example_non_numeric);
+        }
+        String currentPage = pageHandler.getCurrentPage();
+        String lastPage = pageHandler.getLastPage();
+        
+        
+        TextView dialog_example_text = (TextView) findViewById(R.id.bookshare_dialog_search_example);
+        dialog_example_text.setText(getResources().getString(R.string.navigate_dialog_example, currentPage, lastPage, nonNumeric));
+        searchTermEditText.setContentDescription(getResources().getString(R.string.navigate_dialog_label) + " " +
+            getResources().getString(R.string.navigate_dialog_example, currentPage, lastPage, nonNumeric));
+    }
+    
+    private void gotoPage(String page) {
+        String message;
+        if (pageHandler.gotoPage(page)) {
+            message =  getResources().getString(R.string.page_navigated, page);
+        } else {
+            message = "page not found!";
+        }
         confirmAndClose(message);
-        
     }
     
     /*

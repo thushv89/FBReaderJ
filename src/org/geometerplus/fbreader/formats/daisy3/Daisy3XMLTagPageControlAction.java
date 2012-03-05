@@ -1,4 +1,3 @@
-
 package org.geometerplus.fbreader.formats.daisy3;
 
 import java.util.LinkedHashMap;
@@ -10,18 +9,18 @@ import org.geometerplus.zlibrary.core.xml.ZLStringMap;
  * XML file. Primarily used for construction of the
  * mapping from TOC entry to paragraph number.
  */
-class Daisy3XMLTagLevelControlAction extends Daisy3XMLTagAction {
+class Daisy3XMLTagPageControlAction extends Daisy3XMLTagAction {
 
-	private static Daisy3XMLTagLevelControlAction instance = null;
-	private final static LinkedHashMap<String,Integer> toc_paragraph_map = new LinkedHashMap<String, Integer>();
+	private static Daisy3XMLTagPageControlAction instance = null;
+	private final static LinkedHashMap<String,Integer> pageNumToParagraph = new LinkedHashMap<String, Integer>();
 		
 	/**
 	 * Obtain a singleton instance of the class.
 	 * @return Daisy3XMLTagLevelControlAction Singleton instance of this class.
 	 */
-	public static Daisy3XMLTagLevelControlAction getInstance(){
+	public static Daisy3XMLTagPageControlAction getInstance(){
 		if(instance == null){
-			instance = new Daisy3XMLTagLevelControlAction();
+			instance = new Daisy3XMLTagPageControlAction();
 		}
 		return instance;
 	}
@@ -31,16 +30,16 @@ class Daisy3XMLTagLevelControlAction extends Daisy3XMLTagAction {
 	 * @param id String Indicates an entry in the table of contents.
 	 * @param para Paragraph number in the XML file.
 	 */
-	void storeParagraphNumforLevel(String id, int para){
-		toc_paragraph_map.put(id, para);
+	void storeParagraphNumforPage(String id, int para){
+        pageNumToParagraph.put(id, para);
 	}
 
 	/**
 	 * Get the HashMap containing TOC<=>paragraph mappings.
 	 * @return HashMap Containing TOC<=>paragraph mappings.
 	 */
-	public static LinkedHashMap<String,Integer> getToc_paragraph_map(){
-		return toc_paragraph_map;
+	public static LinkedHashMap<String,Integer> getPageNumToParagraphMap(){
+		return pageNumToParagraph;
 	}
 	
 	protected void doAtStart(Daisy3XMLReader reader, ZLStringMap xmlattributes) {
