@@ -311,7 +311,7 @@
 				<node name="wallpapers" value="Wallpapers directory"/>
 			</node>
 			<node name="appearance" value="Appearance">
-				<node name="summary" value="Display settings, status bar, button lights"/>
+				<node name="summary" value="Display settings"/>
 				<node name="screenOrientation" value="Screen orientation">
 					<node name="system" value="System"/>
 					<node name="sensor" value="Device orientation sensitive"/>
@@ -661,7 +661,7 @@
 					<node name="url" value="http://www.bookshare.org/"/>
 				</node>
 				<node name="email" value="Send us an e-mail">
-					<node name="url" value="mailto:android-dev@benetech.org"/>
+					<node name="url" value="mailto:support@bookshare.org"/>
 				</node>
 				<node name="twitter" value="Follow us at twitter">
 					<node name="url" value="http://twitter.com/bookshare"/>
