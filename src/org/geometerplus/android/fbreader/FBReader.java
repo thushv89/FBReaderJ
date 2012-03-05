@@ -458,7 +458,7 @@ public final class FBReader extends ZLAndroidActivity {
 		}
 		addMenuItem(menu, ActionCode.INCREASE_FONT);
 		addMenuItem(menu, ActionCode.DECREASE_FONT);
-		addMenuItem(menu, ActionCode.SHOW_NAVIGATION);
+		addMenuItem(menu, ActionCode.ACCESSIBLE_NAVIGATION);
 		synchronized (myPluginActions) {
 			int index = 0;
 			for (PluginApi.ActionInfo info : myPluginActions) {

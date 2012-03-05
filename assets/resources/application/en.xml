@@ -242,6 +242,7 @@
 		<node name="day" value="Day"/>
 		<node name="night" value="Night"/>
 		<node name="networkLibrary" value="Network library"/>
+        <node name="accessible_navigation" value="Navigate to page"/>
 		<node name="navigate" value="Navigate">
 			<node name="toc" value="Table of Contents"/>
 			<node name="gotoHome" value="Go to Start of Document"/>
