@@ -6,7 +6,7 @@
 <p>While listening to a book, you may press the previous button to go back a paragraph, the play/pause button to pause or resume playback, the next button to go forward a paragraph, or table of contents button to access the table of contents.
 <p>During book playback you may also access the previous features using gestures. Double tap to play or pause. Swipe left for the previous paragraph. Swipe right for the next paragraph. Swipe up for the table of contents. And swipe down for the main menu </p>
 <empty-line/>
-<p><a l:href="fbreader-action:menu">The main menu</a> allows you to navigate through libraries, including Bookshare, and to navigate your book via bookmarks or page numbers. If your device has no hardware <code>Menu</code> button, touch bottom-center part of the screen to run menu.</p>
+<p>The main menu allows you to navigate through libraries, including Bookshare, and to navigate your book via bookmarks or page numbers. If your device has no hardware <code>Menu</code> button, touch bottom-center part of the screen to run menu.</p>
 <p>Enjoy!</p>
 </body>
 </FictionBook>
