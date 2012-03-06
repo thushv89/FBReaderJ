@@ -75,7 +75,7 @@
     <string name="cancel_menu_title">Leaving us? Choose below ...</string>
     
     <!-- FBReader -->
-    <string name="navigate_dialog_title">Navigate to page.</string>
+    <string name="navigate_dialog_title">Navigate to Page.</string>
     <string name="navigate_dialog_label">Enter page number.</string>
     <string name="navigate_dialog_example">Current %1$s page is %2$s of %3$s. %4$s</string>
     <string name="navigate_dialog_example_non_numeric">(has non numeric page numbers)</string>
@@ -83,7 +83,7 @@
 
     <!-- AccessibleMainMenuActivity -->
     <string name="menu_speak">Read to Me</string>
-    <string name="menu_bookshare">Get Bookshare books</string>
+    <string name="menu_bookshare">Get Bookshare Books</string>
     <string name="menu_toc">Table of Contents</string>
     <string name="menu_navigate">Navigate to Page</string>
     <string name="menu_bookmarks">Bookmarks</string>
@@ -107,7 +107,7 @@
 
     <string name="initializing">Initializing&#8230;</string>
     <string name="failure">Initialization failed, sorry</string>
-    <string name="speak_menu_item">Speak</string>
+    <string name="speak_menu_item">Read to Me</string>
     <string name="no_tts_installed">Could not connect TTS engine on your device.</string>
     <string name="initialization_error">Could not get book data from FBReader.</string>
     <string name="language_is_not_set">Book language is not set. Trying to read book in %0.</string>

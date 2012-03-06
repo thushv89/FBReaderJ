@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- English FBReaderJ resources, by Geometer Plus -->
 <resources>
-	<node name="library" value="Downloaded books">
+	<node name="library" value="Downloaded Books">
 		<node name="unknownAuthor" value="Unknown author"/>
 		<node name="booksWithNoTags" value="Books with no tags"/>
 		<node name="demo" value="sample"/>
@@ -38,7 +38,7 @@
 		<node name="fileTreeCard" value="Memory card">
 			<node name="summary" value="Memory card inserted into the device"/>
 		</node>
-		<node name="fileTreeLibrary" value="Downloaded books">
+		<node name="fileTreeLibrary" value="Downloaded Books">
 			<node name="summary" value="Bookshare Reader books directory"/>
 		</node>
 		<node name="menu">
@@ -237,11 +237,11 @@
 	<node name="menu">
 		<node name="preferences" value="Settings"/>
 		<node name="bookInfo" value="Book info"/>
-		<node name="library" value="Library"/>
+		<node name="library" value="Downloaded Books"/>
 		<node name="toc" value="TOC"/>
 		<node name="day" value="Day"/>
 		<node name="night" value="Night"/>
-		<node name="networkLibrary" value="Network library"/>
+		<node name="networkLibrary" value="Other Catalogs"/>
         <node name="accessible_navigation" value="Navigate to page"/>
 		<node name="navigate" value="Navigate">
 			<node name="toc" value="Table of Contents"/>
