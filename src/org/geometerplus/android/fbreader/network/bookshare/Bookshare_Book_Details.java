@@ -581,7 +581,8 @@ public class Bookshare_Book_Details extends Activity{
 					}
 					Header header = entity.getContentType();
 					//Log.w("FBR", "******  zip_file *****" + zip_file);
-					if(header.getValue().contains("zip")){
+                    final String headerValue = header.getValue();
+					if(headerValue.contains("zip") || headerValue.contains("bks2")) {
 						try{
 							System.out.println("Contains zip");
 							java.io.BufferedInputStream in = new java.io.BufferedInputStream(entity.getContent());
@@ -729,9 +730,13 @@ public class Bookshare_Book_Details extends Activity{
                     int id = Integer.valueOf(metadata_bean.getContentId());
                     notificationManager.cancel(id);
                     myOngoingNotifications.remove(Integer.valueOf(id));
+                    File file = null;
+                    if (downloadSuccess) {
+                        file =  new File(getOpfFile().getPath());
+                    }
                     notificationManager.notify(
                             id,
-                            createDownloadFinishNotification(new File(getOpfFile().getPath()), metadata_bean.getTitle()[0], message.what != 0)
+                            createDownloadFinishNotification(file, metadata_bean.getTitle()[0], message.what != 0)
                     );
                 }
             };
