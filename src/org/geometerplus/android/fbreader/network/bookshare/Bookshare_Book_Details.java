@@ -213,7 +213,9 @@ public class Bookshare_Book_Details extends Activity{
 						btn_download.setOnClickListener(new OnClickListener(){
 							public void onClick(View v){
 								
-								if(btn_download.getText().toString().equalsIgnoreCase(resources.getString(R.string.book_details_download_button))){
+                                final String downloadText = btn_download.getText().toString();
+								if(downloadText.equalsIgnoreCase(resources.getString(R.string.book_details_download_button)) || 
+                                        downloadText.equalsIgnoreCase(resources.getString(R.string.book_details_download_error_other_member))){
 									
 									// Start a new Activity for getting the OM member list
 									// See onActivityResult for further processing
@@ -715,12 +717,16 @@ public class Bookshare_Book_Details extends Activity{
 		@Override
 		protected void onPostExecute(Void param){
 
-            btn_download.setEnabled(downloadSuccess);
 			if(downloadSuccess){
 				btn_download.setText(resources.getString(R.string.book_details_download_success));
+                btn_download.setEnabled(true);
 			}
 			else{
 				btn_download.setText(resources.getString(R.string.book_details_download_error));
+                btn_download.setEnabled(memberId != null);
+                if (memberId != null) {
+                    btn_download.setText(resources.getString(R.string.book_details_download_error_other_member));
+                }
                 downloadedBookDir = null;
 			}
 
