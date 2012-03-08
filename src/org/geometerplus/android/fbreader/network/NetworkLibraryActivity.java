@@ -120,7 +120,7 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
             showAccessibilityWarning = false;
             final VoiceableDialog finishedDialog = new VoiceableDialog(this);
             String msg = "Warning! Other catalogs have not been made accessible to vision impaired users.";
-            finishedDialog.popup(msg, 6000);
+            finishedDialog.popup(msg, 7000);
         }
         
 		getListView().setOnCreateContextMenuListener(this);
