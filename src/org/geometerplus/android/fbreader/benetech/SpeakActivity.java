@@ -66,6 +66,8 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 
     private static final int PLAY_AFTER_TOC = 1;
     private static final int CHECK_TTS_INSTALLED = 0;
+    public static final int SPEAK_BACK_PRESSED = 77;
+    
     private SimpleGestureFilter detector;
     private Vibrator myVib;
     private int lastSentence = 0;
@@ -599,6 +601,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             stopTalking();
+            this.setResult(SPEAK_BACK_PRESSED);
             finish();
         }
         return super.onKeyDown(keyCode, event);

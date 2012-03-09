@@ -74,6 +74,7 @@ public final class FBReader extends ZLAndroidActivity {
     
 	final static int REPAINT_CODE = 1;
 	final static int CANCEL_CODE = 2;
+    final static int AUTO_SPEAK_CODE = 3;
 
 	private int myFullScreenFlag;
 
@@ -372,6 +373,11 @@ public final class FBReader extends ZLAndroidActivity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		final FBReaderApp fbreader = (FBReaderApp)FBReaderApp.Instance();
+        if (resultCode == SpeakActivity.SPEAK_BACK_PRESSED) {
+            //fbreader.doAction(ActionCode.SHOW_CANCEL_MENU);
+            fbreader.closeWindow();
+            return;
+        }
 		switch (requestCode) {
 			case REPAINT_CODE:
 			{
@@ -496,7 +502,7 @@ public final class FBReader extends ZLAndroidActivity {
         if (hasFocus && accessibilityManager.isEnabled() && initialOpen) {
             initialOpen = false;
             Intent intent = new Intent(this, SpeakActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, AUTO_SPEAK_CODE);
         }
     }
 
