@@ -601,7 +601,9 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             stopTalking();
-            this.setResult(SPEAK_BACK_PRESSED);
+            if (accessibilityManager.isEnabled()) {
+                this.setResult(SPEAK_BACK_PRESSED);
+            }
             finish();
         }
         return super.onKeyDown(keyCode, event);
