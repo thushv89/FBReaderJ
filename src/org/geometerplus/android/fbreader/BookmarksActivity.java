@@ -276,9 +276,14 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 		if ((fbreader.Model == null) || (fbreader.Model.Book.getId() != bookId)) {
 			final Book book = Book.getById(bookId);
 			if (book != null) {
-				finish();
+
                 Library.addBookToRecentList(book);
-				fbreader.openBook(book, bookmark);
+                if (accessibilityManager.isEnabled()) {
+                    fbreader.openBook(book, bookmark, this);
+                } else {
+                    finish();
+				    fbreader.openBook(book, bookmark);
+                }
 			} else {
 				UIUtil.showErrorMessage(this, "cannotOpenBook");
 			}

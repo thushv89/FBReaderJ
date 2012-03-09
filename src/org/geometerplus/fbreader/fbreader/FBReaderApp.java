@@ -21,6 +21,7 @@ package org.geometerplus.fbreader.fbreader;
 
 import java.util.*;
 
+import org.geometerplus.android.util.UIUtil;
 import org.geometerplus.zlibrary.core.library.ZLibrary;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.filesystem.*;
@@ -34,6 +35,9 @@ import org.geometerplus.zlibrary.text.view.ZLTextWordCursor;
 import org.geometerplus.fbreader.bookmodel.BookModel;
 import org.geometerplus.fbreader.bookmodel.TOCTree;
 import org.geometerplus.fbreader.library.*;
+import org.geometerplus.zlibrary.ui.android.library.ZLAndroidLibrary;
+
+import android.app.Activity;
 
 public final class FBReaderApp extends ZLApplication {
 	public final ZLBooleanOption AllowScreenBrightnessAdjustmentOption =
@@ -170,6 +174,27 @@ public final class FBReaderApp extends ZLApplication {
 			}
 		});
 	}
+    
+    public void openBook(final Book book, final Bookmark bookmark, final Activity activity) {
+    		if (book == null) {
+    			return;
+    		}
+    		if (Model != null) {
+    			if (bookmark == null & book.File.getPath().equals(Model.Book.File.getPath())) {
+    				return;
+    			}
+    		}
+        
+            if (activity != null) {
+        			UIUtil.wait("loadingBook", new Runnable() {
+                        @Override
+                        public void run() {
+                            openBookInternal(book, bookmark);
+                            activity.finish();
+                        }
+                    }, activity);
+            }
+    	}
 
 	private ColorProfile myColorProfile;
 

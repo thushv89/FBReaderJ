@@ -594,10 +594,8 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
      *
     */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (accessibilityManager.isEnabled()) {
-            if(keyCode == KeyEvent.KEYCODE_MENU){
-                showMainMenu();
-            }
+        if(keyCode == KeyEvent.KEYCODE_MENU){
+            showMainMenu();
         }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             stopTalking();
