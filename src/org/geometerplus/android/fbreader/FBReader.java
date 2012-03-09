@@ -174,14 +174,14 @@ public final class FBReader extends ZLAndroidActivity {
 			fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_LANDSCAPE, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_REVERSE_LANDSCAPE));
 		}
         
-/*        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         boolean haveCopiedManual = prefs.getBoolean(PREFS_HAVE_COPIED_MANUAL, false);
         if (!haveCopiedManual) {
             copyManual();
             SharedPreferences.Editor prefsEditor = prefs.edit();
             prefsEditor.putBoolean(PREFS_HAVE_COPIED_MANUAL, true);
             prefsEditor.commit();
-        }*/
+        }
 	}
 
  	@Override
@@ -502,13 +502,16 @@ public final class FBReader extends ZLAndroidActivity {
 
     private void copyManual() {
 
-        //todo : delete old copy of manual
+        final File oldFile = new File(Paths.BooksDirectoryOption().getValue(), "User-Guide.epub");
+        if (oldFile.exists()) {
+            oldFile.delete();
+        }
 
         InputStream from = null;
         FileOutputStream to = null;
         try {
-            from = getAssets().open("kipling-plain-tales-from-the-hills.epub");
-            File outFile = new File(Paths.BooksDirectoryOption().getValue(), "kipling-plain-tales-from-the-hills.epub");
+            from = getAssets().open("User-Guide.epub");
+            File outFile = new File(Paths.BooksDirectoryOption().getValue(), "User-Guide.epub");
             to = new FileOutputStream(outFile);
 
             byte[] buffer = new byte[4096];
