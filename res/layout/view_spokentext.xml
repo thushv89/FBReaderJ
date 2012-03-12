@@ -29,6 +29,7 @@
             android:nextFocusLeft="@+id/speak_menu_pause"
             android:layout_weight="1"
             android:contentDescription="@string/toc"
+            android:textSize="12sp"
             android:text="@string/toc" />
 
     <Button android:id="@+id/speak_menu_forward"
