@@ -120,6 +120,7 @@
     <!-- TOCActivity -->
     <string name="subheading">\u0020(has %1$d sub headings)</string>
     <string name="toc_view_subheadings">View sub headings</string>
+    <string name="toc_close_subheadings">Close sub headings</string>
     <string name="toc_goto_heading">Go to heading</string>
 
 </resources>

@@ -163,7 +163,11 @@ public class TOCActivity extends ListActivity {
                 // popup window to ask for subheadings or heading
                 ArrayList<Object> listItems = new ArrayList<Object>();
                 listItems.add(getResources().getString(R.string.toc_goto_heading));
-                listItems.add(getResources().getString(R.string.toc_view_subheadings));
+                if (myAdapter.isOpen(tree))  {
+                    listItems.add(getResources().getString(R.string.toc_close_subheadings));
+                } else {
+                    listItems.add(getResources().getString(R.string.toc_view_subheadings));
+                }
                 LabelsListAdapter adapter = new LabelsListAdapter(listItems, myActivity);
                 list.setAdapter(adapter);
                 list.setOnItemClickListener(new MenuClickListener(tree));
