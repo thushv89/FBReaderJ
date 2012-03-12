@@ -508,9 +508,16 @@ public final class FBReader extends ZLAndroidActivity {
 
     private void copyManual() {
 
-        final File oldFile = new File(Paths.BooksDirectoryOption().getValue(), "User-Guide.epub");
-        if (oldFile.exists()) {
-            oldFile.delete();
+        // create books directory if it doesn't already exist
+        final File booksDir = new File(Paths.BooksDirectoryOption().getValue());
+        if (!booksDir.exists()) {
+            booksDir.mkdirs();
+        } else {
+            // remove existing user manual
+            final File oldFile = new File(Paths.BooksDirectoryOption().getValue(), "User-Guide.epub");
+            if (oldFile.exists()) {
+                oldFile.delete();
+            }
         }
 
         InputStream from = null;
