@@ -64,7 +64,7 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 	private boolean mySingleCatalog;
     
     private AccessibilityManager accessibilityManager;
-    boolean showAccessibilityWarning = true;
+    private static boolean showAccessibilityWarning = true;
 
 	@Override
 	public void onCreate(Bundle icicle) {
@@ -120,10 +120,21 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 	@Override
 	public void onResume() {
 		super.onResume();
-        
-        if (showAccessibilityWarning && accessibilityManager.isEnabled()) {
-            showAccessibilityWarning = false;
 
+		getListView().setOnCreateContextMenuListener(this);
+		NetworkLibrary.Instance().fireModelChangedEvent(NetworkLibrary.ChangeListener.Code.SomeCode);
+	}
+
+	@Override
+	protected void onStop() {
+		NetworkLibrary.Instance().removeChangeListener(this);
+		super.onStop();
+	}
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        if (hasFocus && accessibilityManager.isEnabled() && showAccessibilityWarning) {
+            showAccessibilityWarning = false;
             final Dialog alertDialog = new Dialog(this);
             alertDialog.setContentView(R.layout.accessible_alert_dialog_ok_button);
             alertDialog.setTitle("Alert!");
@@ -140,16 +151,7 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
 
             alertDialog.show();
         }
-        
-		getListView().setOnCreateContextMenuListener(this);
-		NetworkLibrary.Instance().fireModelChangedEvent(NetworkLibrary.ChangeListener.Code.SomeCode);
-	}
-
-	@Override
-	protected void onStop() {
-		NetworkLibrary.Instance().removeChangeListener(this);
-		super.onStop();
-	}
+    }
 
 	@Override
 	public void onDestroy() {
