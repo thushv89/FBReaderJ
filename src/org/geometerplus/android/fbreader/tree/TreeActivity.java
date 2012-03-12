@@ -28,9 +28,11 @@ import android.os.Bundle;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 
+import org.accessibility.VoiceableDialog;
 import org.geometerplus.android.util.UIUtil;
 
 import org.geometerplus.fbreader.tree.FBTree;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
 
 public abstract class TreeActivity extends ListActivity {
 	private static final String OPEN_TREE_ACTION = "android.fbreader.action.OPEN_TREE";
@@ -184,7 +186,9 @@ public abstract class TreeActivity extends ListActivity {
 				);
 				break;
 			case CANNOT_OPEN:
-				UIUtil.showErrorMessage(TreeActivity.this, tree.getOpeningStatusMessage());
+                final VoiceableDialog finishedDialog = new VoiceableDialog(this);
+                String msg = ZLResource.resource("errorMessage").getResource(tree.getOpeningStatusMessage()).getValue();
+                finishedDialog.popup(msg, 5000);
 				break;
 		}
 	}
