@@ -97,6 +97,9 @@
     <!-- LibraryActivity -->
     <string name="library_search_books_popup">Search downloaded books?</string>
     
+    <!-- NetworkLibraryActivity -->
+    <string name="network_library_accessibility_warning">Other catalogs have not been made accessible to vision impaired users.</string>
+    
     <!-- SpeakActivity -->
     <string name="play">Play/Pause</string>
     <string name="next">Next section</string>

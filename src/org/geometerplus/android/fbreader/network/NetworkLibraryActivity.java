@@ -22,6 +22,7 @@ package org.geometerplus.android.fbreader.network;
 import java.util.*;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.DialogInterface;
@@ -30,9 +31,13 @@ import android.os.Bundle;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.accessibility.VoiceableDialog;
+import org.benetech.android.R;
+import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.geometerplus.zlibrary.core.util.ZLBoolean3;
 
@@ -118,9 +123,22 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
         
         if (showAccessibilityWarning && accessibilityManager.isEnabled()) {
             showAccessibilityWarning = false;
-            final VoiceableDialog finishedDialog = new VoiceableDialog(this);
-            String msg = "Warning! Other catalogs have not been made accessible to vision impaired users.";
-            finishedDialog.popup(msg, 7000);
+
+            final Dialog alertDialog = new Dialog(this);
+            alertDialog.setContentView(R.layout.accessible_alert_dialog_ok_button);
+            alertDialog.setTitle("Alert!");
+            TextView confirmation = (TextView)alertDialog.findViewById(R.id.bookshare_confirmation_message);
+            confirmation.setText(getResources().getString(R.string.network_library_accessibility_warning));
+            Button okButton = (Button)alertDialog.findViewById(R.id.bookshare_dialog_btn_yes);
+
+            okButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    alertDialog.dismiss();
+                }
+            });
+
+            alertDialog.show();
         }
         
 		getListView().setOnCreateContextMenuListener(this);
