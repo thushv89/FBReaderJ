@@ -135,21 +135,9 @@ public abstract class NetworkLibraryActivity extends TreeActivity implements Net
     public void onWindowFocusChanged(boolean hasFocus) {
         if (hasFocus && accessibilityManager.isEnabled() && showAccessibilityWarning) {
             showAccessibilityWarning = false;
-            final Dialog alertDialog = new Dialog(this);
-            alertDialog.setContentView(R.layout.accessible_alert_dialog_ok_button);
-            alertDialog.setTitle("Alert!");
-            TextView confirmation = (TextView)alertDialog.findViewById(R.id.bookshare_confirmation_message);
-            confirmation.setText(getResources().getString(R.string.network_library_accessibility_warning));
-            Button okButton = (Button)alertDialog.findViewById(R.id.bookshare_dialog_btn_yes);
-
-            okButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    alertDialog.dismiss();
-                }
-            });
-
-            alertDialog.show();
+            final VoiceableDialog finishedDialog = new VoiceableDialog(this);
+            String msg = getResources().getString(R.string.network_library_accessibility_warning);
+            finishedDialog.popup(msg, 6500);
         }
     }
 
