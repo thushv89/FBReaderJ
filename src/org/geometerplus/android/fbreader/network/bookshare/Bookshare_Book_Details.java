@@ -100,6 +100,8 @@ public class Bookshare_Book_Details extends Activity{
 	private final int START_BOOKSHARE_OM_LIST = 0;
 	private String memberId = null;
 	private String omDownloadPassword;
+    private String firstName = null;
+    private String lastName = null;
 	private boolean downloadSuccess;
     private Resources resources;
     private String downloadedBookDir;
@@ -156,7 +158,9 @@ public class Bookshare_Book_Details extends Activity{
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode == START_BOOKSHARE_OM_LIST){
 			if(data != null){
-				memberId = data.getStringExtra("memberId");
+				memberId = data.getStringExtra(Bookshare_OM_Member_Bean.MEMBER_ID);
+                firstName = data.getStringExtra(Bookshare_OM_Member_Bean.FIRST_NAME);
+                lastName = data.getStringExtra(Bookshare_OM_Member_Bean.LAST_NAME);
 				new DownloadFilesTask().execute();
 			}
 		}
@@ -573,6 +577,9 @@ public class Bookshare_Book_Details extends Activity{
 						}
 						filename = temp;
 						filename = filename.replaceAll(" +", "_").replaceAll(":", "__");
+                        if (isOM) {
+                            filename = filename + "_" + firstName + "_" + lastName;
+                        }
 					}
 					String zip_file = Paths.BooksDirectoryOption().getValue() +"/"+ filename + ".zip";
                     downloadedBookDir = Paths.BooksDirectoryOption().getValue() + "/" + filename;

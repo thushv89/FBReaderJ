@@ -199,7 +199,9 @@ public class Bookshare_OM_List extends ListActivity{
 		        switch (which){
 		        case DialogInterface.BUTTON_POSITIVE:
 					Intent intent = new Intent();
-					intent.putExtra("memberId", bean.getMemberId());
+					intent.putExtra(Bookshare_OM_Member_Bean.MEMBER_ID, bean.getMemberId());
+					intent.putExtra(Bookshare_OM_Member_Bean.FIRST_NAME, bean.getFirstName());
+					intent.putExtra(Bookshare_OM_Member_Bean.LAST_NAME, bean.getlastName());
 					setResult(BOOKSHARE_OM_SELECTED, intent);
 					dialog.dismiss();
 					finish();

@@ -6,6 +6,11 @@ package org.geometerplus.android.fbreader.network.bookshare;
  *
  */
 public class Bookshare_OM_Member_Bean {
+    
+    public static final String MEMBER_ID = "memberId";
+    public static final String FIRST_NAME = "firstName";
+    public static final String LAST_NAME = "lastName";
+    
 	private String memberId;
 	private String firstName;
 	private String LastName;
