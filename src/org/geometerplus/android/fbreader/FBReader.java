@@ -67,6 +67,7 @@ import org.geometerplus.android.util.UIUtil;
 public final class FBReader extends ZLAndroidActivity {
 	public static final String BOOK_PATH_KEY = "BookPath";
     public static final String PREFS_HAVE_COPIED_MANUAL = "bks_haveCopiedManual";
+    public static final String PREFS_USER_MANUAL_VERSION = "bks_userManualVersion";
 
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
@@ -174,13 +175,15 @@ public final class FBReader extends ZLAndroidActivity {
 			fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_PORTRAIT, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_REVERSE_PORTRAIT));
 			fbReader.addAction(ActionCode.SET_SCREEN_ORIENTATION_REVERSE_LANDSCAPE, new SetScreenOrientationAction(this, fbReader, ZLibrary.SCREEN_ORIENTATION_REVERSE_LANDSCAPE));
 		}
+
         
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        boolean haveCopiedManual = prefs.getBoolean(PREFS_HAVE_COPIED_MANUAL, false);
-        if (!haveCopiedManual) {
+        int currentVersion = zlibrary.getVersionCode();
+        int userManualVersion = prefs.getInt(PREFS_USER_MANUAL_VERSION, 0);
+        if (userManualVersion != currentVersion) {
             copyManual();
             SharedPreferences.Editor prefsEditor = prefs.edit();
-            prefsEditor.putBoolean(PREFS_HAVE_COPIED_MANUAL, true);
+            prefsEditor.putInt(PREFS_USER_MANUAL_VERSION, currentVersion);
             prefsEditor.commit();
         }
 	}

@@ -134,6 +134,17 @@ public final class ZLAndroidLibrary extends ZLibrary {
 		}
 	}
 
+    @Override
+    public int getVersionCode() {
+        try {
+            final PackageInfo info =
+                myApplication.getPackageManager().getPackageInfo(myApplication.getPackageName(), 0);
+            return info.versionCode;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
 	@Override
 	public String getCurrentTimeString() {
 		return DateFormat.getTimeFormat(myApplication.getApplicationContext()).format(new Date());
