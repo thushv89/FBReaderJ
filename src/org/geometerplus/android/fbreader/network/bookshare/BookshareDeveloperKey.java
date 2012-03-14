@@ -9,4 +9,5 @@ public class BookshareDeveloperKey {
 	
 	// Enter your developer key here
 	public static final String DEVELOPER_KEY = "";
+    public static final String BUGSENSE_KEY = "";
 }
