@@ -20,11 +20,19 @@
 package org.geometerplus.zlibrary.ui.android.library;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.library.Library;
 
 import android.app.Activity;
 import android.content.*;
 import android.os.Process;
 import android.net.Uri;
+import android.preference.PreferenceManager;
+import com.bugsense.trace.BugSenseHandler;
 
 public class UncaughtExceptionHandler implements java.lang.Thread.UncaughtExceptionHandler {
 	private final Context myContext;
@@ -34,21 +42,40 @@ public class UncaughtExceptionHandler implements java.lang.Thread.UncaughtExcept
 	}
 
 	public void uncaughtException(Thread thread, Throwable exception) {
+        boolean justShowAlert = false;
 		StringWriter stackTrace = new StringWriter();
 		exception.printStackTrace(new PrintWriter(stackTrace));
 		System.err.println(stackTrace);
 
-		Intent intent = new Intent(
-			"android.fbreader.action.CRASH",
-			new Uri.Builder().scheme(exception.getClass().getSimpleName()).build()
-		);
-		try {
-			myContext.startActivity(intent);
-		} catch (ActivityNotFoundException e) {
-			intent = new Intent(myContext, BugReportActivity.class);
-			intent.putExtra(BugReportActivity.STACKTRACE, stackTrace.toString());
-			myContext.startActivity(intent);
-		}
+        if (exception instanceof Exception) {
+            SharedPreferences userInfo = PreferenceManager.getDefaultSharedPreferences(myContext);
+            String user = userInfo.getString(Bookshare_Webservice_Login.USER, "");
+
+            Map<String, String> extraData = new HashMap<String,String>();
+            // only report email if user is logged into bookshare
+            if (null != user && user.length() > 1) {
+                extraData.put("email", user);
+            }
+            final Book currentBook = Library.getRecentBook();
+            if (null != currentBook) {
+                extraData.put("book", currentBook.getTitle());
+            }
+            BugSenseHandler.log("FBR", extraData, (Exception)exception);
+            justShowAlert = true;
+        }
+        
+        Intent intent = new Intent(
+            "android.fbreader.action.CRASH",
+            new Uri.Builder().scheme(exception.getClass().getSimpleName()).build()
+        );
+        try {
+            myContext.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            intent = new Intent(myContext, BugReportActivity.class);
+            intent.putExtra(BugReportActivity.STACKTRACE, stackTrace.toString());
+            intent.putExtra(BugReportActivity.JUST_SHOW_ALERT, true);
+            myContext.startActivity(intent);
+        }
 
 		if (myContext instanceof Activity) {
 			((Activity)myContext).finish();

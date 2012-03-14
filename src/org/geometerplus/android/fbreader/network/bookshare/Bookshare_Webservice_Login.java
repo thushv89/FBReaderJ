@@ -43,6 +43,9 @@ import android.widget.TextView.OnEditorActionListener;
  */
 public class Bookshare_Webservice_Login extends Activity{
 
+    public static final String USER = "username";
+    public static final String PASSWORD = "password";
+
 	private String BOOKSHARE_URL = "https://api.bookshare.org/book/search/title/potter";
 	private String FORGOT_PW_URL = "http://www.bookshare.org/forgotPassword";
 	private String SIGNUP_URL = "https://www.bookshare.org/signUpType";
@@ -73,14 +76,14 @@ public class Bookshare_Webservice_Login extends Activity{
 		
 		// Obtain the SharedPreferences object shared across the application
 		SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		username = login_preference.getString("username", "");
-		password = login_preference.getString("password", "");
+		username = login_preference.getString(USER, "");
+		password = login_preference.getString(PASSWORD, "");
 		
 		// If login credentials are already stored, navigate to the next Activity
 		if(!username.equals("") && !password.equals("")){
 			intent = new Intent(getApplicationContext(), Bookshare_Menu.class);
-			intent.putExtra("username", username);
-			intent.putExtra("password", password);
+			intent.putExtra(USER, username);
+			intent.putExtra(PASSWORD, password);
 			startActivity(intent);
 			finish();
 		}
@@ -369,15 +372,15 @@ public class Bookshare_Webservice_Login extends Activity{
 				intent = new Intent(getApplicationContext(), Bookshare_Menu.class);
 				
 				if(!isFree){
-					intent.putExtra("username", username);
-					intent.putExtra("password", password);
+					intent.putExtra(USER, username);
+					intent.putExtra(PASSWORD, password);
 				}
 				
 				// Obtain the application wide SharedPreferences object and store the login information
 				SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 				SharedPreferences.Editor editor = login_preference.edit();
-				editor.putString("username", username);
-				editor.putString("password", password);
+				editor.putString(USER, username);
+				editor.putString(PASSWORD, password);
 				editor.putBoolean("isOM", isOM);
 				editor.commit();
 				startActivity(intent);

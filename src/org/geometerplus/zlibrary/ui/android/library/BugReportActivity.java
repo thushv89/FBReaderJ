@@ -28,10 +28,12 @@ import android.view.View;
 import android.widget.TextView;
 import android.text.method.ScrollingMovementMethod;
 
+import org.accessibility.ParentCloserDialog;
 import org.benetech.android.R;
 
 public class BugReportActivity extends Activity {
 	static final String STACKTRACE = "fbreader.stacktrace";
+    static final String JUST_SHOW_ALERT = "justShowAlert";
 
 	private String getVersionName() {
 		try {
@@ -44,46 +46,54 @@ public class BugReportActivity extends Activity {
 
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
-		setContentView(R.layout.bug_report_view);
-		final StringBuilder reportText = new StringBuilder();
+        
+        boolean justShowAlert = getIntent().getBooleanExtra(JUST_SHOW_ALERT, false);
+        
+        if (justShowAlert) {
+            final ParentCloserDialog dialog = new ParentCloserDialog(this, this);
+            dialog.popup(getResources().getString(R.string.crash_report_sent), 4000);
+        } else {
+            setContentView(R.layout.bug_report_view);
+            final StringBuilder reportText = new StringBuilder();
 
-		reportText.append("Model:").append(Build.MODEL).append("\n");
-		reportText.append("Device:").append(Build.DEVICE).append("\n");
-		reportText.append("Product:").append(Build.PRODUCT).append("\n");
-		reportText.append("Manufacturer:").append(Build.MANUFACTURER).append("\n");
-		reportText.append("Version:").append(Build.VERSION.RELEASE).append("\n");
-		reportText.append(getIntent().getStringExtra(STACKTRACE));
+            reportText.append("Model:").append(Build.MODEL).append("\n");
+            reportText.append("Device:").append(Build.DEVICE).append("\n");
+            reportText.append("Product:").append(Build.PRODUCT).append("\n");
+            reportText.append("Manufacturer:").append(Build.MANUFACTURER).append("\n");
+            reportText.append("Version:").append(Build.VERSION.RELEASE).append("\n");
+            reportText.append(getIntent().getStringExtra(STACKTRACE));
 
-		final TextView reportTextView = (TextView)findViewById(R.id.report_text);
-		reportTextView.setMovementMethod(ScrollingMovementMethod.getInstance());
-		reportTextView.setClickable(false);
-		reportTextView.setLongClickable(false);
+            final TextView reportTextView = (TextView)findViewById(R.id.report_text);
+            reportTextView.setMovementMethod(ScrollingMovementMethod.getInstance());
+            reportTextView.setClickable(false);
+            reportTextView.setLongClickable(false);
 
-		final String versionName = getVersionName();
-		reportTextView.append( getApplicationContext().getResources().getString(R.string.app_name) + " " + versionName + " has crashed, sorry. You can help to fix this bug by sending the report below to the developers. The report will be sent by e-mail. Thank you in advance!\n\n");
-		reportTextView.append(reportText);
+            final String versionName = getVersionName();
+            reportTextView.append( getApplicationContext().getResources().getString(R.string.app_name) + " " + versionName + " has crashed, sorry. You can help to fix this bug by sending the report below to the developers. The report will be sent by e-mail. Thank you in advance!\n\n");
+            reportTextView.append(reportText);
 
-		findViewById(R.id.send_report).setOnClickListener(
-			new View.OnClickListener() {
-				public void onClick(View view) {
-					Intent sendIntent = new Intent(Intent.ACTION_SEND);
-					sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { "android-dev@benetech.org" });
-					sendIntent.putExtra(Intent.EXTRA_TEXT, reportText.toString());
-					sendIntent.putExtra(Intent.EXTRA_SUBJECT, getApplicationContext().getResources().getString(R.string.app_name)
-                            + " " + versionName + " exception report");
-					sendIntent.setType("message/rfc822");
-					startActivity(sendIntent);
-					finish();
-				}
-			}
-		);
+            findViewById(R.id.send_report).setOnClickListener(
+                new View.OnClickListener() {
+                    public void onClick(View view) {
+                        Intent sendIntent = new Intent(Intent.ACTION_SEND);
+                        sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[] { "android-dev@benetech.org" });
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, reportText.toString());
+                        sendIntent.putExtra(Intent.EXTRA_SUBJECT, getApplicationContext().getResources().getString(R.string.app_name)
+                                + " " + versionName + " exception report");
+                        sendIntent.setType("message/rfc822");
+                        startActivity(sendIntent);
+                        finish();
+                    }
+                }
+            );
 
-		findViewById(R.id.cancel_report).setOnClickListener(
-			new View.OnClickListener() {
-				public void onClick(View view) {
-					finish();
-				}
-			}
-		);
+            findViewById(R.id.cancel_report).setOnClickListener(
+                new View.OnClickListener() {
+                    public void onClick(View view) {
+                        finish();
+                    }
+                }
+            );
+        }
 	}
 }

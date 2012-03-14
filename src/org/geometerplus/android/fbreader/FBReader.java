@@ -34,10 +34,12 @@ import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
+import com.bugsense.trace.BugSenseHandler;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
 import org.geometerplus.android.fbreader.benetech.SpeakActivity;
+import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
@@ -186,6 +188,8 @@ public final class FBReader extends ZLAndroidActivity {
             prefsEditor.putInt(PREFS_USER_MANUAL_VERSION, currentVersion);
             prefsEditor.commit();
         }
+
+        BugSenseHandler.setup(this, BookshareDeveloperKey.BUGSENSE_KEY);
 	}
 
  	@Override

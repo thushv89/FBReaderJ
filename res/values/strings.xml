@@ -72,6 +72,9 @@
     <string name="empty_search_term_error">Search Term cannot be blank!</string>
     <string name="accessible_alert_title">Are you sure?</string>
     
+    <!-- Bug Report Activity -->
+    <string name="crash_report_sent">Crash report sent!</string>
+    
     <!-- Cancel Activity -->
     <string name="cancel_menu_title">Leaving us? Choose below ...</string>
     
