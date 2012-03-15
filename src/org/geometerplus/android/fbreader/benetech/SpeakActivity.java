@@ -209,6 +209,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
             if (resultCode == TOCActivity.BACK_PRESSED) {
                 abortedTOCReturn = true;
             } else {
+                justPaused = false;
                 resumePlaying = true;
             }
         }
@@ -220,8 +221,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         findViewById(R.id.speak_menu_pause).requestFocus();
 
         if (! abortedTOCReturn) {
-            myParagraphIndex = myApi.getPageStart().ParagraphIndex;
-            myParagraphsNumber = myApi.getParagraphsNumber();
+            setCurrentLocation();
         }
         abortedTOCReturn = false;
 
@@ -232,7 +232,12 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         }
 	}
 
-	@Override
+    private void setCurrentLocation() {
+        myParagraphIndex = myApi.getPageStart().ParagraphIndex;
+        myParagraphsNumber = myApi.getParagraphsNumber();
+    }
+
+    @Override
 	protected void onPause() {
 		super.onPause();
 	}
@@ -286,8 +291,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         myTTS.addEarcon(BACK_EARCON, "org.benetech.android", R.raw.sound_back);
         myTTS.addEarcon(START_READING_EARCON, "org.benetech.android", R.raw.sound_start_reading);
 
-        myParagraphIndex = myApi.getPageStart().ParagraphIndex;
-        myParagraphsNumber = myApi.getParagraphsNumber();
+        setCurrentLocation();
 
         myTTS.playEarcon(START_READING_EARCON, TextToSpeech.QUEUE_ADD, null);
 
@@ -518,7 +522,12 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 
     private void playOrPause() {
             if (!myIsActive) {
-                speakParagraph(getNextParagraph());
+                final String nextParagraph = getNextParagraph();
+                if (null == nextParagraph || nextParagraph.length() < 1) {
+                    setCurrentLocation();
+                    justPaused = false;
+                }
+                speakParagraph(nextParagraph);
             } else {
                 stopTalking();
                 justPaused = true;
@@ -542,17 +551,17 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     }
 
     private void showContents() {
+        justPaused = true;
         stopTalking();
         myTTS.playEarcon(CONTENTS_EARCON, TextToSpeech.QUEUE_FLUSH, null);
-        setActive(false);
         Intent tocIntent = new Intent(this, TOCActivity.class);
         startActivityForResult(tocIntent, PLAY_AFTER_TOC);
     }
     
     private void showMainMenu() {
         stopTalking();
+        justPaused = true;
         myTTS.playEarcon(MENU_EARCON, TextToSpeech.QUEUE_ADD, null);
-        setActive(false);
         resumePlaying = true;
         Intent intent = new Intent(this, AccessibleMainMenuActivity.class);
         startActivityForResult(intent, PLAY_AFTER_TOC);
