@@ -19,6 +19,8 @@
 
 package org.geometerplus.android.fbreader.benetech;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -90,9 +92,61 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     public static final String BACK_EARCON = "[BACK]";
     public static final String START_READING_EARCON = "[START]";
 
+    private static Method MotionEvent_getX;
+    private static Method MotionEvent_getY;
+    private static Method AccessibilityManager_isTouchExplorationEnabled;
+
+    static {
+        initCompatibility();
+    }
+
+    private static void initCompatibility() {
+        try {
+            MotionEvent_getX = MotionEvent.class.getMethod("getX", new Class[] { Integer.TYPE });
+            MotionEvent_getY = MotionEvent.class.getMethod("getY", new Class[] { Integer.TYPE });
+            AccessibilityManager_isTouchExplorationEnabled = AccessibilityManager.class.getMethod(
+                    "isTouchExplorationEnabled");
+            /* success, this is a newer device */
+        } catch (NoSuchMethodException nsme) {
+            /* failure, must be older device */
+        }
+    }
+
+    private static boolean isTouchExplorationEnabled(AccessibilityManager am) {
+        try {
+            if (AccessibilityManager_isTouchExplorationEnabled != null) {
+                Object retobj = AccessibilityManager_isTouchExplorationEnabled.invoke(am);
+                return (Boolean) retobj;
+            }
+        } catch (IllegalAccessException ie) {
+            System.err.println("unexpected " + ie);
+        } catch (IllegalArgumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private void setListener(int id, View.OnClickListener listener) {
 		findViewById(id).setOnClickListener(listener);
 	}
+    
+    private void setTouchFocusEnabled(int id) {
+        findViewById(id).setFocusableInTouchMode(true);
+    }
+
+    private class MyHoverListener implements View.OnHoverListener {
+
+        @Override
+        public boolean onHover(View view, MotionEvent motionEvent) {
+            stopTalking();
+            justPaused = true;
+            return false;
+        }
+    }
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +165,13 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         }
 
         setContentView(R.layout.view_spokentext);
+
+        if (isTouchExplorationEnabled(accessibilityManager)) {
+            findViewById(R.id.speak_menu_back).setOnHoverListener(new MyHoverListener());
+            findViewById(R.id.speak_menu_forward).setOnHoverListener(new MyHoverListener());
+            findViewById(R.id.speak_menu_pause).setOnHoverListener(new MyHoverListener());
+            findViewById(R.id.speak_menu_contents).setOnHoverListener(new MyHoverListener());
+        }
 
 		setListener(R.id.speak_menu_back, new View.OnClickListener() {
 			public void onClick(View v) {
@@ -584,9 +645,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
                 goBackward();
                 break;
             case SimpleGestureFilter.SWIPE_DOWN :
-                if (accessibilityManager.isEnabled()) {
-                    showMainMenu();
-                }
+                showMainMenu();
                 break;
             case SimpleGestureFilter.SWIPE_UP :
                 showContents();
