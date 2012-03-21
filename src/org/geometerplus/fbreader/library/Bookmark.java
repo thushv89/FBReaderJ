@@ -22,6 +22,9 @@ package org.geometerplus.fbreader.library;
 import java.util.*;
 
 import org.benetech.android.R;
+import org.geometerplus.android.fbreader.benetech.DaisyPageHandler;
+import org.geometerplus.android.fbreader.benetech.DefaultPageHandler;
+import org.geometerplus.android.fbreader.benetech.PageHandler;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.zlibrary.text.view.*;
 
@@ -55,6 +58,8 @@ public final class Bookmark extends ZLTextFixedPosition {
 	public final boolean IsVisible;
 
 	private boolean myIsChanged;
+    
+    private String myPageNumber;
 
 	Bookmark(long id, long bookId, String bookTitle, String text, Date creationDate, Date modificationDate, Date accessDate, int accessCount, String modelId, int paragraphIndex, int elementIndex, int charIndex, boolean isVisible) {
 		super(paragraphIndex, elementIndex, charIndex);
@@ -93,9 +98,26 @@ public final class Bookmark extends ZLTextFixedPosition {
 		ModelId = modelId;
 		IsVisible = isVisible;
 		myIsChanged = true;
+
+        myPageNumber = getPage();
+        if (myText.length() > 1) {
+            myText = myText + " - page " + myPageNumber;
+        }
 	}
 
-	public long getId() {
+    private String getPage() {
+        final FBReaderApp fbreader = (FBReaderApp)FBReaderApp.Instance();
+        LinkedHashMap<String, Integer> pageMap = fbreader.getDaisyPageMap();
+        PageHandler pageHandler;
+        if (null != pageMap && pageMap.size() > 1) {
+            pageHandler = new DaisyPageHandler(fbreader, pageMap);
+        } else {
+            pageHandler = new DefaultPageHandler(fbreader);
+        }
+        return pageHandler.getCurrentPage();
+    }
+
+    public long getId() {
 		return myId;
 	}
 
@@ -110,6 +132,10 @@ public final class Bookmark extends ZLTextFixedPosition {
 	public String getBookTitle() {
 		return myBookTitle;
 	}
+
+    public String getPageNumber() {
+        return myPageNumber;
+    }
 
 	public Date getTime(int timeStamp) {
 		switch (timeStamp) {
@@ -179,6 +205,7 @@ public final class Bookmark extends ZLTextFixedPosition {
         
         final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
         final ZLTextView.PagePosition pagePosition = textView.pagePosition();
+        
 
 mainLoop:
 		while (wordCounter < maxWords && sentenceCounter < 3) {
@@ -251,9 +278,6 @@ mainLoop:
 			}
 			builder.append(sentenceBuilder);
 		}
-        if (builder.length() > 1) {
-            builder.append(" - page ").append(pagePosition.Current);
-        }
 		return builder.toString();
 	}
 }

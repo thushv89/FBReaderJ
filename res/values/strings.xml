@@ -7,7 +7,7 @@
 	<string name="search_hint">enter search query</string>
 
     <!-- BookmarksActivity -->
-    <string name="bookmark_added">bookmark on page %1$d added</string>
+    <string name="bookmark_added">bookmark on page %1$s added</string>
 
 	<!--  Bookshare_Webservice_login -->
 	<string name="fetch_book_data">Fetching free books data.</string>

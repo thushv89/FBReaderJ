@@ -42,7 +42,6 @@ import org.geometerplus.fbreader.fbreader.FBReaderApp;
 import org.geometerplus.fbreader.library.*;
 
 import org.geometerplus.android.util.UIUtil;
-import org.geometerplus.zlibrary.text.view.ZLTextView;
 
 public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuItemClickListener {
 	private static final int OPEN_ITEM_ID = 0;
@@ -261,10 +260,8 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 			invalidateAllViews();
             myAllBooksView.setFocusable(true);
 
-            final ZLTextView textView = (ZLTextView) FBReaderApp.Instance().getCurrentView();
-            final ZLTextView.PagePosition pagePosition = textView.pagePosition();
             final VoiceableDialog finishedDialog = new VoiceableDialog(this);
-            String msg = getResources().getString(R.string.bookmark_added, pagePosition.Current);
+            String msg = getResources().getString(R.string.bookmark_added, bookmark.getPageNumber());
             finishedDialog.popup(msg, 3000);
 		}
 	}
