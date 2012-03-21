@@ -113,6 +113,30 @@ public class AccessibleMainMenuActivity extends Activity {
                 activity.finish();
 	        }
 	    }),
+        tableOfContents(resources.getString(R.string.menu_toc), new MenuOperation() {
+            public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_TOC);
+                activity.finish();
+            }
+        }),
+        navigate(resources.getString(R.string.menu_navigate), new MenuOperation() {
+            public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.ACCESSIBLE_NAVIGATION);
+                activity.finish();
+            }
+        }),
+        bookmarks(resources.getString(R.string.menu_bookmarks), new MenuOperation() {
+            public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_BOOKMARKS);
+                activity.finish();
+            }
+        }),
+        library(resources.getString(R.string.menu_library), new MenuOperation() {
+            public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_LIBRARY);
+                activity.finish();
+            }
+        }),
         bookshare(resources.getString(R.string.menu_bookshare), new MenuOperation() {
             public void click(Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.BOOKSHARE);
@@ -120,36 +144,11 @@ public class AccessibleMainMenuActivity extends Activity {
             }
         }),
         networkLibrary(resources.getString(R.string.menu_network_library), new MenuOperation() {
-        	        public void click(final Activity activity) {
-                        ZLApplication.Instance().doAction(ActionCode.SHOW_NETWORK_LIBRARY);
-                        activity.finish();
-        	        }
-        	    }),
-	    tableOfContents(resources.getString(R.string.menu_toc), new MenuOperation() {
-	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SHOW_TOC);
+            public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_NETWORK_LIBRARY);
                 activity.finish();
-	        }
-	    }),
-	    navigate(resources.getString(R.string.menu_navigate), new MenuOperation() {
-	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.ACCESSIBLE_NAVIGATION);
-                activity.finish();
-	        }
-	    }),
-	    bookmarks(resources.getString(R.string.menu_bookmarks), new MenuOperation() {
-	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SHOW_BOOKMARKS);
-                activity.finish();
-	        }
-	    }),
-	    library(resources.getString(R.string.menu_library), new MenuOperation() {
-	        public void click(final Activity activity) {
-                ZLApplication.Instance().doAction(ActionCode.SHOW_LIBRARY);
-                activity.finish();
-	        }
-	    }),
-
+            }
+        }),
 	    settings(resources.getString(R.string.menu_settings), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
