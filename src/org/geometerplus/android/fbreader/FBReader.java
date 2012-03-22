@@ -70,6 +70,7 @@ public final class FBReader extends ZLAndroidActivity {
 	public static final String BOOK_PATH_KEY = "BookPath";
     public static final String PREFS_HAVE_COPIED_MANUAL = "bks_haveCopiedManual";
     public static final String PREFS_USER_MANUAL_VERSION = "bks_userManualVersion";
+    public static final String USER_GUIDE_FILE = "User-Guide.epub";
 
     //Added for the detecting whether the talkback is on
     private AccessibilityManager accessibilityManager;
@@ -147,6 +148,7 @@ public final class FBReader extends ZLAndroidActivity {
         fbReader.addAction(ActionCode.SPEAK, new ShowSpeakAction(this, fbReader));
         fbReader.addAction(ActionCode.BOOKSHARE, new ShowBookshareMenuAction(this, fbReader));
         fbReader.addAction(ActionCode.ACCESSIBLE_NAVIGATION, new ShowAccessiblePageNavigateAction(this, fbReader));
+        fbReader.addAction(ActionCode.SHOW_HELP, new ShowHelpAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_LIBRARY, new ShowLibraryAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_PREFERENCES, new ShowPreferencesAction(this, fbReader));
 		fbReader.addAction(ActionCode.SHOW_BOOK_INFO, new ShowBookInfoAction(this, fbReader));
@@ -472,6 +474,7 @@ public final class FBReader extends ZLAndroidActivity {
 		addMenuItem(menu, ActionCode.INCREASE_FONT);
 		addMenuItem(menu, ActionCode.DECREASE_FONT);
 		addMenuItem(menu, ActionCode.ACCESSIBLE_NAVIGATION);
+        addMenuItem(menu, ActionCode.SHOW_HELP);
 		synchronized (myPluginActions) {
 			int index = 0;
 			for (PluginApi.ActionInfo info : myPluginActions) {
@@ -521,7 +524,7 @@ public final class FBReader extends ZLAndroidActivity {
             booksDir.mkdirs();
         } else {
             // remove existing user manual
-            final File oldFile = new File(Paths.BooksDirectoryOption().getValue(), "User-Guide.epub");
+            final File oldFile = new File(Paths.BooksDirectoryOption().getValue(), USER_GUIDE_FILE);
             if (oldFile.exists()) {
                 oldFile.delete();
             }
@@ -530,8 +533,8 @@ public final class FBReader extends ZLAndroidActivity {
         InputStream from = null;
         FileOutputStream to = null;
         try {
-            from = getAssets().open("User-Guide.epub");
-            File outFile = new File(Paths.BooksDirectoryOption().getValue(), "User-Guide.epub");
+            from = getAssets().open(USER_GUIDE_FILE);
+            File outFile = new File(Paths.BooksDirectoryOption().getValue(), USER_GUIDE_FILE);
             to = new FileOutputStream(outFile);
 
             byte[] buffer = new byte[4096];

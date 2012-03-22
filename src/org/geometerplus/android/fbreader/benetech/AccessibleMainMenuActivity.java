@@ -154,7 +154,14 @@ public class AccessibleMainMenuActivity extends Activity {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
                 activity.finish();
 	        }
-	    });
+	    }),
+        help(resources.getString(R.string.menu_help), new MenuOperation() {
+            public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_HELP);
+                activity.finish();
+            }
+        })
+        ;
 
 	    private final HasLabel hasLabel;
 	    private final MenuOperation menuOperation;
