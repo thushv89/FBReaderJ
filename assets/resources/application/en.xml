@@ -39,7 +39,7 @@
 			<node name="summary" value="Memory card inserted into the device"/>
 		</node>
 		<node name="fileTreeLibrary" value="Downloaded Books">
-			<node name="summary" value="Bookshare Reader books directory"/>
+			<node name="summary" value="Books directory"/>
 		</node>
 		<node name="menu">
 			<node name="localSearch" value="Search"/>
@@ -224,7 +224,7 @@
 		<node name="returnTo" value="Return to &#8230;"/>
 		<node name="back" value="Back"/>
 		<node name="forward" value="Forward"/>
-		<node name="close" value="Close Bookshare Reader "/>
+		<node name="close" value="Close Go Read "/>
 	</node>
 	<node name="selection" value="Selection">
 		<node name="copyToClipboard" value="Copy to clipboard"/>
@@ -637,12 +637,12 @@
 					<node name="summaryOff" value="Don't show items for last 3 positions in the book"/>
 				</node>
 				<node name="backKeyAction" value="Back key action">
-					<node name="exit" value="Close Bookshare Reader"/>
+					<node name="exit" value="Close Go Read"/>
 					<node name="goBack" value="Navigate back"/>
 					<node name="cancelMenu" value="Show cancel menu"/>
 				</node>
 				<node name="backKeyLongPressAction" value="Back key long press action">
-					<node name="exit" value="Close Bookshare Reader"/>
+					<node name="exit" value="Close Go Read"/>
 					<node name="goBack" value="Navigate back"/>
 					<node name="cancelMenu" value="Show cancel menu"/>
 					<node name="none" value="No action"/>
@@ -655,7 +655,7 @@
 					<node name="summaryOff" value="Do not show"/>
 				</node>
 			</node>
-			<node name="about" value="About Bookshare Reader">
+			<node name="about" value="About Go Read">
 				<node name="summary" value="Version info, contacts"/>
 				<node name="version" value="Version"/>
 				<node name="site" value="Visit our website">
