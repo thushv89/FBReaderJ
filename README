@@ -11,7 +11,8 @@ This is a fork of the FBReaderJ project located at https://github.com/geometer/F
 The original FBReaderJ project in under GNU GPL license.
 As a result, this effort is also under the same license.
 
-The apk file for this project can be downloaded from the Downloads section.  The current production build can be found in the Android marketplace under Go Read.
+The apk file for this project can be downloaded from the Downloads section.
+The current production build can be found in the Android marketplace under Go Read.
 The unzipped DAISY 3 text e-books can also be loaded via the SD card into the folder set as the loading directory in
 the settings of the FBReader app.  The book will automatically show in the Library section of the application.
 
@@ -26,7 +27,8 @@ The link for Bookshare developer API is http://developer.bookshare.org/
 
 The user manual for this app can be edited at http://booki.flossmanuals.net/bookshare-reader-user-guide/_edit/
 
-If you plan to build this project, you need an API key, which can be obtained by registered at http://developer.bookshare.org and acquiring an API key.
+If you plan to build this project, you need an API key, which can be obtained by registered at
+http://developer.bookshare.org and acquiring an API key.
 
 ----------------------------
 Last Edited by - Gerardo Capiel 
