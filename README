@@ -11,7 +11,7 @@ This is a fork of the FBReaderJ project located at https://github.com/geometer/F
 The original FBReaderJ project in under GNU GPL license.
 As a result, this effort is also under the same license.
 
-The apk file for this project can be downloaded from the Downloads section.  The current production build can be found in the Android marketplace under GoRead.
+The apk file for this project can be downloaded from the Downloads section.  The current production build can be found in the Android marketplace under Go Read.
 The unzipped DAISY 3 text e-books can also be loaded via the SD card into the folder set as the loading directory in
 the settings of the FBReader app.  The book will automatically show in the Library section of the application.
 
