@@ -100,7 +100,9 @@
 
     <!-- LibraryActivity -->
     <string name="library_search_books_popup">Search downloaded books?</string>
-    
+    <string name="library_added_to_favorites">Added to favorites</string>
+    <string name="library_removed_from_favorites">Removed from favorites</string>
+
     <!-- NetworkLibraryActivity -->
     <string name="network_library_accessibility_warning">Other catalogs have not been made accessible to vision impaired users.</string>
     

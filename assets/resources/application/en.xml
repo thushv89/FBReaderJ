@@ -751,16 +751,16 @@
 	</node>
 	<node name="errorMessage">
 		<node name="cannotRunAndroidMarket" value="Cannot access Android Market. Please, install %s manually"/>
-		<node name="textNotFound" value="There is no suitable text in the book, sorry"/>
-		<node name="bookNotFound" value="There are no suitable books in the library, sorry"/>
-		<node name="bookmarkNotFound" value="There are no suitable bookmarks, sorry"/>
-		<node name="cannotOpenBook" value="Cannot open this book at the moment, sorry"/>
-		<node name="dictionaryIsNotInstalled" value="Dictionary is not installed, sorry"/>
+		<node name="textNotFound" value="There is no suitable text in the book"/>
+		<node name="bookNotFound" value="There are no suitable books in the library"/>
+		<node name="bookmarkNotFound" value="There are no suitable bookmarks"/>
+		<node name="cannotOpenBook" value="Cannot open this book at the moment"/>
+		<node name="dictionaryIsNotInstalled" value="Dictionary is not installed"/>
 		<node name="permissionDenied" value="Permission denied, sorry"/>
-		<node name="noFavorites" value="Your favorites list is empty, sorry"/>
+		<node name="noFavorites" value="Your favorites list is empty"/>
 		<node name="emptyCatalog" value="Catalog is empty, sorry"/>
 		<node name="emptyBasket" value="Your basket is empty, sorry"/>
-		<node name="emptyNetworkSearchResults" value="No books found, sorry"/>
+		<node name="emptyNetworkSearchResults" value="No books found"/>
 	</node>
 	<node name="external">
 		<node name="browser" value="Browser"/>

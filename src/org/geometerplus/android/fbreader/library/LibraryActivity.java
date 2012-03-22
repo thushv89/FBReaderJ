@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.accessibility.VoiceableDialog;
 import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -89,7 +90,8 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 
 		init(getIntent());
 
-		getListView().setTextFilterEnabled(true);
+        //commenting out to prevent soft keyboard when using Eyes-Free keyboard
+		//getListView().setTextFilterEnabled(true);
 		getListView().setOnCreateContextMenuListener(this);
 
         dialog = new Dialog(this);
@@ -267,6 +269,12 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 		}
 		return false;
 	}
+    
+    private void notifyFavoritesAction(int messageId) {
+        final VoiceableDialog finishedDialog = new VoiceableDialog(myActivity);
+        String message = getResources().getString(messageId);
+        finishedDialog.popup(message, 3200);
+    }
 
 	private void openBook(Book book) {
 		startActivity(
@@ -365,9 +373,11 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
                 case 1:
                     if (myLibrary.isBookInFavorites(book)) {
                         myLibrary.removeBookFromFavorites(book);
+                        notifyFavoritesAction(R.string.library_removed_from_favorites);
                         getListView().invalidateViews();
                     } else {
                         myLibrary.addBookToFavorites(book);
+                        notifyFavoritesAction(R.string.library_added_to_favorites);
                     }
                     break;
                 case 2:
