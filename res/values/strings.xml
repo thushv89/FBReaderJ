@@ -94,7 +94,7 @@
     <string name="menu_search">Search Book</string>
     <string name="menu_book_info">Book Info</string>
     <string name="menu_library">Downloaded Books</string>
-    <string name="menu_network_library">Get books from other catalogs</string>
+    <string name="menu_network_library">Get Books From Other Catalogs</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_help">Help</string>
 
