@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink"><description><title-info><author><last-name>Bookshare</last-name></author> <book-title>About Go Read &FBReaderVersion;</book-title> <lang>en</lang></title-info></description>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:l="http://www.w3.org/1999/xlink"><description><title-info><author><last-name>Bookshare</last-name></author> <book-title>Go Read &FBReaderVersion; Quick Start</book-title> <lang>en</lang></title-info></description>
 <body>
 <p>Welcome to Go Read.</p>
 <p>Please listen to the following quick tips on how to use this reader. You can press the menu button to access the main menu. From there, among other features, you may select "Read to Me" to have the book read to you</p>
