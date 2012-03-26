@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -344,6 +345,13 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 	}
 
 	private void doFinalInitialization() {
+
+        if (null == myTTS.getLanguage()) {
+            setActionsEnabled(false);
+            showErrorMessage(getText(R.string.no_tts_language), true);
+            return;
+        }
+
 		myTTS.setOnUtteranceCompletedListener(this);
 
         myTTS.addEarcon(CONTENTS_EARCON, "org.benetech.android", R.raw.sound_toc);
