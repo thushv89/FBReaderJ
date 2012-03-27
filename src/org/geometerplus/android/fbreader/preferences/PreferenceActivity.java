@@ -454,5 +454,6 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 		aboutScreen.addPreference(new UrlPreference(this, aboutScreen.Resource, "site"));
 		aboutScreen.addPreference(new UrlPreference(this, aboutScreen.Resource, "email"));
 		aboutScreen.addPreference(new UrlPreference(this, aboutScreen.Resource, "twitter"));
+		aboutScreen.addPreference(new UrlPreference(this, aboutScreen.Resource, "forum"));
 	}
 }
