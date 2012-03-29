@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
 	android:orientation="vertical"
@@ -14,16 +14,8 @@
 			android:textColor="#ffffff"
 			android:textStyle="bold"
 			android:textSize="20dip"/>
-	 	<ScrollView
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:layout_marginTop="40dip"
-			android:layout_marginBottom="60dip">
-				<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-					android:layout_width="fill_parent"
-					android:layout_height="fill_parent"
-					android:stretchColumns="1">
-					<TableRow>
+
+
 							<TextView
 								android:id="@+id/bookshare_book_detail_title"
 								android:text="Title: "
@@ -33,11 +25,9 @@
 								android:typeface="serif"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
-                                android:layout_span="2"
-								android:gravity="left"/>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
 
-					</TableRow>
-					<TableRow>
 							<TextView
 								android:id="@+id/bookshare_book_detail_authors"
 								android:text="Author(s): "
@@ -47,48 +37,31 @@
 								android:typeface="serif"
 								android:paddingBottom="3dip"
                                 android:focusable="true"
-                                android:layout_span="2"
-								android:gravity="left"/>
-					</TableRow>				
-					<View
-	        			android:layout_height="1dip"
-	        			android:background="#ffffff"
-	        			android:layout_marginTop="5dip"
-	        			android:layout_marginBottom="10dip"/>
-	        		<TableRow>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+
 						<Button
 							android:id="@+id/bookshare_btn_download"
 							android:layout_width="fill_parent"
 							android:layout_height="wrap_content"
-							android:layout_marginLeft="20dip"
-							android:layout_marginRight="20dip"
+                            android:layout_marginTop="20dip"
+                            android:layout_marginBottom="10dip"
 							android:text="@string/book_details_download_button"
 							android:textStyle="bold"
-							android:layout_span="2"
-							android:gravity="center"/>
-					</TableRow>
-					<TableRow>
-						<TextView 
+                            android:focusable="true"/>
+						<TextView
 		                    android:id="@+id/bookshare_download_not_available_msg"
-							android:layout_width="fill_parent"
+							android:layout_width="wrap_content"
 							android:layout_height="wrap_content"
 							android:text="You must sign in to Bookshare to download this book."
-		                    android:gravity="left"
 		                    android:textColor="#ffffff"
 							android:textStyle="bold"
 							android:textSize="16dip"
 							android:typeface="serif"
-							android:paddingBottom="3dip"
-                            android:focusable="true"
-							android:layout_span="2"/>
-					</TableRow>
-					<View
-	        			android:layout_height="1dip"
-	        			android:background="#ffffff"
-	        			android:layout_marginTop="5dip"
-	        			android:layout_marginBottom="10dip"/>
+							android:layout_marginBottom="20dip"
+                            android:focusable="true"/>
+
 					
-					<TableRow>
 							<TextView
 								android:id="@+id/bookshare_book_detail_isbn"
 								android:text="ISBN: "
@@ -98,10 +71,8 @@
 								android:typeface="serif"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
-                                android:layout_span="2"
-								android:gravity="left"/>
-					</TableRow>
-					<TableRow>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
 							<TextView
 								android:id="@+id/bookshare_book_detail_language"
 								android:text="Language:  "
@@ -111,10 +82,8 @@
 								android:typeface="serif"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
-                                android:layout_span="2"
-								android:gravity="left"/>
-					</TableRow>
-					<TableRow>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
 							<TextView
 								android:id="@+id/bookshare_book_detail_category"
 								android:text="Category: "
@@ -124,10 +93,8 @@
 								android:paddingBottom="4dip"
 								android:textStyle="bold"
                                 android:focusable="true"
-                                android:layout_span="2"
-								android:gravity="left"/>
-					</TableRow>
-					<TableRow>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
 							<TextView
 								android:id="@+id/bookshare_book_detail_publish_date"
 								android:text="@string/bookshare_book_detail_publish_date"
@@ -137,10 +104,8 @@
 								android:paddingBottom="4dip"
 								android:textStyle="bold"
                                 android:focusable="true"
-                                android:layout_width="wrap_content"
-								android:gravity="left"/>
-					</TableRow>
-					<TableRow>
+                                android:layout_height="wrap_content"
+                                android:layout_width="wrap_content"/>
 							<TextView
 								android:id="@+id/bookshare_book_detail_publisher"
 								android:text="Publisher: "
@@ -150,10 +115,8 @@
 								android:textStyle="bold"
 								android:paddingBottom="4dip"
                                 android:focusable="true"
-                                android:layout_span="2"
-								android:gravity="left"/>
-					</TableRow>
-					<TableRow>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
 							<TextView
 								android:id="@+id/bookshare_book_detail_copyright"
 								android:text="Copyright: "
@@ -163,14 +126,12 @@
 								android:paddingBottom="3dip"
 								android:textStyle="bold"
                                 android:focusable="true"
-								android:gravity="left"/>
-					</TableRow>
-					<TableRow>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
 						<TextView
 								android:id="@+id/bookshare_book_detail_synopsis_text"
 								android:text="Synopsis: "
                                 android:textColor="#ffffff"
-								android:layout_span="2"
 								android:textSize="16dip"
 								android:typeface="serif"
 								android:paddingTop="3dip"
@@ -178,9 +139,8 @@
 								android:layout_marginBottom="5dip"
                                 android:textStyle="bold"
                                 android:focusable="true"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
 								android:singleLine="false"/>
-					</TableRow>
-				</TableLayout>
-		</ScrollView>
 
-</RelativeLayout>
+</LinearLayout>

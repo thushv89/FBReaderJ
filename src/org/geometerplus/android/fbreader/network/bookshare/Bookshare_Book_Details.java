@@ -208,12 +208,25 @@ public class Bookshare_Book_Details extends Activity{
 					bookshare_book_detail_synopsis_text = (TextView)findViewById(R.id.bookshare_book_detail_synopsis_text);
 					btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
-					book_detail_view.requestFocus();
+                    
+                    bookshare_book_detail_language.setNextFocusDownId(R.id.bookshare_book_detail_category);
+                    bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
+                    bookshare_book_detail_publish_date.setNextFocusUpId(R.id.bookshare_book_detail_category);
+                    bookshare_book_detail_synopsis_text.setNextFocusUpId(R.id.bookshare_book_detail_copyright);
+                    
+                    book_detail_view.requestFocus();
 					// If the book is not downloadable, do not show the download button
 					if(!isDownloadable){
 						btn_download.setVisibility(View.GONE);
+                        bookshare_book_detail_authors.setNextFocusDownId(R.id.bookshare_download_not_available_msg);
+                        bookshare_book_detail_isbn.setNextFocusUpId(R.id.bookshare_download_not_available_msg);
+                        bookshare_download_not_available_text.setNextFocusUpId(R.id.bookshare_book_detail_authors);
 					} else {
 						bookshare_download_not_available_text.setVisibility(View.GONE);
+                        btn_download.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
+                        btn_download.setNextFocusUpId(R.id.bookshare_book_detail_authors);
+                        bookshare_book_detail_authors.setNextFocusDownId(R.id.bookshare_btn_download);
+                        bookshare_book_detail_isbn.setNextFocusUpId(R.id.bookshare_btn_download);
 						btn_download.setOnClickListener(new OnClickListener(){
 							public void onClick(View v){
 								
