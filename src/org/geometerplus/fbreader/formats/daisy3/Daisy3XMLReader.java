@@ -32,14 +32,14 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	private static final String[] BLOCK_ELEMENTS = {"blockquote", "bodymatter", "book", 
 		"byline", "cite", "covertitle", "div", "docauthor", "doctitle", "dateline", 
 		"epigraph", "frontmatter", "head", 
-		"line", "rearmatter", "sidebar" 
+		"line", "rearmatter", "sidebar", "th", "td"
     };
 	
 	private static final String[] NO_FORMAT_ELEMENTS = {"abbr", "acronym", "address", "annoref",
 		"annotation", "author", "bdo", "bridgehead", "code", "col", "colgroup", "dd",
 		"dfn", "dl", "dt", "dtbook", "img", "imggroup", "kbd", "lic", 
 		"linegroup", "linenum", "link", "meta", "note", "noteref", "q",
-		"samp", "sent", "span", "sub", "sup", "title", "w"
+		"samp", "sent", "span", "sub", "sup", "title", "w", "thead", "tbody", "tr", "table"
 	};
 
 	/**

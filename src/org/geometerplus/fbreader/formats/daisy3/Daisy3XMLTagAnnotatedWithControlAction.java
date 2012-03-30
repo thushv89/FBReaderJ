@@ -36,6 +36,7 @@ public class Daisy3XMLTagAnnotatedWithControlAction extends Daisy3XMLTagAction {
 		modelReader.beginParagraph();
 		modelReader.addData(myPrelude.toCharArray());
 		modelReader.endParagraph();
+		modelReader.beginParagraph();
 		
 	}
 
