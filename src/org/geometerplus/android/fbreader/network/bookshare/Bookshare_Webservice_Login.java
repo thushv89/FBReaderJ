@@ -46,7 +46,9 @@ public class Bookshare_Webservice_Login extends Activity{
     public static final String USER = "username";
     public static final String PASSWORD = "password";
 
-	private String BOOKSHARE_URL = "https://api.bookshare.org/book/search/title/potter";
+    public static final String BOOKSHARE_API_PROTOCOL = "https://";
+    public static final String BOOKSHARE_API_HOST = "api.bookshare.org";
+	private String BOOKSHARE_URL = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + BOOKSHARE_API_HOST + "/book/search/title/potter";
 	private String FORGOT_PW_URL = "http://www.bookshare.org/forgotPassword";
 	private String SIGNUP_URL = "https://www.bookshare.org/signUpType";
 
@@ -293,12 +295,12 @@ public class Bookshare_Webservice_Login extends Activity{
 				inTry = true;	
 				// Get a BookshareWebservice instance for accessing the utility methods
 
-				final BookshareWebservice bws = new BookshareWebservice();
+				final BookshareWebservice bws = new BookshareWebservice(BOOKSHARE_API_HOST);
 				if(isFree){
 					BOOKSHARE_URL = BOOKSHARE_URL + "?api_key="+developerKey;
 				}
 				else{
-					BOOKSHARE_URL = "https://api.bookshare.org/user/preferences/list/for/"+username+"/?api_key="+developerKey;
+					BOOKSHARE_URL = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + BOOKSHARE_API_HOST + "/user/preferences/list/for/"+username+"/?api_key="+developerKey;
 				}
 
 				InputStream inputStream = bws.getResponseStream(password, BOOKSHARE_URL);

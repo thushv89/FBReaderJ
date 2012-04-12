@@ -57,7 +57,7 @@ public class Bookshare_OM_List extends ListActivity{
 	private String password;
 	private InputStream inputStream;
 	private final int DATA_FETCHED = 99;
-	private BookshareWebservice bws = new BookshareWebservice();
+	private BookshareWebservice bws = new BookshareWebservice(Bookshare_Webservice_Login.BOOKSHARE_API_HOST);
 	private ProgressDialog pd_spinning;
 	private List<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
 	private Vector<Bookshare_OM_Member_Bean> vectorResults;
@@ -81,7 +81,7 @@ public class Bookshare_OM_List extends ListActivity{
 		new Thread(){
 			public void run(){
 				try{
-					String uri = "https://api.bookshare.org/user/members/list/for/";
+					String uri = "https://" + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/user/members/list/for/";
 					uri += username+"/?api_key="+developerKey;
 					System.out.println(uri);
 					inputStream = bws.getResponseStream(password, uri);

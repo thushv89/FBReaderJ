@@ -78,7 +78,7 @@ public class Bookshare_Book_Details extends Activity{
 	private String password;
 	private Bookshare_Metadata_Bean metadata_bean;
 	private InputStream inputStream;
-	private BookshareWebservice bws = new BookshareWebservice();
+	private BookshareWebservice bws = new BookshareWebservice(Bookshare_Webservice_Login.BOOKSHARE_API_HOST);
 	private final int DATA_FETCHED = 99;
 	private View book_detail_view;
 	private TextView bookshare_book_detail_title_text;
@@ -540,12 +540,12 @@ public class Bookshare_Book_Details extends Activity{
 			final String id = metadata_bean.getContentId();
 			String download_uri;
 			if(isFree)
-				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1?api_key="+developerKey;
+				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/download/content/"+id+"/version/1?api_key="+developerKey;
 			else if(isOM){
-				download_uri = "https://api.bookshare.org/download/member/"+memberId+"content/"+id+"/version/1/for/"+username+"?api_key="+developerKey;
+				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/download/member/"+memberId+"content/"+id+"/version/1/for/"+username+"?api_key="+developerKey;
 			}
 			else{
-				download_uri = "https://api.bookshare.org/download/content/"+id+"/version/1/for/"+username+"?api_key="+developerKey;
+				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/download/content/"+id+"/version/1/for/"+username+"?api_key="+developerKey;
 			}
             
             final Notification progressNotification = createDownloadProgressNotification(metadata_bean.getTitle()[0]);

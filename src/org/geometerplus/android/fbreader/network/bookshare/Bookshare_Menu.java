@@ -62,7 +62,7 @@ public class Bookshare_Menu extends ListActivity {
 	private TextView dialog_example_text;
 	private Button dialog_ok;
     private String search_term = "";
-	private String URI_String = "https://api.bookshare.org/book/";
+	private String URI_String = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/book/";
 	private int query_type;
 	private Intent intent;
 	private final int START_BOOKSHARE_BOOKS_LISTING_ACTIVITY = 0;

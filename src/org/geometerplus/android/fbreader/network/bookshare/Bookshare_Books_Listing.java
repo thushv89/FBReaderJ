@@ -55,7 +55,7 @@ public class Bookshare_Books_Listing extends ListActivity{
     private final static int LIST_RESPONSE = 1;
     private final static int METADATA_RESPONSE = 2;
 
-	private String URI_BOOKSHARE_ID_SEARCH ="https://api.bookshare.org/book/id/";
+	private String URI_BOOKSHARE_ID_SEARCH = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/book/id/";
 	private String username;
 	private String password;
 	private String requestURI;
@@ -71,7 +71,7 @@ public class Bookshare_Books_Listing extends ListActivity{
     private final int NEXT_PAGE_BOOK_ID = -2;
 	private ArrayList<TreeMap<String,Object>> list = new ArrayList<TreeMap<String, Object>>();
 	InputStream inputStream;
-	final BookshareWebservice bws = new BookshareWebservice();
+	final BookshareWebservice bws = new BookshareWebservice(Bookshare_Webservice_Login.BOOKSHARE_API_HOST);
 	private int total_pages_result;
 	private int current_result_page = 1;
 	private boolean total_pages_count_known = false;
