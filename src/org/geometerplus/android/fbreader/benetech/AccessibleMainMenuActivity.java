@@ -8,6 +8,7 @@ import org.geometerplus.fbreader.fbreader.ActionCode;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ public class AccessibleMainMenuActivity extends Activity {
     private List<Object> listItems = new ArrayList<Object>();
     private ListView list;
     private static Resources resources;
+    private static Activity me;
 
     /** Called when the activity is first created. */
     @Override
@@ -35,6 +37,7 @@ public class AccessibleMainMenuActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog);
         resources = getApplicationContext().getResources();
+        me = this;
 
         int menuItemLimit = MenuControl.values().length;
 
@@ -155,6 +158,21 @@ public class AccessibleMainMenuActivity extends Activity {
                 activity.finish();
 	        }
 	    }),
+        accessibilitySettings(resources.getString(R.string.menu_accessibility_settings), new MenuOperation() {
+            public void click(final Activity activity) {
+                ZLApplication.Instance().doAction(ActionCode.SHOW_ACCESSIBILITY_SETTINGS);
+                activity.finish();
+            }
+        }),
+        ttsSettings(resources.getString(R.string.menu_tts_settings), new MenuOperation() {
+            public void click(final Activity activity) {
+                Intent intent = new Intent();
+                intent.setAction("com.android.settings.TTS_SETTINGS");
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                me.startActivity(intent);
+                activity.finish();
+            }
+        }),
         help(resources.getString(R.string.menu_help), new MenuOperation() {
             public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_HELP);

@@ -244,6 +244,7 @@
 		<node name="networkLibrary" value="Other Catalogs"/>
         <node name="accessible_navigation" value="Navigate to page"/>
         <node name="help" value="Help"/>
+        <node name="accessibilitySettings" value="Accessibility Settings"/>
 		<node name="navigate" value="Navigate">
 			<node name="toc" value="Table of Contents"/>
 			<node name="gotoHome" value="Go to Start of Document"/>

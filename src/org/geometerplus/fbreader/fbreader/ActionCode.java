@@ -27,6 +27,7 @@ public interface ActionCode {
 	String SHOW_TOC = "toc";
 	String SHOW_BOOKMARKS = "bookmarks";
 	String SHOW_NETWORK_LIBRARY = "networkLibrary";
+    String SHOW_ACCESSIBILITY_SETTINGS = "accessibilitySettings";
 
 	String SWITCH_TO_NIGHT_PROFILE = "night";
 	String SWITCH_TO_DAY_PROFILE = "day";
