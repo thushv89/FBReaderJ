@@ -30,6 +30,7 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
@@ -264,10 +265,18 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CHECK_TTS_INSTALLED) {
+            if ("nook".equals(Build.BRAND)) {
+                myTTS = new TextToSpeech(this, this);
+                return;
+            }
             if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                 myTTS = new TextToSpeech(this, this);
             } else {
-                startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
+                try {
+                    startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
+                } catch (ActivityNotFoundException e) {
+                    showErrorMessage(getText(R.string.no_tts_installed), true);
+                }
             }
         } else {
             if (resultCode == TOCActivity.BACK_PRESSED) {
