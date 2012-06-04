@@ -101,6 +101,14 @@ public class Bookshare_Webservice_Login extends Activity{
 		btn_login = (Button)findViewById(R.id.btn_bookshare_bookshare_webservice_login);
 		btn_continue_without_login = (Button)findViewById(R.id.btn_bookshare_bookshare_continue_without_login);
 		
+		//Disable continue without logging in if required
+		Intent intent=getIntent();
+		Bundle extra=intent.getExtras();
+		//If there is any extra then the continue without login button should be disabled
+		if(extra!=null){
+			btn_continue_without_login.setEnabled(false);
+		}
+		
 		text_username = (TextView)findViewById(R.id.bookshare_login_username_text);
 		text_password = (TextView)findViewById(R.id.bookshare_login_password_text);
 		editText_username = (EditText)findViewById(R.id.bookshare_login_username_edit_text);
