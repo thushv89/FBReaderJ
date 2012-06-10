@@ -409,8 +409,8 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 		    menu.setHeaderTitle("Please select a Download Type");
 		    String[] menuItems = {"User Authenticated Download","Organizational Download"};
 		    
-		    menu.add(Menu.NONE, 0, 0, menuItems[0]).setIcon(R.drawable.download_green);
-		    menu.add(Menu.NONE, 1, 1, menuItems[1]).setIcon(R.drawable.download_blue);
+		    menu.add(Menu.NONE, 0, 0, menuItems[0]);//.setIcon(R.drawable.download_green);
+		    menu.add(Menu.NONE, 1, 1, menuItems[1]);//.setIcon(R.drawable.download_blue);
 		    
 		 // }
 		}
