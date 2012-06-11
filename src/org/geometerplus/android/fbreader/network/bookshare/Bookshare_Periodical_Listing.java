@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -23,6 +24,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
+import android.app.Activity;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -31,10 +33,17 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -85,6 +94,7 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	private Resources resources;
 
+	private EditText searchET;
 
 
 
@@ -181,7 +191,8 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 			if(msg.what == DATA_FETCHED){
 
 				setContentView(R.layout.bookshare_menu_main);
-
+				searchET=(EditText)findViewById(R.id.searchText);								
+				searchET.setSingleLine();
 				// Dismiss the progress dialog
 				pd_spinning.cancel();
 
@@ -223,17 +234,32 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 
 			// Instantiate the custom SimpleAdapter for populating the ListView
 			// The bookId view in the layout file is used to store the id , but is not shown on screen
-			MySimpleAdapter simpleadapter = new MySimpleAdapter(
+			final MySimpleAdapter simpleadapter = new MySimpleAdapter(
 					getApplicationContext(),list,
-					R.layout.bookshare_menu_item,
-					new String[]{"title","book_id"},
-					new int[]{R.id.text1,R.id.bookId});
-
+					R.layout.bookshare_menu_item);
 			//Set the adapter for this view
 			setListAdapter(simpleadapter);
 
-			ListView lv = getListView();
+			searchET.addTextChangedListener(new TextWatcher() {
 
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    // Call back the Adapter with current character to Filter
+                    simpleadapter.getFilter().filter(s.toString());
+                }
+
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count,int after) {
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                }
+            });
+			
+			ListView lv = getListView();
+			lv.setTextFilterEnabled(true);
+			
 			View decorView = getWindow().getDecorView();
 			if (null != decorView) {
 				String resultsMessage;
@@ -441,12 +467,33 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 
 
 	// A custom SimpleAdapter class for providing data to the ListView
-	private class MySimpleAdapter extends SimpleAdapter{
-		public MySimpleAdapter(Context context, List<? extends Map<String, ?>> data,
-				int resource, String[] from, int[] to) {
-			super(context, data, resource, from, to);
+	private class MySimpleAdapter extends ArrayAdapter implements Filterable{
+		
+		private List<TreeMap<String, Object>> allItemsArray;
+	    private List<TreeMap<String, Object>> filteredItemsArray;
+	    private Activity context;
+	    private TitleFilter filter;
+	    private LayoutInflater inflator;
+	    
+		public MySimpleAdapter(Context context, List<TreeMap<String, Object>> data,
+				int resource) {
+			super(context, resource, data);
+			allItemsArray=new ArrayList();
+			allItemsArray.addAll(data);
+			filteredItemsArray=new ArrayList<TreeMap<String,Object>>();
+			filteredItemsArray.addAll(allItemsArray);
 		}
 
+		
+		@Override
+	    public Filter getFilter() {
+	        if (filter == null){
+	          filter=new TitleFilter();	        }
+	        
+	        
+	        return filter;
+	      }
+		
 		/*
 		 * Retrieves view for the item in the adapter, at the
 		 * specified position and populates it with data.
@@ -478,8 +525,9 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 
 			((ImageView) convertView.findViewById(R.id.row_icon))
 			.setImageResource((Integer) data.get("icon"));
-
 			------------------------------------------------------------------------------*/
+			
+			
 			if(data.get("download_icon") != null){
 				((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
 				.setImageResource((Integer) data.get("download_icon"));
@@ -493,5 +541,50 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 			
 			return convertView;
 		}
+		
+		 private class TitleFilter extends Filter
+	        {
+
+	            @Override
+	            protected FilterResults performFiltering(CharSequence constraint) {
+	                
+	                constraint = constraint.toString().toLowerCase();
+	                FilterResults result = new FilterResults();
+	                if(constraint != null && constraint.toString().length() > 0)
+	                {
+	                    ArrayList<TreeMap<String, Object>> filteredItems = new ArrayList<TreeMap<String, Object>>();
+	                   
+	                    for(int i = 0, l = allItemsArray.size(); i < l; i++)
+	                    {
+	                    	TreeMap<String, Object> periodical = allItemsArray.get(i);
+	                        if(periodical.get("title").toString().toLowerCase().contains(constraint))
+	                            filteredItems.add(periodical);
+	                    }
+	                    result.count = filteredItems.size();
+	                    result.values = filteredItems;
+	                }
+	                else
+	                {
+	                    synchronized(this)
+	                    {
+	                        result.values = allItemsArray;
+	                        result.count = allItemsArray.size();
+	                    }
+	                }
+	                return result;
+	            }
+
+	            @SuppressWarnings("unchecked")
+	            @Override
+	            protected void publishResults(CharSequence constraint, FilterResults results) {
+	               
+	            	filteredItemsArray = (ArrayList<TreeMap<String, Object>>)results.values;
+	                notifyDataSetChanged();
+	                clear();
+	                for(int i = 0, l = filteredItemsArray.size(); i < l; i++)
+	                    add(filteredItemsArray.get(i));
+	                notifyDataSetInvalidated();
+	            }
+	       }
 	}
 }

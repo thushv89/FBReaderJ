@@ -6,15 +6,16 @@
 	android:id="@+id/book_detail_view"
     android:focusable="true"
 	android:background="#000000">
-		<TextView
-			android:background="#4A4A4A"
-			android:layout_width="fill_parent"
-			android:layout_height="wrap_content"
-			android:text="Book Details"
-			android:textColor="#ffffff"
-			android:textStyle="bold"
-			android:textSize="20dip"/>
 
+		<TextView
+		    android:id="@+id/bookshare_book_detail_heading"
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:background="#4A4A4A"
+		    android:text="Book Details"
+		    android:textColor="#ffffff"
+		    android:textSize="20dip"
+		    android:textStyle="bold" />
 
 							<TextView
 								android:id="@+id/bookshare_book_detail_title"

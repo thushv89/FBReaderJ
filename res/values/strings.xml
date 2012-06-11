@@ -131,9 +131,10 @@
     <string name="toc_view_subheadings">View sub headings</string>
     <string name="toc_close_subheadings">Close sub headings</string>
     <string name="toc_goto_heading">Go to heading</string>
-    <string name="bks_menu_periodicals_label">All periodicals</string>
+    <string name="bks_menu_periodicals_label">Newspapers &amp; Magazines</string>
     <string name="fetching_periodicals">Fetching periodicals. Please wait.</string>
     <string name="search_complete_with_periodicals">Search complete. Periodicals listing.</string>
     <string name="login_to_continue">Please login to download this periodical.</string>
+    <string name="book_details_edition_download_success">Periodical Downloaded! Read Periodical.</string>
 
 </resources>

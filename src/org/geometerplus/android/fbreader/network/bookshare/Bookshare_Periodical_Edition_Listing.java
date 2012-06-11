@@ -38,11 +38,14 @@ import android.os.Message;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -53,6 +56,7 @@ import android.widget.AdapterView.OnItemClickListener;
 public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 
 	private final static int LIST_RESPONSE = 1;
+	private final static int METADATA_RESPONSE = 2;
 	
 	private String username;
 	private String password;
@@ -60,7 +64,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	private int requestType;
 	private int responseType;
 	
-	private String URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/periodical/id";
+	private String URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/periodical/id/";
 	
 	private final int DATA_FETCHED = 99;
 	private Vector<Bookshare_Periodical_Edition_Bean> vectorResults;
@@ -83,6 +87,8 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	private Boolean isFree=false;
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	private Resources resources;
+	private EditText search_text;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -182,6 +188,9 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 
 					setContentView(R.layout.bookshare_menu_main);
 
+					search_text=(EditText)findViewById(R.id.searchText);
+					search_text.setVisibility(View.GONE);
+					
 					// Dismiss the progress dialog
 					pd_spinning.cancel();
 
@@ -194,6 +203,10 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 					// Parse the response of search result
 					parseResponse(response);
 
+					if(responseType==METADATA_RESPONSE){
+						//do nothing
+					}
+					if(responseType == LIST_RESPONSE){
 					//process list
 					list.clear();
 
@@ -218,6 +231,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 
 					if(current_result_page < total_pages_result ){
 						createPageChanger("Next Page", NEXT_PAGE_BOOK_ID, R.drawable.arrow_right_blue);
+					}
 					}
 				}
 
@@ -281,7 +295,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 								String bookshare_ID = bean.getId();
 								String bookshare_edition=bean.getEdition();
 								String bookshare_revision=bean.getRevision();
-								
+								String bookshare_title=bean.getTitle();
 								
 								String uri;
 								if(isFree)
@@ -303,9 +317,16 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 						
 								//intent.putExtra("ID_SEARCH_URI", uri);
 								if(!isFree){
-									//intent.putExtra("username", username);
-									//intent.putExtra("password", password);
-									getListView().showContextMenuForChild(view);
+									Intent intent = new Intent(getApplicationContext(),Bookshare_Periodical_Edition_Details.class);
+									intent.putExtra("username", username);
+									intent.putExtra("password", password);
+									intent.putExtra("ID_SEARCH_URI", uri);
+									intent.putExtra("PERIODICAL_TITLE", bookshare_title);
+									startActivityForResult(intent, START_BOOKSHARE_EDITION_DETAILS_ACTIVITY);
+									
+									//It might be not to give user suprises by having a different view for periodicals
+									//So thought of making it the same
+									//getListView().showContextMenuForChild(view);
 								}else{
 									alert.show();
 
@@ -328,7 +349,6 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 					@Override
 					public boolean onItemLongClick(AdapterView<?> arg0,
 							View arg1, int arg2, long arg3) {
-						int i=0;
 						return false;
 					}
 				});
@@ -383,7 +403,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 		@Override
 		public void onCreateContextMenu(ContextMenu menu, View v,
 		    ContextMenuInfo menuInfo) {
-			//For v does not get an ID it's the whole list item
+			//'v' does not get an ID it's the whole list item
 		  //if (v.getId()==R.id.list) {
 		    AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
 		    menu.setHeaderTitle("Please select a Download Type");
@@ -393,6 +413,21 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 		    menu.add(Menu.NONE, 1, 1, menuItems[1]).setIcon(R.drawable.download_blue);
 		    
 		 // }
+		}
+		
+		public boolean onContextItemSelected(MenuItem item) {
+			  AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+			  String[] menuItems = {"User Authenticated Download","Organizational Download"};
+			  //for User Authenticated downloads
+			  if(item.getTitle().toString()==menuItems[0]) {
+				  /*
+			        Toast.makeText(this, "You have chosen the " + getResources().getString(R.string.edit) +
+			                    " context menu option for " + names[(int)info.id],
+			                    Toast.LENGTH_SHORT).show();*/
+			  }else{
+				  
+			  }
+			  return false;
 		}
 		
 		@Override

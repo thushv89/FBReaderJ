@@ -62,6 +62,7 @@ public class Bookshare_Menu extends ListActivity {
 	private EditText dialog_search_term;
 	private TextView dialog_search_title;
 	private TextView dialog_example_text;
+	private EditText search_text;
 	private Button dialog_ok;
     private String search_term = "";
 	private String URI_String = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/book/";
@@ -86,7 +87,9 @@ public class Bookshare_Menu extends ListActivity {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_menu_main);
-
+		
+		search_text=(EditText)findViewById(R.id.searchText);
+		search_text.setVisibility(View.GONE);
 		// Fetch the login info from the caller intent
 		Intent callerIntent  = getIntent();
 		username = callerIntent.getStringExtra("username");
