@@ -369,6 +369,8 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 			}
 		};
 		
+		//This box will say that user is have not yet signed in. In order to download
+		//periodicals user must log in.
 		private AlertDialog createSignupDialogBox(){
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setCancelable(true);
@@ -400,35 +402,6 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 			
 		}
 		
-		@Override
-		public void onCreateContextMenu(ContextMenu menu, View v,
-		    ContextMenuInfo menuInfo) {
-			//'v' does not get an ID it's the whole list item
-		  //if (v.getId()==R.id.list) {
-		    AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
-		    menu.setHeaderTitle("Please select a Download Type");
-		    String[] menuItems = {"User Authenticated Download","Organizational Download"};
-		    
-		    menu.add(Menu.NONE, 0, 0, menuItems[0]);//.setIcon(R.drawable.download_green);
-		    menu.add(Menu.NONE, 1, 1, menuItems[1]);//.setIcon(R.drawable.download_blue);
-		    
-		 // }
-		}
-		
-		public boolean onContextItemSelected(MenuItem item) {
-			  AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-			  String[] menuItems = {"User Authenticated Download","Organizational Download"};
-			  //for User Authenticated downloads
-			  if(item.getTitle().toString()==menuItems[0]) {
-				  /*
-			        Toast.makeText(this, "You have chosen the " + getResources().getString(R.string.edit) +
-			                    " context menu option for " + names[(int)info.id],
-			                    Toast.LENGTH_SHORT).show();*/
-			  }else{
-				  
-			  }
-			  return false;
-		}
 		
 		@Override
 		protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -609,6 +582,9 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 				((TextView) convertView.findViewById(R.id.text1))
 				.setText((String) data.get("title"));
 
+				//Edition and Revision data must be combined and shown in one textview
+				//Therefore we need to process 2 strings (edition and revision) and
+				//combine 2 strings correctly
 	            StringBuilder editionRevisionBuilder = new StringBuilder("");
 	            if ( (data.get("edition") != null) &&   ((String)data.get("edition")).length() > 0) {
 	                editionRevisionBuilder = new StringBuilder("Edition: ");
@@ -626,6 +602,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	               
 	            }
 
+	            //set the TextViews with appropriate texts
 	            String editionR=editionRevisionBuilder.toString();
 	            // would have preferred to set this as setContentDescription, but that didn't voice
 				((TextView) convertView.findViewById(R.id.text2))

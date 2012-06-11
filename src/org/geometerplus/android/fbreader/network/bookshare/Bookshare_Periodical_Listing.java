@@ -459,7 +459,9 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 	}
 
 
-	// A custom SimpleAdapter class for providing data to the ListView
+	// A custom ArrayAdapter class for providing data to the ListView
+	// Here we need to filter items by the text entered in the Edittext above
+	// Only the Periodical which contains the string entered in the edittext must be shown to the user. 
 	private class MySimpleAdapter extends ArrayAdapter implements Filterable{
 		
 		private List<TreeMap<String, Object>> allItemsArray;
@@ -538,6 +540,7 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 		 private class TitleFilter extends Filter
 	        {
 
+			 	//do the filtering process
 	            @Override
 	            protected FilterResults performFiltering(CharSequence constraint) {
 	                
@@ -567,6 +570,7 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 	                return result;
 	            }
 
+	            //add results to filteredItemList
 	            @SuppressWarnings("unchecked")
 	            @Override
 	            protected void publishResults(CharSequence constraint, FilterResults results) {

@@ -2,7 +2,8 @@ package org.geometerplus.android.fbreader.network.bookshare;
 
 public class Bookshare_Periodical_Edition_Bean {
 
-	private String id;	//Id for the periodical	
+	private String id;	//Id for the periodical which will be used to fectch editions and revisoins
+						//belonging to it
 	private String title;	//Title of the Magazine
 	private String edition;
 	private String revision;
