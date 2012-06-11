@@ -222,6 +222,7 @@ public class Bookshare_Menu extends ListActivity {
 						search_term= URI_Periodical_String+"list/for/"+username+"?api_key="+developerKey;
 					else
 						search_term= URI_Periodical_String+"list?api_key="+developerKey;
+						
 					
 					query_type= ALL_PERIODICAL_REQUEST;
 					intent = new Intent(getApplicationContext(),Bookshare_Periodical_Listing.class);
@@ -232,9 +233,13 @@ public class Bookshare_Menu extends ListActivity {
 						
 						intent.putExtra("username", username);
 						intent.putExtra("password", password);
+						startActivityForResult(intent, START_BOOKSHARE_PERIODICAL_LISTING_ACTIVITY);
+					}else{
+						AlertDialog loginAlert=createLoginDialogBox();
+						loginAlert.show();
 					}
 							
-					startActivityForResult(intent, START_BOOKSHARE_PERIODICAL_LISTING_ACTIVITY);
+					
 					
 				}
                 else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_log_in))) {
@@ -279,6 +284,37 @@ public class Bookshare_Menu extends ListActivity {
 		});
 	}
 
+	private AlertDialog createLoginDialogBox(){
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setCancelable(true);
+		//builder.setIcon(android.R.drawable.dialog_question);
+		builder.setTitle("Login Required");
+		builder.setMessage(R.string.warning_no_general_downloads_for_periodicals);
+		builder.setInverseBackgroundForced(true);
+		builder.setPositiveButton("Login", new DialogInterface.OnClickListener() {
+			//Take the user to the login page with 'continue without logging in' disabled
+		  @Override
+		  public void onClick(DialogInterface dialog, int which) {
+			  Intent intent = new Intent(getApplicationContext(),Bookshare_Webservice_Login.class);
+				intent.putExtra("disable_no_login", true);
+		    dialog.dismiss();
+		    
+		    startActivity(intent);
+		  }
+		});
+		//Just close the dialog box and activity
+		builder.setNegativeButton("Continue Anyway", new DialogInterface.OnClickListener() {
+		  @Override
+		  public void onClick(DialogInterface dialog, int which) {
+		    dialog.dismiss();
+		    startActivityForResult(intent, START_BOOKSHARE_PERIODICAL_LISTING_ACTIVITY);
+		  }
+		});
+		AlertDialog alert = builder.create();
+		return alert;
+		
+	}
+	
     private void showAuthorSearch() {
         intent = new Intent(getApplicationContext(),Bookshare_Books_Listing.class);
         intent.putExtra(REQUEST_TYPE, AUTHOR_SEARCH_REQUEST);

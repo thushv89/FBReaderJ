@@ -51,14 +51,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
-/**
- * @author Thushan
- *
- */
-/**
- * @author Thushan
- *
- */
+
 public class Bookshare_Periodical_Listing extends ListActivity{
 
 	private final static int LIST_RESPONSE = 1;
