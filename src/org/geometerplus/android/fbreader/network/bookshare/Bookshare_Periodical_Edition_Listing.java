@@ -55,8 +55,8 @@ import android.widget.AdapterView.OnItemClickListener;
 
 public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 
-	private final static int LIST_RESPONSE = 1;
-	private final static int METADATA_RESPONSE = 2;
+	protected final static int EDITION_LIST_RESPONSE = 1;
+	protected final static int EDITION_METADATA_RESPONSE = 2;
 	
 	private String username;
 	private String password;
@@ -64,7 +64,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	private int requestType;
 	private int responseType;
 	
-	private String URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/periodical/id/";
+	protected final static String URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/periodical/id/";
 	
 	private final int DATA_FETCHED = 99;
 	private Vector<Bookshare_Periodical_Edition_Bean> vectorResults;
@@ -89,6 +89,12 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	private Resources resources;
 	private EditText search_text;
 	
+	private String uri;	//string which contains the uri to fetch periodical details
+	private String bookshare_ID;
+	private String bookshare_edition;
+	private String bookshare_revision;
+	private String bookshare_title;
+	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +116,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 		requestURI = intent.getStringExtra("ID_SEARCH_URI");
 
 		requestType = intent.getIntExtra(Bookshare_Menu.REQUEST_TYPE, Bookshare_Menu.PERIODICAL_EDITION_REQUEST);
-		responseType= LIST_RESPONSE;
+		responseType= EDITION_LIST_RESPONSE;
 
 		getListing(requestURI);
 		
@@ -203,10 +209,10 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 					// Parse the response of search result
 					parseResponse(response);
 
-					if(responseType==METADATA_RESPONSE){
+					if(responseType==EDITION_METADATA_RESPONSE){
 						//do nothing
 					}
-					if(responseType == LIST_RESPONSE){
+					if(responseType == EDITION_LIST_RESPONSE){
 					//process list
 					list.clear();
 
@@ -292,12 +298,12 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 							// Since book ID is unique, that can serve as comparison parameter
 							// Retrieve the book ID from the entry that is clicked
 							if(bean.getId().equalsIgnoreCase(bookId.getText().toString())){
-								String bookshare_ID = bean.getId();
-								String bookshare_edition=bean.getEdition();
-								String bookshare_revision=bean.getRevision();
-								String bookshare_title=bean.getTitle();
+								bookshare_ID = bean.getId();
+								bookshare_edition=bean.getEdition();
+								bookshare_revision=bean.getRevision();
+								bookshare_title=bean.getTitle();
 								
-								String uri;
+								
 								if(isFree)
 									uri = URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH + bookshare_ID + "/edition/" + bookshare_edition + "/revision/" + bookshare_revision + "?api_key="+developerKey;
 								else
@@ -384,9 +390,16 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 			  public void onClick(DialogInterface dialog, int which) {
 				  Intent intent = new Intent(getApplicationContext(),Bookshare_Webservice_Login.class);
 					intent.putExtra("disable_no_login", true);
+					intent.putExtra("periodical_edition_id", bookshare_ID);
+					intent.putExtra("periodical_edition", bookshare_edition);
+					intent.putExtra("periodical_revision", bookshare_revision);
+					intent.putExtra("PERIODICAL_TITLE", bookshare_title);
+					//we need to send this to login page. So when it sees the request type it can directly send
+					//user to the edition details page
+					intent.putExtra(Bookshare_Menu.REQUEST_TYPE, EDITION_METADATA_RESPONSE);
 			    dialog.dismiss();
 			    
-			    startActivity(intent);
+			    startActivityForResult(intent, START_BOOKSHARE_EDITION_DETAILS_ACTIVITY);
 			  }
 			});
 			//Just close the dialog box and activity

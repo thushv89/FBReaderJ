@@ -131,7 +131,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 		final String uri = intent.getStringExtra("ID_SEARCH_URI");
 
         final VoiceableDialog finishedDialog = new VoiceableDialog(this);
-        String msg = "Fetching book details. Please wait.";
+        String msg = "Fetching periodical details. Please wait.";
         finishedDialog.popup(msg, 2000);
 		new Thread(){
 			public void run(){
