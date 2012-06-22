@@ -89,9 +89,9 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 	boolean isDownloadable;
 	private final int BOOKSHARE_PERIODICAL_EDITION_DETAILS_FINISHED = 1;
 	private boolean isFree = false;
-	private boolean isOM;
+	private boolean isOM;	//true if user is an organizational member
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
-	private final int START_BOOKSHARE_OM_LIST = 0;
+	private final int START_BOOKSHARE_OM_LIST = 0;	//Start Organizational Member list
 	private String memberId = null;
 	private String omDownloadPassword;
     private String firstName = null;
@@ -124,9 +124,12 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 		
 		selectedPeriodicalTitle=intent.getStringExtra("PERIODICAL_TITLE");
 		
-		//Ignore organizational downloads for the moment
-		//ignore isOM (is Organizational Member)
-		isOM=false;
+		
+		// Obtain the application wide SharedPreferences object and store the login information
+		//Get information about user. (i.e. Whether he's an organizational member)
+		SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		isOM = login_preference.getBoolean("isOM", false);
+				
 		
 		final String uri = intent.getStringExtra("ID_SEARCH_URI");
 
@@ -154,10 +157,17 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 	
 	
 	// Start downlading task if the OM download password has been received
-		@Override
-		protected void onActivityResult(int requestCode, int resultCode, Intent data){
-			
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		if(requestCode == START_BOOKSHARE_OM_LIST){
+			if(data != null){
+				memberId = data.getStringExtra(Bookshare_OM_Member_Bean.MEMBER_ID);
+                firstName = data.getStringExtra(Bookshare_OM_Member_Bean.FIRST_NAME);
+                lastName = data.getStringExtra(Bookshare_OM_Member_Bean.LAST_NAME);
+				new DownloadFilesTask().execute();
+			}
 		}
+	}
 		
 		
 		// Handler for processing the returned stream from book detail search
@@ -260,7 +270,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 									}
 									
 									// View book or display error
-									else if(btn_download.getText().toString().equalsIgnoreCase(resources.getString(R.string.book_details_edition_download_success))){
+									else if(btn_download.getText().toString().equalsIgnoreCase(resources.getString(R.string.edition_details_download_success))){
 										setResult(BOOKSHARE_PERIODICAL_EDITION_DETAILS_FINISHED);
 										if (null == downloadedBookDir) {
 											final VoiceableDialog finishedDialog = new VoiceableDialog(btn_download.getContext());
@@ -642,7 +652,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 			protected void onPostExecute(Void param){
 
 				if(downloadSuccess){
-					btn_download.setText(resources.getString(R.string.book_details_edition_download_success));
+					btn_download.setText(resources.getString(R.string.edition_details_download_success));
 	                btn_download.setEnabled(true);
 				}
 				else{

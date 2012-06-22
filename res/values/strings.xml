@@ -135,7 +135,8 @@
     <string name="fetching_periodicals">Fetching periodicals. Please wait.</string>
     <string name="search_complete_with_periodicals">Search complete. Periodicals listing.</string>
     <string name="login_to_continue">Please login to download this periodical.</string>
-    <string name="book_details_edition_download_success">Periodical Downloaded! Read Periodical.</string>
+    <string name="edition_details_download_success">Periodical Downloaded! Read Periodical.</string>
     <string name="warning_no_general_downloads_for_periodicals">Warning! You are not logged in. Newspapers &amp; Magazines are not available for guests to download. Are you sure you want to continue? </string>
+    <string name="share_with_friends">Share with friends!</string>
 
 </resources>
