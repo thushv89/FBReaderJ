@@ -128,7 +128,7 @@ public class Bookshare_FacebookHandler {
 		
 		 Bundle parameters = new Bundle();
          parameters.putString("message", "Hi, I found this book very interesting. You might like it too.");// the message to post to the wall
-         parameters.put
+         //parameters.put
          
          try {
 			String response = fb.request("me/feed", parameters, "POST");
