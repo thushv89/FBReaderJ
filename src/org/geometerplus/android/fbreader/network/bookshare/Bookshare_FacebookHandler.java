@@ -2,7 +2,12 @@ package org.geometerplus.android.fbreader.network.bookshare;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
@@ -13,6 +18,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.widget.Toast;
 
 
@@ -25,11 +32,11 @@ public class Bookshare_FacebookHandler {
 	private String accessToken;
 	private String api_key;
 	public Bookshare_FacebookHandler(Activity activity){
-		accessToken="AAACEdEose0cBAH35akufUO9ZBsFMRwYn1eKte955nMKyVnMLy7VWLdZCKKIjOFpzL28gfP0OUPKO8mxPCBcGQ0kmhj1bsidt2mPKFqRFfO05yxZCLCz";
-		api_key="349676738412199";
+		accessToken= SocialNetworkKeys.FACEBOOK_ACCESS_TOKEN;
+		//accessToken="349676738412199|8Bcc9-LC70VGHPxdWT6ea2hkhpw";
 		authActivity=activity;
 		context=authActivity.getBaseContext();	
-		fb=new Facebook(api_key);
+		fb=new Facebook(SocialNetworkKeys.FACEBOOK_APP_ID);
 	}
 	
 	public void ssoInitialAuth(){
@@ -62,7 +69,7 @@ public class Bookshare_FacebookHandler {
 	// get permission to access users information. When the user provide permission
 	// the application will automatically do the rest of the work
 	public void getFBPermission(){
-		fb.authorize(authActivity, new String[] { "publish_stream", "friends_online_presence"},
+		fb.authorize(authActivity, new String[] { "publish_stream"},
 
 				new DialogListener() {
 			@Override
@@ -124,27 +131,57 @@ public class Bookshare_FacebookHandler {
 		}
 	}
 	
-	public void postOnWall(){
+	public void postOnWall(Bookshare_Metadata_Bean bean){
 		
 		 Bundle parameters = new Bundle();
-         parameters.putString("message", "Hi, I found this book very interesting. You might like it too.");// the message to post to the wall
-         //parameters.put
+         parameters.putString("message", "Hi friends, I found this interesting book on Bookshare. You might like it too!\n\n\tTitle:"+strArrayToString(bean.getTitle())
+        		 +"\n\tAuthor: "+strArrayToString(bean.getAuthors())
+        		 +"\n\tISBN: "+bean.getIsbn()+
+        		 "\n\tCategory: "+strArrayToString(bean.getCategory()));// the message to post to the wall
          
+         parameters.putString("link", "http://www.bookshare.org/");
+         parameters.putString("name", "Bookshare");     
+         //parameters.putString("description", "<p>Title: \n </p><br/>"+"Author: \r <br />"+"Category: ");
+         //parameters.putSerializable("properties", new Object[]{b1,b2} );
+         parameters.putString("picture", "http://i935.photobucket.com/albums/ad197/thushv/Benetech-FBReaderJ/bookshare_small.jpg");
+         
+         String response = null;
          try {
-			String response = fb.request("me/feed", parameters, "POST");
-			if (response != null && !response.equals("") && 
-                    !response.equals("false")) {
-				Toast.makeText(context, "Successfully posted on your wall", Toast.LENGTH_SHORT).show();
-			}
+			response = fb.request("me/feed", parameters, "POST");
+        	 //String response = fb.request("me/home", parameters, "POST");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}finally{
+			if (response != null && !response.equals("") && 
+                    !response.equals("false")) {
+				Toast.makeText(context, "Successfully posted on your wall", Toast.LENGTH_SHORT).show();
+			}
 		}
 
  
+	}
+	
+	private String strArrayToString(String[] arr){
+		String concatString = "";
+		if(arr==null || arr.length==0 || arr[0]==null){
+			return "Not available";
+		}
+		if(arr.length==1){
+			return arr[0];
+		}
+		for(int i=0;i<arr.length;i++){
+			
+			if(i==arr.length-1){
+				concatString+=arr[i];
+			}else{
+				concatString+=arr[i] +", ";
+			}
+		}
+		return concatString;
 	}
 	
 }

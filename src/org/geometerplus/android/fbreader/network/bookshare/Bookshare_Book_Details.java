@@ -92,6 +92,7 @@ public class Bookshare_Book_Details extends Activity{
 	private TextView bookshare_book_detail_synopsis_text;
 	private TextView bookshare_download_not_available_text;
 	private Button btn_download;
+	private Button btn_fb_share;
 	boolean isDownloadable;
 	private final int BOOKSHARE_BOOK_DETAILS_FINISHED = 1;
 	private boolean isFree = false;
@@ -107,7 +108,7 @@ public class Bookshare_Book_Details extends Activity{
     private String downloadedBookDir;
     private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
     private Activity myActivity;
-	
+	private Bookshare_FacebookHandler fbHandler;
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -115,7 +116,7 @@ public class Bookshare_Book_Details extends Activity{
 		setContentView(R.layout.bookshare_blank_page);
         resources = getApplicationContext().getResources();
         myActivity = this;
-
+        fbHandler= new Bookshare_FacebookHandler(this);
 		// Set full screen
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -208,6 +209,17 @@ public class Bookshare_Book_Details extends Activity{
 					bookshare_book_detail_synopsis_text = (TextView)findViewById(R.id.bookshare_book_detail_synopsis_text);
 					btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
+					
+					btn_fb_share=(Button)findViewById(R.id.fb_share);
+                    btn_fb_share.setOnClickListener(new OnClickListener() {
+						@Override
+						public void onClick(View arg0) {
+							fbHandler.ssoInitialAuth();	//get Single Sign
+							fbHandler.getFBPermission();	//get permission to check user's friend details
+							fbHandler.getAccessToken();	//get Access token which allows to do so
+							fbHandler.postOnWall(metadata_bean);	
+						}
+					});
                     
                     bookshare_book_detail_language.setNextFocusDownId(R.id.bookshare_book_detail_category);
                     bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
