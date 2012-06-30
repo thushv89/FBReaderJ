@@ -34,6 +34,8 @@ import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
+import ca.idi.tecla.lib.InputAccess;
+
 import com.bugsense.trace.BugSenseHandler;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
@@ -81,6 +83,7 @@ public final class FBReader extends ZLAndroidActivity {
     final static int AUTO_SPEAK_CODE = 3;
 
 	private int myFullScreenFlag;
+	private InputAccess inputAccess = new InputAccess(this, false);
 
 	private static final String PLUGIN_ACTION_PREFIX = "___";
 	private final List<PluginApi.ActionInfo> myPluginActions =
@@ -124,6 +127,7 @@ public final class FBReader extends ZLAndroidActivity {
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		inputAccess.onCreate();
 		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
         
         accessibilityManager =
