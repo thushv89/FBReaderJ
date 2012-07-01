@@ -265,19 +265,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CHECK_TTS_INSTALLED) {
-            if ("nook".equals(Build.BRAND)) {
-                myTTS = new TextToSpeech(this, this);
-                return;
-            }
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                myTTS = new TextToSpeech(this, this);
-            } else {
-                try {
-                    startActivity(new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA));
-                } catch (ActivityNotFoundException e) {
-                    showErrorMessage(getText(R.string.no_tts_installed), true);
-                }
-            }
+            myTTS = new TextToSpeech(this, this);
         } else {
             if (resultCode == TOCActivity.BACK_PRESSED) {
                 abortedTOCReturn = true;
