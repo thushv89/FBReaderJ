@@ -68,7 +68,6 @@ import org.geometerplus.android.util.UIUtil;
 
 public final class FBReader extends ZLAndroidActivity {
 	public static final String BOOK_PATH_KEY = "BookPath";
-    public static final String PREFS_HAVE_COPIED_MANUAL = "bks_haveCopiedManual";
     public static final String PREFS_USER_MANUAL_VERSION = "bks_userManualVersion";
     public static final String USER_GUIDE_FILE = "User-Guide.epub";
 
