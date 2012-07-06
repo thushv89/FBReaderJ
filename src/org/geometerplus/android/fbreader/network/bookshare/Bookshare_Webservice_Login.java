@@ -74,7 +74,7 @@ public class Bookshare_Webservice_Login extends Activity{
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	private boolean isOM = false;
 	private String response;
-	private InputAccess inputAccess = new InputAccess(this, false);
+	private InputAccess inputAccess = new InputAccess(this, true);
 
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);

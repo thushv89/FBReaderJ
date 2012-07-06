@@ -67,7 +67,7 @@ public class Bookshare_OM_List extends ListActivity{
 	private int START_BOOKSHARE_OM_DOWNLOAD_PASSWORD = 1;
 	private int BOOKSHARE_OM_SELECTED = 2;
 	private int downloadsRemaining = 0;
-	private InputAccess inputAccess = new InputAccess(this, false);
+	private InputAccess inputAccess = new InputAccess(this, true);
 
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);

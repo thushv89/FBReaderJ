@@ -83,7 +83,7 @@ public final class FBReader extends ZLAndroidActivity {
     final static int AUTO_SPEAK_CODE = 3;
 
 	private int myFullScreenFlag;
-	private InputAccess inputAccess = new InputAccess(this, false);
+	private InputAccess inputAccess = new InputAccess(this, true);
 
 	private static final String PLUGIN_ACTION_PREFIX = "___";
 	private final List<PluginApi.ActionInfo> myPluginActions =

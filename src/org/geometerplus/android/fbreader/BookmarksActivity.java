@@ -68,7 +68,7 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
     ListView list;
     Activity myActivity;
     
-    private InputAccess inputAccess = new InputAccess(this, false);
+    private InputAccess inputAccess = new InputAccess(this, true);
 
 	private ListView createTab(String tag, int id, final String label) {
 		final TabHost host = getTabHost();
