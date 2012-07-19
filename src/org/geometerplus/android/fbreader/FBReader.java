@@ -34,6 +34,8 @@ import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
+
 import com.bugsense.trace.BugSenseHandler;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
@@ -62,6 +64,8 @@ import org.geometerplus.fbreader.tips.TipsManager;
 import org.geometerplus.android.fbreader.library.SQLiteBooksDatabase;
 import org.geometerplus.android.fbreader.library.KillerCallback;
 import org.geometerplus.android.fbreader.api.*;
+import org.geometerplus.android.fbreader.subscription.Bookshare_Periodical_DataSource;
+import org.geometerplus.android.fbreader.subscription.PeriodicalSharedPrefs;
 import org.geometerplus.android.fbreader.tips.TipsActivity;
 
 import org.geometerplus.android.util.UIUtil;
@@ -81,10 +85,13 @@ public final class FBReader extends ZLAndroidActivity {
     final static int AUTO_SPEAK_CODE = 3;
 
 	private int myFullScreenFlag;
-
+	
 	private static final String PLUGIN_ACTION_PREFIX = "___";
 	private final List<PluginApi.ActionInfo> myPluginActions =
 		new LinkedList<PluginApi.ActionInfo>();
+	
+	private Bookshare_Periodical_DataSource periodicalDataSource;
+
 	private final BroadcastReceiver myPluginInfoReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -134,6 +141,14 @@ public final class FBReader extends ZLAndroidActivity {
 			WindowManager.LayoutParams.FLAG_FULLSCREEN, myFullScreenFlag
 		);
 
+		// -------------- Initialize database here --------------// 
+		periodicalDataSource=new Bookshare_Periodical_DataSource(this);
+		periodicalDataSource.open();
+		Toast.makeText(this, "Subscription Database Initialized", Toast.LENGTH_LONG).show();
+
+		//Save the subscribed periodicals to shared pref
+		PeriodicalSharedPrefs.saveSubscribedPeriodicals(getApplicationContext(), periodicalDataSource.getAllPeriodicalIds());
+		
 		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
 		if (fbReader.getPopupById(TextSearchPopup.ID) == null) {
 			new TextSearchPopup(fbReader);

@@ -64,6 +64,7 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 
@@ -91,8 +92,11 @@ public class Bookshare_Book_Details extends Activity{
 	private TextView bookshare_book_detail_copyright;
 	private TextView bookshare_book_detail_synopsis_text;
 	private TextView bookshare_download_not_available_text;
+	private TextView subscribe_described_text;
 	private Button btn_download;
 	private Button btn_fb_share;
+	private CheckBox chkbox_subscribe;
+	
 	boolean isDownloadable;
 	private final int BOOKSHARE_BOOK_DETAILS_FINISHED = 1;
 	private boolean isFree = false;
@@ -207,6 +211,14 @@ public class Bookshare_Book_Details extends Activity{
 					bookshare_book_detail_publisher = (TextView)findViewById(R.id.bookshare_book_detail_publisher);
 					bookshare_book_detail_copyright = (TextView)findViewById(R.id.bookshare_book_detail_copyright);
 					bookshare_book_detail_synopsis_text = (TextView)findViewById(R.id.bookshare_book_detail_synopsis_text);
+					
+					//We don't need subscription for books, needed only for periodicals
+					//So we hide it in the book details activity
+					chkbox_subscribe=(CheckBox)findViewById(R.id.bookshare_chkbx_subscribe_periodical);
+					chkbox_subscribe.setVisibility(View.GONE);
+					subscribe_described_text=(TextView)findViewById(R.id.bookshare_subscribe_explained);
+					subscribe_described_text.setVisibility(View.GONE);
+					
 					btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
 					

@@ -50,17 +50,32 @@
 							android:text="@string/book_details_download_button"
 							android:textStyle="bold"
                             android:focusable="true"/>
+
 						<TextView
-		                    android:id="@+id/bookshare_download_not_available_msg"
-							android:layout_width="wrap_content"
-							android:layout_height="wrap_content"
-							android:text="You must sign in to Bookshare to download this book."
-		                    android:textColor="#ffffff"
-							android:textStyle="bold"
-							android:textSize="16dip"
-							android:typeface="serif"
-							android:layout_marginBottom="20dip"
-                            android:focusable="true"/>
+						    android:id="@+id/bookshare_download_not_available_msg"
+						    android:layout_width="wrap_content"
+						    android:layout_height="wrap_content"
+						    android:layout_marginBottom="20dip"
+						    android:focusable="true"
+						    android:text="You must sign in to Bookshare to download this book."
+						    android:textColor="#ffffff"
+						    android:textSize="16dip"
+						    android:textStyle="bold"
+						    android:typeface="serif" />
+
+						<CheckBox
+						    android:id="@+id/bookshare_chkbx_subscribe_periodical"
+						    android:layout_width="wrap_content"
+						    android:layout_height="wrap_content"
+						    android:text="@string/subscription_chk_box" />
+
+						<TextView
+						    android:id="@+id/bookshare_subscribe_explained"
+						    android:layout_width="wrap_content"
+						    android:layout_height="wrap_content"
+						    android:layout_marginBottom="20dp"
+						    android:text="@string/subscribe_chkbox_description"
+						    android:textAppearance="?android:attr/textAppearanceSmall" />
 
 						<TextView
 						    android:id="@+id/textView1"

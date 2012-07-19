@@ -32,6 +32,8 @@ import org.benetech.android.R;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.android.fbreader.network.BookDownloaderService;
+import org.geometerplus.android.fbreader.subscription.Bookshare_Periodical_DataSource;
+import org.geometerplus.android.fbreader.subscription.PeriodicalSharedPrefs;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -57,12 +59,16 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Bookshare_Periodical_Edition_Details extends Activity{
 
@@ -84,6 +90,8 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 	private TextView bookshare_book_detail_copyright;
 	private TextView bookshare_book_detail_synopsis_text;
 	private TextView bookshare_download_not_available_text;
+	private CheckBox chkbx_subscribe_periodical;
+	private TextView bookshare_subscribe_explained;
 	private String selectedPeriodicalTitle;
 	private Button btn_download;
 	boolean isDownloadable;
@@ -101,7 +109,9 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
     private String downloadedBookDir;
     private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
     private Activity myActivity;
-	
+    
+	private Bookshare_Periodical_DataSource dataSource;
+	private Set<String> subscribedIds;
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -121,6 +131,14 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 		if(username == null || password == null){
 			isFree = true;
 		}
+		
+		subscribedIds=new HashSet<String>();
+		Set<String> prefSubscribedIds =PeriodicalSharedPrefs.loadSubscribedPeriodicals(getApplicationContext());
+		if(prefSubscribedIds!=null){
+			subscribedIds.addAll(prefSubscribedIds);
+		}
+		dataSource = new Bookshare_Periodical_DataSource(this);
+		dataSource.open();
 		
 		selectedPeriodicalTitle=intent.getStringExtra("PERIODICAL_TITLE");
 		
@@ -155,7 +173,15 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
     
 	}
 	
-	
+		
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		PeriodicalSharedPrefs.saveSubscribedPeriodicals(getApplicationContext(), subscribedIds);
+	}
+
+
 	// Start downlading task if the OM download password has been received
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
@@ -233,6 +259,13 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 						btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 						bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
 	                    
+						//Need to set status of the subscibe checkbox everytime user comes to 'details' page
+						chkbx_subscribe_periodical=(CheckBox)findViewById(R.id.bookshare_chkbx_subscribe_periodical);
+						if(subscribedIds.contains(metadata_bean.getContentId())){
+							chkbx_subscribe_periodical.setChecked(true);
+						}
+						bookshare_subscribe_explained=(TextView)findViewById(R.id.bookshare_subscribe_explained);
+						
 	                    bookshare_book_detail_revision.setNextFocusDownId(R.id.bookshare_book_detail_category);
 	                    bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
 	                    
@@ -245,6 +278,13 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 	                        bookshare_download_not_available_text.setNextFocusUpId(R.id.bookshare_book_detail_authors);
 						} else {
 							bookshare_download_not_available_text.setVisibility(View.GONE);
+							
+							//If user is logged in only, show the subscribe option
+							if(isFree){
+								chkbx_subscribe_periodical.setVisibility(View.GONE);
+								bookshare_subscribe_explained.setVisibility(View.GONE);
+							}
+							
 	                        btn_download.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
 	                        btn_download.setNextFocusUpId(R.id.bookshare_book_detail_authors);
 	                        bookshare_book_detail_edition.setNextFocusUpId(R.id.bookshare_btn_download);
@@ -291,6 +331,27 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 	                                            
 	                                        }
 										}
+									}
+								}
+							});
+							
+							chkbx_subscribe_periodical.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+								
+								@Override
+								public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+									//If user enables the subscribed option
+									if(isChecked){
+										subscribedIds.add(metadata_bean.getContentId()+"");
+										
+										dataSource.addPeriodical(Integer.parseInt(metadata_bean.getContentId()), selectedPeriodicalTitle, "", 0);
+										Toast.makeText(getApplicationContext(), "You're subscribed to "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
+									}//user unsubscribe 
+									else{
+										subscribedIds.remove(metadata_bean.getContentId()+"");
+										dataSource.deletePeriodical(Integer.parseInt(metadata_bean.getContentId()));
+										//if(delEntity != null){
+											Toast.makeText(getApplicationContext(), "You're unsubscribed from "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
+										//}
 									}
 								}
 							});
@@ -654,6 +715,9 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 				if(downloadSuccess){
 					btn_download.setText(resources.getString(R.string.edition_details_download_success));
 	                btn_download.setEnabled(true);
+	                if(subscribedIds.contains(metadata_bean.getContentId())){
+	                	dataSource.addPeriodical(Integer.parseInt(metadata_bean.getContentId()), selectedPeriodicalTitle, metadata_bean.getEdition(), Integer.parseInt(metadata_bean.getRevision()));
+	                }
 				}
 				else{
 					btn_download.setText(resources.getString(R.string.book_details_download_error));

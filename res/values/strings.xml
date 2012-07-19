@@ -138,5 +138,7 @@
     <string name="edition_details_download_success">Periodical Downloaded! Read Periodical.</string>
     <string name="warning_no_general_downloads_for_periodicals">Warning! You are not logged in. Newspapers &amp; Magazines are not available for guests to download. Are you sure you want to continue? </string>
     <string name="share_with_friends">Share with friends!</string>
+    <string name="subscription_chk_box">Subscribe to this periodical</string>
+    <string name="subscribe_chkbox_description">(Automatically download the latest issue)</string>
 
 </resources>
