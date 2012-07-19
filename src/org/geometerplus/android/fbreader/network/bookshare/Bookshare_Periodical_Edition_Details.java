@@ -133,10 +133,10 @@ public class Bookshare_Periodical_Edition_Details extends Activity{
 		}
 		
 		subscribedIds=new HashSet<String>();
-		Set<String> prefSubscribedIds =PeriodicalSharedPrefs.loadSubscribedPeriodicals(getApplicationContext());
+		/*Set<String> prefSubscribedIds =PeriodicalSharedPrefs.loadSubscribedPeriodicals(getApplicationContext());
 		if(prefSubscribedIds!=null){
 			subscribedIds.addAll(prefSubscribedIds);
-		}
+		}*/
 		dataSource = new Bookshare_Periodical_DataSource(this);
 		dataSource.open();
 		

@@ -95,6 +95,7 @@ public class Bookshare_Book_Details extends Activity{
 	private TextView subscribe_described_text;
 	private Button btn_download;
 	private Button btn_fb_share;
+	private Button btn_twt_share;
 	private CheckBox chkbox_subscribe;
 	
 	boolean isDownloadable;
@@ -230,6 +231,16 @@ public class Bookshare_Book_Details extends Activity{
 							fbHandler.getFBPermission();	//get permission to check user's friend details
 							fbHandler.getAccessToken();	//get Access token which allows to do so
 							fbHandler.postOnWall(metadata_bean);	
+						}
+					});
+                    
+                    btn_twt_share=(Button)findViewById(R.id.twtr_share);
+                    btn_twt_share.setOnClickListener(new OnClickListener() {
+						
+						@Override
+						public void onClick(View arg0) {
+							// TODO Auto-generated method stub
+							
 						}
 					});
                     
