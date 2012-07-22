@@ -24,6 +24,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
+import android.content.SharedPreferences.Editor;
 import android.content.res.Resources;
 import android.net.Uri;
 import android.util.Log;
@@ -42,6 +43,12 @@ import org.apache.http.HttpResponse;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.android.fbreader.network.BookDownloaderService;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_FacebookHandler;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetowkPosts;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterAccessTokenListener;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.GetAccessTokenTask;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.UpdateStatusTask;
 import org.geometerplus.fbreader.Paths;
 import org.benetech.android.R;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -73,7 +80,7 @@ import android.widget.TextView;
  * Will also show a download option if applicable.
  *
  */
-public class Bookshare_Book_Details extends Activity{
+public class Bookshare_Book_Details extends Activity implements TwitterAccessTokenListener{
 
 	private String username;
 	private String password;
@@ -114,6 +121,9 @@ public class Bookshare_Book_Details extends Activity{
     private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
     private Activity myActivity;
 	private Bookshare_FacebookHandler fbHandler;
+	private Bookshare_Twitter_Handler twtrHandler;
+	private String verifier;
+	private SharedPreferences mTwtrSharedPref;
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -122,6 +132,7 @@ public class Bookshare_Book_Details extends Activity{
         resources = getApplicationContext().getResources();
         myActivity = this;
         fbHandler= new Bookshare_FacebookHandler(this);
+        twtrHandler = new Bookshare_Twitter_Handler(this);
 		// Set full screen
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
@@ -170,8 +181,39 @@ public class Bookshare_Book_Details extends Activity{
 				new DownloadFilesTask().execute();
 			}
 		}
+		
+		else if(requestCode == Bookshare_Twitter_Handler.BOOKSHARE_TWITTER_REQUEST){
+			if(resultCode==Activity.RESULT_OK){
+				verifier=data.getStringExtra("verifier");
+				if (verifier != null) {
+					GetAccessTokenTask accTokenTask = twtrHandler.new GetAccessTokenTask();
+					accTokenTask.setVerifier(verifier);
+					accTokenTask.execute(new TwitterAccessTokenListener[]{this});
+				}
+			}
+
+		}
 	}
 
+	@Override
+	public void onAccessTokenFound(String result,String accessToken,
+			String accessTokenSecret) {
+		if (Bookshare_Twitter_Handler.SUCCESS_STRING.equals(result)) {
+			Editor e = mTwtrSharedPref.edit();
+			e.putString("twtr_access_token", accessToken);
+			e.putString("twtr_access_token_secret",
+					accessTokenSecret);
+			e.commit();
+		}
+		postOnTwitter(accessToken, accessTokenSecret);
+		
+	}
+	
+	//Actual post of twitter update is extracted to this
+	private void postOnTwitter(String accessToken,String accessTokenSecret){
+		(twtrHandler.new UpdateStatusTask()).execute(new String[] {accessToken,accessTokenSecret,SocialNetowkPosts.getShortenedBookPost(metadata_bean)});
+	}
+	
 	// Handler for processing the returned stream from book detail search
 	Handler handler = new Handler(){
 		public void handleMessage(Message msg){
@@ -230,7 +272,7 @@ public class Bookshare_Book_Details extends Activity{
 							fbHandler.ssoInitialAuth();	//get Single Sign
 							fbHandler.getFBPermission();	//get permission to check user's friend details
 							fbHandler.getAccessToken();	//get Access token which allows to do so
-							fbHandler.postOnWall(metadata_bean);	
+							fbHandler.postBookOnWall(metadata_bean);	
 						}
 					});
                     
@@ -239,7 +281,19 @@ public class Bookshare_Book_Details extends Activity{
 						
 						@Override
 						public void onClick(View arg0) {
-							// TODO Auto-generated method stub
+							mTwtrSharedPref = getSharedPreferences("twtr_oauth",
+									Activity.MODE_PRIVATE);
+							
+							String accessToken = mTwtrSharedPref.getString("twtr_access_token",
+									null);
+							String accessTokenSecret = mTwtrSharedPref.getString(
+									"twtr_access_token_secret", null);
+
+							if(accessToken == null || accessTokenSecret == null){
+								twtrHandler.setUpTwitterForPosting();
+							}else{
+								postOnTwitter(accessToken, accessTokenSecret);
+							}
 							
 						}
 					});
@@ -1092,4 +1146,6 @@ public class Bookshare_Book_Details extends Activity{
         final ParentCloserDialog dialog = new ParentCloserDialog(this, this);
         dialog.popup(msg, timeout);
     }
+
+
 }
