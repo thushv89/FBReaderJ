@@ -1,6 +1,6 @@
 package org.geometerplus.android.fbreader.network.bookshare;
 
-import org.geometerplus.android.fbreader.subscription.Bookshare_Periodical_DataSource;
+import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
 
 
 import android.app.Service;
@@ -10,7 +10,7 @@ import android.os.IBinder;
 public class Bookshare_Subscription_Download_Service extends Service{
 
 	//SubscriptionSQLiteHelper dbHelper;
-	Bookshare_Periodical_DataSource dataSrc;
+	BooksharePeriodicalDataSource dataSrc;
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// TODO Auto-generated method stub
@@ -21,7 +21,7 @@ public class Bookshare_Subscription_Download_Service extends Service{
 	public void onCreate() {
 		super.onCreate();
 		//dbHelper=new SubscriptionSQLiteHelper(getApplicationContext());
-		dataSrc=new Bookshare_Periodical_DataSource(getApplicationContext());
+		dataSrc=new BooksharePeriodicalDataSource(getApplicationContext());
 		
 	}
 

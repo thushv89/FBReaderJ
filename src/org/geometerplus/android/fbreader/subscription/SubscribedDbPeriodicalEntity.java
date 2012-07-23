@@ -1,25 +1,10 @@
 package org.geometerplus.android.fbreader.subscription;
 
-public class DbPeriodicalEntity {
+public class SubscribedDbPeriodicalEntity extends PeriodicalEntity{
 
-	private int id;
-	private String title;
 	private String latestEdition;	//latest edition of the periodical we currently have
 	private int latestRevision; //latest revision
 	
-	
-	public int getId() {
-		return id;
-	}
-	public void setId(int id) {
-		this.id = id;
-	}
-	public String getTitle() {
-		return title;
-	}
-	public void setTitle(String title) {
-		this.title = title;
-	}
 	public String getLatestEdition() {
 		return latestEdition;
 	}

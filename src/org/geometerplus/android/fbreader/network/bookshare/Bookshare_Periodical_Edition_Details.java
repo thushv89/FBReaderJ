@@ -40,8 +40,9 @@ import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Social
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetworkKeys;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterAccessTokenListener;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterWebActivity;
-import org.geometerplus.android.fbreader.subscription.Bookshare_Periodical_DataSource;
+import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
 import org.geometerplus.android.fbreader.subscription.PeriodicalSharedPrefs;
+import org.geometerplus.android.fbreader.subscription.SubscribedDbPeriodicalEntity;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -131,10 +132,11 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
     private Activity myActivity;
     private Bookshare_FacebookHandler fbHandler;
     private Bookshare_Twitter_Handler twtrHandler;
-	private Bookshare_Periodical_DataSource dataSource;
+	private BooksharePeriodicalDataSource dataSource;
 	private Set<String> subscribedIds;
 	private SharedPreferences mTwtrSharedPref;
 	private String verifier;
+	private TextView bookshare_share_with_friends;
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -160,7 +162,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 		if(prefSubscribedIds!=null){
 			subscribedIds.addAll(prefSubscribedIds);
 		}*/
-		dataSource = new Bookshare_Periodical_DataSource(this);
+		dataSource = new BooksharePeriodicalDataSource(this);
 		dataSource.open();
 		selectedPeriodicalTitle=intent.getStringExtra("PERIODICAL_TITLE");
 	
@@ -318,12 +320,30 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 						fb_share = (Button)findViewById(R.id.fb_share);
 						twtr_share = (Button)findViewById(R.id.twtr_share);
 						
+						bookshare_book_detail_title_text.setNextFocusDownId(R.id.bookshare_btn_download);
+						
 						//Need to set status of the subscibe checkbox everytime user comes to 'details' page
 						chkbx_subscribe_periodical=(CheckBox)findViewById(R.id.bookshare_chkbx_subscribe_periodical);
+						
+						chkbx_subscribe_periodical.setNextFocusDownId(R.id.bookshare_share_with_friends);
+						chkbx_subscribe_periodical.setNextFocusUpId(R.id.bookshare_btn_download);
+						
 						if(subscribedIds.contains(metadata_bean.getContentId())){
 							chkbx_subscribe_periodical.setChecked(true);
 						}
 						bookshare_subscribe_explained=(TextView)findViewById(R.id.bookshare_subscribe_explained);
+						
+						bookshare_share_with_friends = (TextView) findViewById(R.id.bookshare_share_with_friends);
+						
+						bookshare_share_with_friends.setNextFocusDownId(R.id.fb_share);
+						bookshare_share_with_friends.setNextFocusUpId(R.id.bookshare_btn_download);
+						
+						fb_share.setNextFocusDownId(R.id.twtr_share);
+						fb_share.setNextFocusRightId(R.id.twtr_share);
+						
+						twtr_share.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
+						twtr_share.setNextFocusUpId(R.id.fb_share);
+						twtr_share.setNextFocusLeftId(R.id.fb_share);
 						
 	                    bookshare_book_detail_revision.setNextFocusDownId(R.id.bookshare_book_detail_category);
 	                    bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
@@ -378,9 +398,11 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 								bookshare_subscribe_explained.setVisibility(View.GONE);
 							}
 							
-	                        btn_download.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
-	                        btn_download.setNextFocusUpId(R.id.bookshare_book_detail_authors);
-	                        bookshare_book_detail_edition.setNextFocusUpId(R.id.bookshare_btn_download);
+	                        btn_download.setNextFocusDownId(R.id.bookshare_chkbx_subscribe_periodical);
+	                        btn_download.setNextFocusUpId(R.id.bookshare_book_detail_title);
+	                        
+	                        bookshare_book_detail_edition.setNextFocusUpId(R.id.bookshare_share_with_friends);
+	                        
 							btn_download.setOnClickListener(new OnClickListener(){
 								public void onClick(View v){
 									
@@ -432,16 +454,22 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 								
 								@Override
 								public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+									SubscribedDbPeriodicalEntity sEntity = new SubscribedDbPeriodicalEntity();
+									sEntity.setId(metadata_bean.getContentId());
+									sEntity.setTitle(metadata_bean.getTitle());
+									sEntity.setLatestEdition(metadata_bean.getEdition());
+									sEntity.setLatestRevision(Integer.parseInt(metadata_bean.getRevision()));
+									
 									//If user enables the subscribed option
 									if(isChecked){
 										subscribedIds.add(metadata_bean.getContentId()+"");
 										
-										dataSource.addPeriodical(Integer.parseInt(metadata_bean.getContentId()), selectedPeriodicalTitle, "", 0);
+										dataSource.insertEntity(sEntity);
 										Toast.makeText(getApplicationContext(), "You're subscribed to "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
 									}//user unsubscribe 
 									else{
 										subscribedIds.remove(metadata_bean.getContentId()+"");
-										dataSource.deletePeriodical(Integer.parseInt(metadata_bean.getContentId()));
+										dataSource.deleteEntity(sEntity);
 										//if(delEntity != null){
 											Toast.makeText(getApplicationContext(), "You're unsubscribed from "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
 										//}
@@ -809,7 +837,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 					btn_download.setText(resources.getString(R.string.edition_details_download_success));
 	                btn_download.setEnabled(true);
 	                if(subscribedIds.contains(metadata_bean.getContentId())){
-	                	dataSource.addPeriodical(Integer.parseInt(metadata_bean.getContentId()), selectedPeriodicalTitle, metadata_bean.getEdition(), Integer.parseInt(metadata_bean.getRevision()));
+	                	//dataSource.insertEntity(Integer.parseInt(metadata_bean.getContentId()), selectedPeriodicalTitle, metadata_bean.getEdition(), Integer.parseInt(metadata_bean.getRevision()));
 	                }
 				}
 				else{

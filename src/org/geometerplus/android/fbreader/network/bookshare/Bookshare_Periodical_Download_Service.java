@@ -2,7 +2,7 @@ package org.geometerplus.android.fbreader.network.bookshare;
 
 import java.util.ArrayList;
 
-import org.geometerplus.android.fbreader.subscription.DbPeriodicalEntity;
+import org.geometerplus.android.fbreader.subscription.SubscribedDbPeriodicalEntity;
 
 import android.app.Service;
 import android.content.Intent;
@@ -20,8 +20,8 @@ public class Bookshare_Periodical_Download_Service extends Service{
 	public class DownloadAPIBinder extends Binder implements IDownloadAPI{
 
 		@Override
-		public ArrayList<DbPeriodicalEntity> isNewDownloadsAvailable(
-				DbPeriodicalEntity entity) {
+		public ArrayList<SubscribedDbPeriodicalEntity> isNewDownloadsAvailable(
+				SubscribedDbPeriodicalEntity entity) {
 			String latestEdition = entity.getLatestEdition();
 			int latestRevision = entity.getLatestRevision();
 			return null;
@@ -29,7 +29,7 @@ public class Bookshare_Periodical_Download_Service extends Service{
 
 		@Override
 		public Bookshare_Periodical_Edition_Bean downloadPeriodical(
-				DbPeriodicalEntity entity) {
+				SubscribedDbPeriodicalEntity entity) {
 			// TODO Auto-generated method stub
 			return null;
 		}

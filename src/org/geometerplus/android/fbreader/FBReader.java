@@ -64,7 +64,7 @@ import org.geometerplus.fbreader.tips.TipsManager;
 import org.geometerplus.android.fbreader.library.SQLiteBooksDatabase;
 import org.geometerplus.android.fbreader.library.KillerCallback;
 import org.geometerplus.android.fbreader.api.*;
-import org.geometerplus.android.fbreader.subscription.Bookshare_Periodical_DataSource;
+import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
 import org.geometerplus.android.fbreader.subscription.PeriodicalSharedPrefs;
 import org.geometerplus.android.fbreader.tips.TipsActivity;
 
@@ -90,7 +90,6 @@ public final class FBReader extends ZLAndroidActivity {
 	private final List<PluginApi.ActionInfo> myPluginActions =
 		new LinkedList<PluginApi.ActionInfo>();
 	
-	private Bookshare_Periodical_DataSource periodicalDataSource;
 
 	private final BroadcastReceiver myPluginInfoReceiver = new BroadcastReceiver() {
 		@Override
@@ -141,13 +140,6 @@ public final class FBReader extends ZLAndroidActivity {
 			WindowManager.LayoutParams.FLAG_FULLSCREEN, myFullScreenFlag
 		);
 
-		// -------------- Initialize database here --------------// 
-		periodicalDataSource=new Bookshare_Periodical_DataSource(this);
-		periodicalDataSource.open();
-		Toast.makeText(this, "Subscription Database Initialized", Toast.LENGTH_LONG).show();
-
-		//Save the subscribed periodicals to shared pref
-		PeriodicalSharedPrefs.saveSubscribedPeriodicals(getApplicationContext(), periodicalDataSource.getAllPeriodicalIds());
 		
 		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
 		if (fbReader.getPopupById(TextSearchPopup.ID) == null) {

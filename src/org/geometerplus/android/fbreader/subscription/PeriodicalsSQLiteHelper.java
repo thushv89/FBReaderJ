@@ -25,7 +25,7 @@ public class PeriodicalsSQLiteHelper extends SQLiteOpenHelper{
 
 	// Database creation sql statement
 	private static final String CREATE_ALL_PERIODICALS_TABLE = "create table if not exists "
-			+ TABLE_ALL_PERIODICALS + "(" + ALL_P_COLUMN_ID + " integer primary key, " 
+			+ TABLE_ALL_PERIODICALS + "(" + ALL_P_COLUMN_ID + " text primary key, " 
 			+ ALL_P_COLUMN_TITLE + " text not null," 
 			+ ALL_P_COLUMN_EDITION + " text not null," 
 			+ ALL_P_COLUMN_REVISION + " int not null,"
@@ -34,7 +34,7 @@ public class PeriodicalsSQLiteHelper extends SQLiteOpenHelper{
 
 	// Database creation sql statement
 	private static final String CREATE_SUBSCRIBED_PERIODICALS_TABLE = "create table if not exists "
-			+ TABLE_SUBSCRIBED_PERIODICALS + "(" + SUBSCRIBED_COLUMN_ID + " integer primary key, " 
+			+ TABLE_SUBSCRIBED_PERIODICALS + "(" + SUBSCRIBED_COLUMN_ID + " text primary key, " 
 			+ SUBSCRIBED_COLUMN_TITLE + " text not null," 
 			+ SUBSCRIBED_COLUMN_LATEST_EDITION + " text not null," 
 			+ SUBSCRIBED_COLUMN_LATEST_REVISION + " int not null"+");";
