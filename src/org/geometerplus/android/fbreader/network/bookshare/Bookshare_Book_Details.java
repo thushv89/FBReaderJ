@@ -298,6 +298,15 @@ public class Bookshare_Book_Details extends Activity implements TwitterAccessTok
 						}
 					});
                     
+                    btn_fb_share.setNextFocusDownId(R.id.twtr_share);
+                    btn_fb_share.setNextFocusRightId(R.id.twtr_share);
+                    
+                    btn_twt_share.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
+                    btn_twt_share.setNextFocusUpId(R.id.fb_share);
+                    btn_twt_share.setNextFocusLeftId(R.id.fb_share);
+                    
+                    bookshare_book_detail_isbn.setNextFocusUpId(R.id.twtr_share);
+                    
                     bookshare_book_detail_language.setNextFocusDownId(R.id.bookshare_book_detail_category);
                     bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
                     bookshare_book_detail_publish_date.setNextFocusUpId(R.id.bookshare_book_detail_category);
@@ -308,14 +317,14 @@ public class Bookshare_Book_Details extends Activity implements TwitterAccessTok
 					if(!isDownloadable){
 						btn_download.setVisibility(View.GONE);
                         bookshare_book_detail_authors.setNextFocusDownId(R.id.bookshare_download_not_available_msg);
-                        bookshare_book_detail_isbn.setNextFocusUpId(R.id.bookshare_download_not_available_msg);
+                        btn_fb_share.setNextFocusUpId(R.id.bookshare_download_not_available_msg);
                         bookshare_download_not_available_text.setNextFocusUpId(R.id.bookshare_book_detail_authors);
 					} else {
 						bookshare_download_not_available_text.setVisibility(View.GONE);
-                        btn_download.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
+                        btn_download.setNextFocusDownId(R.id.fb_share);
                         btn_download.setNextFocusUpId(R.id.bookshare_book_detail_authors);
                         bookshare_book_detail_authors.setNextFocusDownId(R.id.bookshare_btn_download);
-                        bookshare_book_detail_isbn.setNextFocusUpId(R.id.bookshare_btn_download);
+                        btn_fb_share.setNextFocusUpId(R.id.bookshare_btn_download);
 						btn_download.setOnClickListener(new OnClickListener(){
 							public void onClick(View v){
 								
