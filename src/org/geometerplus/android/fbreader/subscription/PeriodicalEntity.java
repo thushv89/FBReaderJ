@@ -1,10 +1,16 @@
 package org.geometerplus.android.fbreader.subscription;
 
-public class PeriodicalEntity {
+public abstract class PeriodicalEntity {
 
 	private String title;
 	private String id;
+
+	public PeriodicalEntity(){}
 	
+	public PeriodicalEntity(String id,String title){
+		this.id = id;
+		this.title = title;
+	}
 	public String getTitle() {
 		return title;
 	}

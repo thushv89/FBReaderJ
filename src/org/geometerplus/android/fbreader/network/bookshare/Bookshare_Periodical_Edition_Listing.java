@@ -23,35 +23,30 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
-import android.widget.AdapterView.OnItemClickListener;
 
 public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 
@@ -94,7 +89,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	private String bookshare_edition;
 	private String bookshare_revision;
 	private String bookshare_title;
-	
+	private boolean isOM;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +107,11 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 			isFree = true;
 		}
 
+		// Obtain the application wide SharedPreferences object and store the login information
+		//Get information about user. (i.e. Whether he's an organizational member)
+		SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		isOM = login_preference.getBoolean("isOM", false);
+		
 		//Request URI is not needed since we're not using search terms (thushv)
 		requestURI = intent.getStringExtra("ID_SEARCH_URI");
 
@@ -284,6 +284,8 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 
 						//Obtain the book ID
 						TextView bookId = (TextView)row_view.findViewById(R.id.bookId);
+						TextView periodicalEdition = (TextView)row_view.findViewById(R.id.text2);
+						
 						if (null != bookId.getText().toString() ) {
 							int numericId =  Integer.valueOf(bookId.getText().toString());
 							if (numericId < 0) {
@@ -295,9 +297,17 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 						// Find the corresponding bean object for this row
 						for(Bookshare_Periodical_Edition_Bean bean : vectorResults){
 
+							//TODO: Fix bug
 							// Since book ID is unique, that can serve as comparison parameter
 							// Retrieve the book ID from the entry that is clicked
-							if(bean.getId().equalsIgnoreCase(bookId.getText().toString())){
+							
+							StringBuilder editionBuilder = new StringBuilder(bean.getEdition());
+							editionBuilder.insert(2, "/");
+							editionBuilder.insert(5, "/");
+							editionBuilder.insert(0, "Edition: ");
+							editionBuilder.append("\t Revision: "+bean.getRevision());
+							
+							if(editionBuilder.toString().equalsIgnoreCase(periodicalEdition.getText().toString().trim())){
 								bookshare_ID = bean.getId();
 								bookshare_edition=bean.getEdition();
 								bookshare_revision=bean.getRevision();
@@ -309,6 +319,9 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 								else
 									uri = URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH + bookshare_ID + "/edition/" + bookshare_edition + "/revision/" + bookshare_revision + "/for/"+username+"?api_key="+developerKey;
 
+								if(isOM){
+									uri = URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH + bookshare_ID + "/edition/" + bookshare_edition + "/revision/" + bookshare_revision +"?api_key="+developerKey;
+								}
 								/*--------------------------------------------------------------------
 								if((isFree && bean.getAvailableToDownload().equals("1") &&
 										bean.getFreelyAvailable().equals("1")) ||
@@ -328,6 +341,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 									intent.putExtra("password", password);
 									intent.putExtra("ID_SEARCH_URI", uri);
 									intent.putExtra("PERIODICAL_TITLE", bookshare_title);
+									intent.putExtra("PERIODICAL_ID", bookshare_ID);
 									startActivityForResult(intent, START_BOOKSHARE_EDITION_DETAILS_ACTIVITY);
 									
 									//It might be not to give user suprises by having a different view for periodicals

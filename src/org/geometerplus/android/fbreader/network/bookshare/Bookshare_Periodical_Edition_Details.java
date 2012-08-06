@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,15 +34,14 @@ import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.android.fbreader.network.BookDownloaderService;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_FacebookHandler;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.GetAccessTokenTask;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.UpdateStatusTask;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.GetAccessTokenTask;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetowkPosts;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetworkKeys;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterAccessTokenListener;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterWebActivity;
+import org.geometerplus.android.fbreader.subscription.AllDbPeriodicalEntity;
 import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
-import org.geometerplus.android.fbreader.subscription.PeriodicalSharedPrefs;
+import org.geometerplus.android.fbreader.subscription.PeriodicalDBUtils;
+import org.geometerplus.android.fbreader.subscription.PeriodicalsSQLiteHelper;
 import org.geometerplus.android.fbreader.subscription.SubscribedDbPeriodicalEntity;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -52,22 +52,16 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
-import twitter4j.auth.AccessToken;
-import twitter4j.auth.RequestToken;
-import twitter4j.conf.ConfigurationBuilder;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -110,6 +104,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 	private CheckBox chkbx_subscribe_periodical;
 	private TextView bookshare_subscribe_explained;
 	private String selectedPeriodicalTitle;
+	private String selectedPeriodicalId;
 	private Button btn_download;
 	private Button twtr_share;
 	private Button fb_share;
@@ -133,10 +128,12 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
     private Bookshare_FacebookHandler fbHandler;
     private Bookshare_Twitter_Handler twtrHandler;
 	private BooksharePeriodicalDataSource dataSource;
-	private Set<String> subscribedIds;
 	private SharedPreferences mTwtrSharedPref;
 	private String verifier;
 	private TextView bookshare_share_with_friends;
+	private PeriodicalsSQLiteHelper periodicalDBHelper;
+	private SQLiteDatabase periodicalDb;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -157,15 +154,13 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 			isFree = true;
 		}
 		
-		subscribedIds=new HashSet<String>();
-		/*Set<String> prefSubscribedIds =PeriodicalSharedPrefs.loadSubscribedPeriodicals(getApplicationContext());
-		if(prefSubscribedIds!=null){
-			subscribedIds.addAll(prefSubscribedIds);
-		}*/
-		dataSource = new BooksharePeriodicalDataSource(this);
-		dataSource.open();
+		dataSource = BooksharePeriodicalDataSource.getInstance(this);
+		periodicalDBHelper = new PeriodicalsSQLiteHelper(this);
+		periodicalDb = periodicalDBHelper.getWritableDatabase();
+		
 		selectedPeriodicalTitle=intent.getStringExtra("PERIODICAL_TITLE");
-	
+		selectedPeriodicalId=intent.getStringExtra("PERIODICAL_ID");
+		
 		fbHandler= new Bookshare_FacebookHandler(this);
 		twtrHandler = new Bookshare_Twitter_Handler(this);
 		
@@ -203,7 +198,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		PeriodicalSharedPrefs.saveSubscribedPeriodicals(getApplicationContext(), subscribedIds);
+		periodicalDBHelper.close();
 	}
 
 
@@ -288,11 +283,15 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 						book_detail_view = (View)findViewById(R.id.book_detail_view);
 						bookshare_book_detail_title_text = (TextView)findViewById(R.id.bookshare_book_detail_title);
 						if(selectedPeriodicalTitle!=null){
-							//bookshare_book_detail_title_text.append(" "+selectedPeriodicalTitle);
 							metadata_bean.setTitle(selectedPeriodicalTitle);
 						}else{
 							bookshare_book_detail_title_text.append(" Title not found");
 						}
+						
+						if(selectedPeriodicalId != null){
+							metadata_bean.setPeriodicalId(selectedPeriodicalId);
+						}
+						
 						bookshare_book_detail_authors = (TextView)findViewById(R.id.bookshare_book_detail_authors);
 						bookshare_book_detail_authors.setVisibility(View.GONE);
 						
@@ -328,7 +327,8 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 						chkbx_subscribe_periodical.setNextFocusDownId(R.id.bookshare_share_with_friends);
 						chkbx_subscribe_periodical.setNextFocusUpId(R.id.bookshare_btn_download);
 						
-						if(subscribedIds.contains(metadata_bean.getContentId())){
+						if(dataSource.doesExist(periodicalDb, PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS, 
+								new SubscribedDbPeriodicalEntity(metadata_bean.getPeriodicalId(),null))){
 							chkbx_subscribe_periodical.setChecked(true);
 						}
 						bookshare_subscribe_explained=(TextView)findViewById(R.id.bookshare_subscribe_explained);
@@ -455,21 +455,19 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 								@Override
 								public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 									SubscribedDbPeriodicalEntity sEntity = new SubscribedDbPeriodicalEntity();
-									sEntity.setId(metadata_bean.getContentId());
+									sEntity.setId(metadata_bean.getPeriodicalId());
 									sEntity.setTitle(metadata_bean.getTitle());
-									sEntity.setLatestEdition(metadata_bean.getEdition());
-									sEntity.setLatestRevision(Integer.parseInt(metadata_bean.getRevision()));
+									sEntity.setLatestEdition("00000000");
+									sEntity.setLatestRevision(0);
+									//TODO: Update sEntity revision/edition to latest from the AllDbPeriodical db
 									
 									//If user enables the subscribed option
-									if(isChecked){
-										subscribedIds.add(metadata_bean.getContentId()+"");
-										
-										dataSource.insertEntity(sEntity);
+									if(isChecked){										
+										dataSource.insertEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);									
 										Toast.makeText(getApplicationContext(), "You're subscribed to "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
 									}//user unsubscribe 
 									else{
-										subscribedIds.remove(metadata_bean.getContentId()+"");
-										dataSource.deleteEntity(sEntity);
+										dataSource.deleteEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);
 										//if(delEntity != null){
 											Toast.makeText(getApplicationContext(), "You're unsubscribed from "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
 										//}
@@ -836,8 +834,18 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 				if(downloadSuccess){
 					btn_download.setText(resources.getString(R.string.edition_details_download_success));
 	                btn_download.setEnabled(true);
-	                if(subscribedIds.contains(metadata_bean.getContentId())){
-	                	//dataSource.insertEntity(Integer.parseInt(metadata_bean.getContentId()), selectedPeriodicalTitle, metadata_bean.getEdition(), Integer.parseInt(metadata_bean.getRevision()));
+
+	                Calendar currCal = Calendar.getInstance();
+	                String currentDate = currCal.get(Calendar.MONTH)+"/"+currCal.get(Calendar.DATE)+"/"+currCal.get(Calendar.YEAR)+"";
+	                String currentTime = currCal.get(Calendar.HOUR_OF_DAY)+":"+currCal.get(Calendar.MINUTE)+":"+currCal.get(Calendar.SECOND)+"";
+	                AllDbPeriodicalEntity allEntity = new AllDbPeriodicalEntity(metadata_bean.getPeriodicalId(), metadata_bean.getTitle(), metadata_bean.getEdition(), Integer.parseInt(metadata_bean.getRevision()), currentDate, currentTime);
+	                SubscribedDbPeriodicalEntity subEntity = new SubscribedDbPeriodicalEntity(metadata_bean.getPeriodicalId(), metadata_bean.getTitle(), metadata_bean.getEdition(), Integer.parseInt(metadata_bean.getRevision()));
+	                dataSource.insertEntity(periodicalDb, PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS, allEntity);
+	                if(dataSource.doesExist(periodicalDb, PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS, subEntity)){
+	                	SubscribedDbPeriodicalEntity existingEntity = (SubscribedDbPeriodicalEntity) dataSource.getEntity(periodicalDb, PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS, subEntity);
+	                	if(subEntity.getLatestEdition().equalsIgnoreCase(PeriodicalDBUtils.getRecentEditionString(existingEntity.getLatestEdition(),subEntity.getLatestEdition()))){
+	                		dataSource.insertEntity(periodicalDb, PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,subEntity);
+	                	}
 	                }
 				}
 				else{
