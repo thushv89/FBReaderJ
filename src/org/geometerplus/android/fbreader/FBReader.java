@@ -23,54 +23,50 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.benetech.android.R;
-import org.geometerplus.android.fbreader.api.ApiListener;
-import org.geometerplus.android.fbreader.api.ApiServerImplementation;
-import org.geometerplus.android.fbreader.api.PluginApi;
-import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
-import org.geometerplus.android.fbreader.benetech.SpeakActivity;
-import org.geometerplus.android.fbreader.library.KillerCallback;
-import org.geometerplus.android.fbreader.library.SQLiteBooksDatabase;
-import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
-import org.geometerplus.android.fbreader.tips.TipsActivity;
-import org.geometerplus.android.util.UIUtil;
-import org.geometerplus.fbreader.Paths;
-import org.geometerplus.fbreader.bookmodel.BookModel;
-import org.geometerplus.fbreader.fbreader.ActionCode;
-import org.geometerplus.fbreader.fbreader.FBReaderApp;
-import org.geometerplus.fbreader.library.Book;
-import org.geometerplus.fbreader.library.Library;
-import org.geometerplus.fbreader.tips.TipsManager;
-import org.geometerplus.zlibrary.core.application.ZLApplication;
-import org.geometerplus.zlibrary.core.filesystem.ZLFile;
-import org.geometerplus.zlibrary.core.library.ZLibrary;
-import org.geometerplus.zlibrary.text.hyphenation.ZLTextHyphenator;
-import org.geometerplus.zlibrary.text.view.ZLTextView;
-import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
-import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
-import org.geometerplus.zlibrary.ui.android.library.ZLAndroidLibrary;
+import java.util.*;
 
 import android.app.SearchManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.WindowManager;
+import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
+import ca.idi.tecla.lib.InputAccess;
 
 import com.bugsense.trace.BugSenseHandler;
+
+import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
+import org.benetech.android.R;
+import org.geometerplus.android.fbreader.benetech.SpeakActivity;
+import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
+import org.geometerplus.fbreader.Paths;
+import org.geometerplus.fbreader.library.Library;
+import org.geometerplus.zlibrary.core.application.ZLApplication;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.library.ZLibrary;
+
+import org.geometerplus.zlibrary.text.view.ZLTextView;
+import org.geometerplus.zlibrary.text.hyphenation.ZLTextHyphenator;
+
+import org.geometerplus.zlibrary.ui.android.library.ZLAndroidActivity;
+import org.geometerplus.zlibrary.ui.android.library.ZLAndroidApplication;
+import org.geometerplus.zlibrary.ui.android.library.ZLAndroidLibrary;
+
+import org.geometerplus.fbreader.fbreader.ActionCode;
+import org.geometerplus.fbreader.fbreader.FBReaderApp;
+import org.geometerplus.fbreader.bookmodel.BookModel;
+import org.geometerplus.fbreader.library.Book;
+import org.geometerplus.fbreader.tips.TipsManager;
+
+import org.geometerplus.android.fbreader.library.SQLiteBooksDatabase;
+import org.geometerplus.android.fbreader.library.KillerCallback;
+import org.geometerplus.android.fbreader.api.*;
+import org.geometerplus.android.fbreader.tips.TipsActivity;
+
+import org.geometerplus.android.util.UIUtil;
 
 public final class FBReader extends ZLAndroidActivity {
 	public static final String BOOK_PATH_KEY = "BookPath";
@@ -86,12 +82,11 @@ public final class FBReader extends ZLAndroidActivity {
     final static int AUTO_SPEAK_CODE = 3;
 
 	private int myFullScreenFlag;
-	
+	private InputAccess inputAccess = new InputAccess(this, true);
+
 	private static final String PLUGIN_ACTION_PREFIX = "___";
 	private final List<PluginApi.ActionInfo> myPluginActions =
 		new LinkedList<PluginApi.ActionInfo>();
-	
-
 	private final BroadcastReceiver myPluginInfoReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -131,6 +126,7 @@ public final class FBReader extends ZLAndroidActivity {
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
+		inputAccess.onCreate();
 		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
         
         accessibilityManager =
@@ -141,7 +137,6 @@ public final class FBReader extends ZLAndroidActivity {
 			WindowManager.LayoutParams.FLAG_FULLSCREEN, myFullScreenFlag
 		);
 
-		
 		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
 		if (fbReader.getPopupById(TextSearchPopup.ID) == null) {
 			new TextSearchPopup(fbReader);
@@ -383,7 +378,7 @@ public final class FBReader extends ZLAndroidActivity {
 	public void hideSelectionPanel() {
 		final FBReaderApp fbReader = (FBReaderApp)FBReaderApp.Instance();
 		final FBReaderApp.PopupPanel popup = fbReader.getActivePopup();
-		if (popup != null && popup.getId() == SelectionPopup.ID) {
+		if (popup != null && popup.getId().equals(SelectionPopup.ID)) {
 			FBReaderApp.Instance().hideActivePopup();
 		}
 	}
