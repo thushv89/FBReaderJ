@@ -266,4 +266,14 @@ public class ApiServerImplementation extends ApiInterface.Stub implements Api, A
 		}
 		return sb.toString();
 	}
+
+    @Override
+    public List<String> getParagraphWords(int paragraphIndex) throws ApiException {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public ArrayList<Integer> getParagraphIndices(int paragraphIndex) throws ApiException {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

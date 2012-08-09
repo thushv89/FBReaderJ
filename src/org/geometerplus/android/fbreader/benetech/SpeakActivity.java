@@ -24,19 +24,22 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
+import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.speech.tts.TextToSpeech;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.text.format.Time;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -45,11 +48,13 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
+import com.hyperionics.fbreader.plugin.tts_plus.TtsSentenceExtractor;
 
 import org.accessibility.SimpleGestureFilter;
 import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
 import org.geometerplus.android.fbreader.TOCActivity;
+import org.geometerplus.android.fbreader.api.ApiException;
 import org.geometerplus.android.fbreader.api.ApiServerImplementation;
 import org.geometerplus.android.fbreader.api.TextPosition;
 import org.geometerplus.fbreader.fbreader.FBReaderApp;
@@ -97,6 +102,14 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     private static Method MotionEvent_getX;
     private static Method MotionEvent_getY;
     private static Method AccessibilityManager_isTouchExplorationEnabled;
+    static SharedPreferences myPreferences;
+
+    static TtsSentenceExtractor.SentenceIndex mySentences[] = new TtsSentenceExtractor.SentenceIndex[0];
+    static private int myCurrentSentence = 0;
+    static private boolean isServiceTalking = false;
+    static private final String UTTERANCE_ID = "GoReadTTS";
+    static int myParaPause = 300;
+    static private HashMap<String, String> myCallbackMap;
 
     static {
         initCompatibility();
@@ -147,6 +160,47 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
             stopTalking();
             justPaused = true;
             return false;
+        }
+    }
+
+    void savePosition() {
+        if (myCurrentSentence < mySentences.length) {
+            String bookHash = "BP:" + myApi.getBookHash();
+            SharedPreferences.Editor myEditor = myPreferences.edit();
+            Time time = new Time();
+            time.setToNow();
+            String lang = "";
+            //lang = " l:" + selectedLanguage;
+            myEditor.putString(bookHash, lang +
+                    "p:" + myParagraphIndex + " s:" + myCurrentSentence + " e:" + mySentences[myCurrentSentence].i +
+                    " d:" + time.format2445()
+            );
+
+            myEditor.commit();
+        }
+    }
+
+    void restorePosition() {
+        String bookHash = "BP:" + myApi.getBookHash();
+        String s = myPreferences.getString(bookHash, "");
+        int il = s.indexOf("l:");
+        int para = s.indexOf("p:");
+        int sent = s.indexOf("s:");
+        int idx = s.indexOf("e:");
+        int dt = s.indexOf("d:");
+        if (para > -1 && sent > -1 && idx > -1 && dt > -1) {
+/*                if (il > -1) {
+                selectedLanguage = s.substring(il + 2, para);
+            }*/
+            para = Integer.parseInt(s.substring(para + 2, sent-1));
+            sent = Integer.parseInt(s.substring(sent + 2, idx - 1));
+            idx = Integer.parseInt(s.substring(idx + 2, dt - 1));
+            TextPosition tp = new TextPosition(para, idx, 0);
+            if (tp.compareTo(myApi.getPageStart()) >= 0 && tp.compareTo(myApi.getPageEnd()) < 0) {
+                myParagraphIndex = para;
+                processCurrentParagraph();
+                myCurrentSentence = sent;
+            }
         }
     }
 
@@ -248,6 +302,10 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 		setActive(false);
 		setActionsEnabled(false);
 
+        if (myCallbackMap == null) {
+            myCallbackMap = new HashMap<String, String>();
+            myCallbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
+        }
 		myApi = new ApiServerImplementation();
 		try {
 			startActivityForResult(
@@ -260,6 +318,8 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         if (!accessibilityManager.isEnabled()) {
 		    setTitle(R.string.initializing);
         }
+
+        myPreferences = getSharedPreferences("GoReadTTS", MODE_PRIVATE);
 	}
 
 	@Override
@@ -307,6 +367,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 	protected void onStop() {
 		stopTalking();
         myApi.clearHighlighting();
+        LastReadPageOfCurrentBook.saveLocationOfLastReadPage(this);
 		super.onStop();
 	}
 
@@ -393,6 +454,31 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 		}
 	}
 
+    public void onUtteranceCompletedNew(String uttId) {
+        //regainBluetoothFocus();
+        isServiceTalking = false;
+        if (myIsActive && UTTERANCE_ID.equals(uttId)) {
+            if (++myCurrentSentence >= mySentences.length) {
+                if (myParaPause > 0 && myCurrentSentence == mySentences.length) {
+                    myTTS.playSilence(myParaPause, TextToSpeech.QUEUE_ADD, myCallbackMap);
+                    return;
+                }
+                ++myParagraphIndex;
+                processCurrentParagraph();
+                if (myParagraphIndex >= myParagraphsNumber) {
+                    stopTalkingNew();
+                    return;
+                }
+            }
+
+            highlightSentence();
+            speakString(mySentences[myCurrentSentence].s);
+
+        } else {
+            setActive(false);
+        }
+    }
+
 	private void highlightParagraph()  {
 		if (0 <= myParagraphIndex && myParagraphIndex < myParagraphsNumber) {
 			myApi.highlightArea(
@@ -410,6 +496,16 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 			myTTS.stop();
 		}
 	}
+
+    void stopTalkingNew() {
+        setActive(false);
+        if (isServiceTalking && myTTS != null) {
+            isServiceTalking = false;
+            //savePosition();
+            myTTS.stop();
+        }
+
+    }
 
 	private void showErrorMessage(final CharSequence text, final boolean fatal) {
         final VoiceableDialog finishedDialog = new VoiceableDialog(this);
@@ -454,6 +550,37 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 		callbackMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, Integer.toString(sentenceNumber));
 		myTTS.speak(text, TextToSpeech.QUEUE_ADD, callbackMap);
 	}
+
+    void nextToSpeak() {
+        if (myTTS == null)
+            return;
+        boolean wasSpeaking = myTTS.isSpeaking();
+        if (wasSpeaking)
+            stopTalking();
+
+        gotoNextSentence();
+        if (wasSpeaking)
+            startTalking();
+    }
+
+    void prevToSpeak() {
+        if (myTTS == null)
+            return;
+        boolean wasSpeaking = myTTS.isSpeaking()
+                || myParagraphIndex >= myParagraphsNumber;
+        if (wasSpeaking)
+            stopTalking();
+
+        gotoPreviousSentence();
+        if (wasSpeaking)
+            startTalking();
+    }
+
+    private int speakString(String text) {
+        int ret = myTTS.speak(text, TextToSpeech.QUEUE_FLUSH, myCallbackMap);
+        isServiceTalking = ret == TextToSpeech.SUCCESS;
+        return ret;
+    }
 
 	private void gotoPreviousParagraph() {
         for (int i = myParagraphIndex - 1; i >= 0; --i) {
@@ -512,12 +639,128 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         }
     }
 
+    void startTalking() {
+        setActive(true);
+        //setLanguage(SpeakService.selectedLanguage);
+        if (myCurrentSentence >= mySentences.length) {
+            processCurrentParagraph();
+        }
+        if (myCurrentSentence < mySentences.length) {
+            highlightSentence();
+            //mAudioManager.requestAudioFocus(afChangeListener,
+                    // Use the music stream.
+                    //AudioManager.STREAM_MUSIC,
+                    // Request permanent focus.
+                    //AudioManager.AUDIOFOCUS_GAIN);
+            speakString(mySentences[myCurrentSentence].s);
+        } else
+            stopTalkingNew();
+    }
+
+    void gotoPreviousParagraphNew() {
+        mySentences = new TtsSentenceExtractor.SentenceIndex[0];
+            if (myParagraphIndex > myParagraphsNumber)
+                myParagraphIndex = myParagraphsNumber;
+            for (int i = myParagraphIndex - 1; i >= 0; --i) {
+                if (myApi.getParagraphText(i).length() > 2) { // empty paragraph breaks previous function
+                    myParagraphIndex = i;
+                    break;
+                }
+            }
+
+            findViewById(R.id.speak_menu_forward).setEnabled(false);
+            findViewById(R.id.speak_menu_pause).setEnabled(false);
+
+    }
+
+    void processCurrentParagraph() {
+            if (myTTS == null) {
+                return;
+            }
+
+            try {
+                List<String> wl = null;
+                ArrayList<Integer> il = null;
+                myCurrentSentence = 0;
+                for (; myParagraphIndex < myParagraphsNumber; ++myParagraphIndex) {
+                    // final String s = myApi.getParagraphText(myParagraphIndex);
+                    wl = myApi.getParagraphWords(myParagraphIndex);
+                    if (wl.size() > 0) {
+                        il = myApi.getParagraphIndices(myParagraphIndex);
+                        break;
+                    }
+                }
+                if (myParagraphIndex >= myParagraphsNumber) {
+                    findViewById(R.id.speak_menu_forward).setEnabled(false);
+                    findViewById(R.id.speak_menu_pause).setEnabled(false);
+                }
+
+                mySentences = TtsSentenceExtractor.build(wl, il, myTTS.getLanguage());
+            } catch (ApiException e) {
+                stopTalkingNew();
+                //SpeakActivity.showErrorMessage(R.string.api_error_2);
+                e.printStackTrace();
+            }
+        }
+
+    private void highlightSentence() {
+       // try {
+            int endEI = myCurrentSentence < mySentences.length-1 ?
+                            mySentences[myCurrentSentence+1].i-1: Integer.MAX_VALUE;
+            TextPosition stPos;
+            if (myCurrentSentence == 0)
+                stPos = new TextPosition(myParagraphIndex, 0, 0);
+            else
+                stPos = new TextPosition(myParagraphIndex, mySentences[myCurrentSentence].i, 0);
+            TextPosition edPos = new TextPosition(myParagraphIndex, endEI, 0);
+            if (stPos.compareTo(myApi.getPageStart()) < 0 || edPos.compareTo(myApi.getPageEnd()) > 0)
+                myApi.setPageStart(stPos);
+            myApi.highlightArea(stPos, edPos);
+
+/*        } catch (ApiException e) {
+            switchOff();
+            TtsApp.ExitApp();
+        }*/
+    }
+
+    void gotoPreviousSentence() {
+        myApi.clearHighlighting();
+
+        if (myCurrentSentence > 0) {
+            myCurrentSentence--;
+            highlightSentence();
+        }
+        else if (myParagraphIndex > 0) {
+            gotoPreviousParagraphNew();
+            processCurrentParagraph();
+            myCurrentSentence = mySentences.length - 1;
+            highlightSentence();
+        }
+    }
+
+    void gotoNextSentence() {
+        myApi.clearHighlighting();
+
+        if (myCurrentSentence < mySentences.length -1) {
+            myCurrentSentence++;
+            highlightSentence();
+        }
+        else if (myParagraphIndex < myParagraphsNumber) {
+            ++myParagraphIndex;
+            processCurrentParagraph();
+            myCurrentSentence = 0;
+            highlightSentence();
+        }
+    }
+
     private void speakParagraph(String text) {
         if (text.length() < 1) {
             return;
         }
         setActive(true);
         createSentenceIterator();
+        //ArrayList<String> sentences  = TtsSentenceExtractor.extract(text, Locale.ENGLISH);
+        //sentenceListIterator = sentences.iterator();
         
         String currentSentence;
         int sentenceNumber = 0;
