@@ -22,7 +22,11 @@ E.g., on my computer 'local.properties' consists of 2 lines:
   sdk.dir=/Users/geometer/android-sdk-mac_86
   ndk.dir=/Users/geometer/android-ndk-r4b
 
-2. If you use Linux or MacOS, just run 'ant clean debug' to create an installable package that will provide debugging info.
+2. You will have to edit src/org/geometerplus/android/fbreader/network/bookshare/BookshareDeveloperKey and enter your
+   Bookshare developer key if you want to access the Bookshare library. You can also optionally enter your Bugsense key
+   to get crash reports.
+
+3. If you use Linux or MacOS, just run 'ant clean debug' to create an installable package that will provide debugging info.
 
 If you are Windows user
   2a. Run ndk-build (a program from Android NDK directory) in your project catalog;
@@ -30,7 +34,7 @@ If you are Windows user
       Read and try config cygwin using 'cygwin_installation_and_configuration.pdf'
   2b. Run 'ant release'.
 
-3. Sign your package manually.
+4. Sign your package manually.
 
 ------------------------------------------------------------------------------------------------------
 Part B
