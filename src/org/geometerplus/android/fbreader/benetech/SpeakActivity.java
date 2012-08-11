@@ -678,7 +678,6 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
                 return;
             }
 
-            try {
                 List<String> wl = null;
                 ArrayList<Integer> il = null;
                 myCurrentSentence = 0;
@@ -696,11 +695,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
                 }
 
                 mySentences = TtsSentenceExtractor.build(wl, il, myTTS.getLanguage());
-            } catch (ApiException e) {
-                stopTalkingNew();
-                //SpeakActivity.showErrorMessage(R.string.api_error_2);
-                e.printStackTrace();
-            }
+
         }
 
     private void highlightSentence() {
