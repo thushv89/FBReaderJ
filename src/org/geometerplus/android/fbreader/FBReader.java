@@ -40,7 +40,6 @@ import com.bugsense.trace.BugSenseHandler;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
-import org.geometerplus.android.fbreader.benetech.LastReadPageOfCurrentBook;
 import org.geometerplus.android.fbreader.benetech.SpeakActivity;
 import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
 import org.geometerplus.fbreader.Paths;
@@ -330,7 +329,6 @@ public final class FBReader extends ZLAndroidActivity {
 		}
 		PopupPanel.restoreVisibilities(FBReaderApp.Instance());
 		ApiServerImplementation.sendEvent(this, ApiListener.EVENT_READ_MODE_OPENED);
-        LastReadPageOfCurrentBook.loadLocationOfLastReadPage(this);
         if (!accessibilityManager.isEnabled()) {
             setApplicationTitle();
         }
@@ -339,7 +337,6 @@ public final class FBReader extends ZLAndroidActivity {
 	@Override
 	public void onStop() {
 		ApiServerImplementation.sendEvent(this, ApiListener.EVENT_READ_MODE_CLOSED);
-        LastReadPageOfCurrentBook.saveLocationOfLastReadPage(this);
 		PopupPanel.removeAllWindows(FBReaderApp.Instance(), this);
 		super.onStop();
 	}

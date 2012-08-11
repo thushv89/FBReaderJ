@@ -35,8 +35,7 @@ public class TtsSentenceExtractor {
         }
     }
 
-    public static ArrayList<String> extract(String paragraph, Locale loc) {
-        ArrayList<String> sentenceList = new ArrayList<String>();
+    public static SentenceIndex[] extract(String paragraph, Locale loc) {
         paragraph = paragraph.replace(". . .", "...");
         paragraph = paragraphReplaceEngAbbreviations(paragraph, loc);
         final Pattern p = Pattern.compile("[\\.\\!\\?]\\s+", Pattern.MULTILINE);
@@ -53,9 +52,8 @@ public class TtsSentenceExtractor {
         SentenceIndex[] si = new SentenceIndex[sentences.length];
         for (int i = 0; i < sentences.length; i++) {
             si[i] = new SentenceIndex(sentences[i], 0);
-            sentenceList.add(sentences[i]);
         }
-        return sentenceList;
+        return si;
     }
 
     public static SentenceIndex[] build(List<String> wl, ArrayList<Integer> il, Locale loc) {
