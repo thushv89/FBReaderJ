@@ -67,8 +67,9 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
     private Dialog dialog;
     ListView list;
     Activity myActivity;
-    
-    private InputAccess inputAccess = new InputAccess(this, true);
+
+    //todo:
+    //private InputAccess inputAccess = new InputAccess(this, true);
 
 	private ListView createTab(String tag, int id, final String label) {
 		final TabHost host = getTabHost();
@@ -79,7 +80,9 @@ public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuIte
 	@Override
 	public void onCreate(Bundle bundle) {
 		super.onCreate(bundle);
-		inputAccess.onCreate();
+
+        //todo
+		//inputAccess.onCreate();
 		
 		Thread.setDefaultUncaughtExceptionHandler(new org.geometerplus.zlibrary.ui.android.library.UncaughtExceptionHandler(this));
         accessibilityManager =
