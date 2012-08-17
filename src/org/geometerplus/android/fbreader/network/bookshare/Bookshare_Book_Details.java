@@ -36,7 +36,9 @@ import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Booksh
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.GetAccessTokenTask;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetowkPosts;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetworkKeys;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterAccessTokenListener;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterWebActivity;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -187,7 +189,7 @@ public class Bookshare_Book_Details extends Activity implements
 
 		else if (requestCode == Bookshare_Twitter_Handler.BOOKSHARE_TWITTER_REQUEST) {
 			if (resultCode == Activity.RESULT_OK) {
-				verifier = data.getStringExtra("verifier");
+				verifier = data.getStringExtra(TwitterWebActivity.VERIFIER_EXTRA);
 				if (verifier != null) {
 					GetAccessTokenTask accTokenTask = twtrHandler.new GetAccessTokenTask();
 					accTokenTask.setVerifier(verifier);
@@ -204,8 +206,8 @@ public class Bookshare_Book_Details extends Activity implements
 			String accessTokenSecret) {
 		if (Bookshare_Twitter_Handler.SUCCESS_STRING.equals(result)) {
 			Editor e = mTwtrSharedPref.edit();
-			e.putString("twtr_access_token", accessToken);
-			e.putString("twtr_access_token_secret", accessTokenSecret);
+			e.putString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_PREF, accessToken);
+			e.putString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_SECRET_PREF, accessTokenSecret);
 			e.commit();
 		}
 		postOnTwitter(accessToken, accessTokenSecret);
@@ -299,9 +301,9 @@ public class Bookshare_Book_Details extends Activity implements
 									"twtr_oauth", Activity.MODE_PRIVATE);
 
 							String accessToken = mTwtrSharedPref.getString(
-									"twtr_access_token", null);
+                                    SocialNetworkKeys.TWITTER_ACCESS_TOKEN_PREF, null);
 							String accessTokenSecret = mTwtrSharedPref
-									.getString("twtr_access_token_secret", null);
+									.getString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_SECRET_PREF, null);
 
 							if (accessToken == null
 									|| accessTokenSecret == null) {

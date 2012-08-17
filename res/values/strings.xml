@@ -71,6 +71,9 @@
     <string name="bks_menu_no_internet">You must first enable internet connectivity!</string>
     <string name="empty_search_term_error">Search Term cannot be blank!</string>
     <string name="accessible_alert_title">Are you sure?</string>
+
+    <!-- Bookshare Twitter Handler -->
+    <string name="twitter_successful_post">Posted to Twitter</string>
     
     <!-- Bug Report Activity -->
     <string name="crash_report_sent">Sorry, we had an error. Support has been notified.</string>

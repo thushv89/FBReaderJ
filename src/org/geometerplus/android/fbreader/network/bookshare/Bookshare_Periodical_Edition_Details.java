@@ -38,7 +38,9 @@ import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Booksh
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.GetAccessTokenTask;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetowkPosts;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetworkKeys;
 import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterAccessTokenListener;
+import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterWebActivity;
 import org.geometerplus.android.fbreader.subscription.AllDbPeriodicalEntity;
 import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
 import org.geometerplus.android.fbreader.subscription.PeriodicalDBUtils;
@@ -217,7 +219,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 		}
 		else if(requestCode == Bookshare_Twitter_Handler.BOOKSHARE_TWITTER_REQUEST){
 			if(resultCode==Activity.RESULT_OK){
-				verifier=data.getStringExtra("verifier");
+				verifier=data.getStringExtra(TwitterWebActivity.VERIFIER_EXTRA);
 				if (verifier != null) {
 					GetAccessTokenTask accTokenTask = twtrHandler.new GetAccessTokenTask();
 					accTokenTask.setVerifier(verifier);
@@ -234,8 +236,8 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 			String accessTokenSecret) {
 		if (Bookshare_Twitter_Handler.SUCCESS_STRING.equals(result)) {
 			Editor e = mTwtrSharedPref.edit();
-			e.putString("twtr_access_token", accessToken);
-			e.putString("twtr_access_token_secret",
+			e.putString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_PREF, accessToken);
+			e.putString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_SECRET_PREF,
 					accessTokenSecret);
 			e.commit();
 		}
@@ -361,10 +363,10 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 								mTwtrSharedPref = getSharedPreferences("twtr_oauth",
 										Activity.MODE_PRIVATE);
 								
-								String accessToken = mTwtrSharedPref.getString("twtr_access_token",
+								String accessToken = mTwtrSharedPref.getString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_PREF,
 										null);
 								String accessTokenSecret = mTwtrSharedPref.getString(
-										"twtr_access_token_secret", null);
+                                        SocialNetworkKeys.TWITTER_ACCESS_TOKEN_SECRET_PREF, null);
 
 								if(accessToken == null || accessTokenSecret == null){
 									twtrHandler.setUpTwitterForPosting();
