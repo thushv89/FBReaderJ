@@ -62,6 +62,22 @@ Part B
 8. Build from within Eclipse  or 'ant clean debug' to build an installable .apk file
 9. The signed apk will be present in the /bin folder which can be installed on the Android device/emulator.
 
+------------------------------------------------------------------------------------------------------
+Part C
+------------------------------------------------------------------------------------------------------
+
+1. Setting up for Facebook
+- Following link has an in-depth explanation on how to set up the Facebook application 
+    https://developers.facebook.com/docs/mobile/android/sso/
+- Assign the (App ID/API Key) found from the Application page to the SocialNetworkKeys FACEBOOK_APP_ID variable
+- Assign the (ACCESS_TOKEN) from https://developers.facebook.com/tools/explorer by clicking "Get Access Token" to SocialNetworkKeys FACEBOOK_ACCESS_TOKEN
+
+2. Setting up for Twitter
+- Go to your https://dev.twitter.com/apps/new and Sign in with your Twitter account
+- Enter application name, description, Company, call-back url and click "Create"
+- You will be able to see to keys called Consumer Key and Consumer Secret
+- Assign those values to SocialNetworkKeys TWITTER_CONSUMER_KEY and TWITTER_CONSUMER_SECRET respectively
+
 Side Notes:
 One common reason the build steps mentioned in Part A may fail is because 
 the Android SDK and NDK locations in local.properties might not be correct.
