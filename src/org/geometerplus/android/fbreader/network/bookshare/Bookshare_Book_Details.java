@@ -198,7 +198,10 @@ public class Bookshare_Book_Details extends Activity implements
 				}
 			}
 
-		}
+		} else {
+            fbHandler.authorizeCallback(requestCode, resultCode, data);
+        }
+
 	}
 
 	@Override
@@ -283,11 +286,8 @@ public class Bookshare_Book_Details extends Activity implements
 						@Override
 						public void onClick(View arg0) {
 							fbHandler.ssoInitialAuth(); // get Single Sign
-							fbHandler.getFBPermission(); // get permission to
-															// check user's
-															// friend details
+							fbHandler.getFBPermission(); // get permission to  post
 							fbHandler.getAccessToken(); // get Access token
-														// which allows to do so
 							fbHandler.postBookOnWall(metadata_bean);
 						}
 					});

@@ -227,7 +227,9 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 				}
 			}
 
-		}
+		} else {
+            fbHandler.authorizeCallback(requestCode, resultCode, data);
+        }
 	}
 		
 		
