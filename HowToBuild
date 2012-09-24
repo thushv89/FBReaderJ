@@ -34,7 +34,7 @@ E.g., on my computer 'local.properties' consists of 2 lines:
 4. If you use Linux or MacOS, just run 'ant clean debug' to create an installable package that will provide debugging info.
 
 If you are Windows user
-  2a. Run ndk-build (a program from Android NDK directory) in your project catalog;
+  2a. Run ndk-build (a program from Android NDK directory) in your project directory;
       This program only runs from Cygwin >= 1.7, please read NDK docs for details.
       Read and try config cygwin using 'cygwin_installation_and_configuration.pdf'
   2b. Run 'ant release'.
@@ -49,9 +49,8 @@ Part B
 2. Change the local.properties file to point to your Android SDK and NDK installations.
 3. If you are running Linux or Mac OS, run "ant package" from inside the project directory containing build.xml. You may get some compile errors around the zip4j and bookshare classes, but don't worry at this point, since we will build with Eclipse. 
    If you are running Windows, 
-   - Run ndk-build (a program from Android NDK directory) in your project catalog;
+   - Run ndk-build (a program from Android NDK directory) in your project directory;
       This program only runs from Cygwin >= 1.7, please read NDK docs for details.
-   - Run ./createRawResources.py script.
 
    Make sure directories res/raw and res/drawable get created and are populated.
    These newly created resource directories are mandatory for creating an Eclipse project.
@@ -85,5 +84,5 @@ the Android SDK and NDK locations in local.properties might not be correct.
 Running the ndk-build enables compiles the native part of the code and creates shared object (.so) files.
 
 The Bookshare-API, zip4j_1.1.1.7, and other libraries in /lib should be included in the build path in the Eclipse project.
-This shall remove the compilation errors and the apk file will be created after project is built in Eclipse.
+This should remove the compilation errors and the apk file will be created after project is built in Eclipse.
 
