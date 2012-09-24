@@ -353,6 +353,11 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 						
 	                    bookshare_book_detail_revision.setNextFocusDownId(R.id.bookshare_book_detail_category);
 	                    bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
+
+                        fb_share.setVisibility(View.GONE);
+                        twtr_share.setVisibility(View.GONE);
+                        TextView shareText = (TextView) findViewById(R.id.bookshare_share_with_friends);
+                        shareText.setVisibility(View.GONE);
 	                    
 	                    book_detail_view.requestFocus();
 	                    

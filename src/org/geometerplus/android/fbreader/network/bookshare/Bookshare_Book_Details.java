@@ -282,6 +282,7 @@ public class Bookshare_Book_Details extends Activity implements
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
 
 					btn_fb_share = (Button) findViewById(R.id.fb_share);
+                    btn_fb_share.setVisibility(View.GONE);
 					btn_fb_share.setOnClickListener(new OnClickListener() {
 						@Override
 						public void onClick(View arg0) {
@@ -293,6 +294,9 @@ public class Bookshare_Book_Details extends Activity implements
 					});
 
 					btn_twt_share = (Button) findViewById(R.id.twtr_share);
+                    btn_twt_share.setVisibility(View.GONE);
+                    TextView shareText = (TextView) findViewById(R.id.bookshare_share_with_friends);
+                    shareText.setVisibility(View.GONE);
 					btn_twt_share.setOnClickListener(new OnClickListener() {
 
 						@Override
