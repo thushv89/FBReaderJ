@@ -76,6 +76,7 @@ Part C
 - Enter application name, description, Company, call-back url and click "Create"
 - You will be able to see to keys called Consumer Key and Consumer Secret
 - Assign those values to SocialNetworkKeys TWITTER_CONSUMER_KEY and TWITTER_CONSUMER_SECRET respectively
+- Also the callback url specified on the application settings page, should be assigned to the variable TWITTER_CALLBACK_URL in the SocialNetworkKeys.
 
 Side Notes:
 One common reason the build steps mentioned in Part A may fail is because 
