@@ -566,6 +566,9 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     // Bookshare custom methods
 
     private void highlightSentence(int myCurrentSentence) {
+        if (myCurrentSentence >= mySentences.length) {
+            return;
+        }
        // try {
             int endEI = myCurrentSentence < mySentences.length-1 ?
                             mySentences[myCurrentSentence+1].i-1: Integer.MAX_VALUE;
@@ -688,10 +691,10 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     }
 
     @Override
-         public boolean dispatchTouchEvent(MotionEvent me){
-           this.detector.onTouchEvent(me);
+    public boolean dispatchTouchEvent(MotionEvent me){
+        this.detector.onTouchEvent(me);
           return super.dispatchTouchEvent(me);
-         }
+    }
 
     @Override
     public void onSwipe(int direction) {
