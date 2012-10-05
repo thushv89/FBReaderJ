@@ -548,8 +548,11 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         if (!"".equals(text) && !myApi.isPageEndOfText()) {
             myApi.setPageStart(new TextPosition(myParagraphIndex, 0, 0));
         }
-        mySentences = TtsSentenceExtractor.build(wl, il, myTTS.getLanguage());
-        highlightParagraph();
+
+        if (null != wl) {
+            mySentences = TtsSentenceExtractor.build(wl, il, myTTS.getLanguage());
+            highlightParagraph();
+        }
 
         //Disable next section button if this is the last paragraph
         if (myParagraphIndex >= (myParagraphsNumber - 1)) {

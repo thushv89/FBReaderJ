@@ -57,6 +57,11 @@ public class TtsSentenceExtractor {
     }
 
     public static SentenceIndex[] build(List<String> wl, ArrayList<Integer> il, Locale loc) {
+
+        if (null == wl) {
+            return new SentenceIndex[0];
+        }
+
         ArrayList<String> ss = new ArrayList<String>();
         ArrayList<Integer> inds = new ArrayList<Integer>();
         String currSent = "";
