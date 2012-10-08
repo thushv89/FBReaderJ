@@ -65,6 +65,8 @@ Part B
 Part C
 ------------------------------------------------------------------------------------------------------
 
+This part still needs a little more work on how to build a Market ready, signed version that connects to Facebook.
+
 1. Setting up for Facebook
 - Following link has an in-depth explanation on how to set up the Facebook application 
     https://developers.facebook.com/docs/mobile/android/sso/
@@ -78,7 +80,9 @@ Part C
 - Assign those values to SocialNetworkKeys TWITTER_CONSUMER_KEY and TWITTER_CONSUMER_SECRET respectively
 - Also the callback url specified on the application settings page, should be assigned to the variable TWITTER_CALLBACK_URL in the SocialNetworkKeys.
 
-Side Notes:
+------------------------------------------------------------------------------------------------------
+Notes
+------------------------------------------------------------------------------------------------------
 One common reason the build steps mentioned in Part A may fail is because 
 the Android SDK and NDK locations in local.properties might not be correct.
 
@@ -87,3 +91,7 @@ Running the ndk-build enables compiles the native part of the code and creates s
 The Bookshare-API, zip4j_1.1.1.7, and other libraries in /lib should be included in the build path in the Eclipse project.
 This should remove the compilation errors and the apk file will be created after project is built in Eclipse.
 
+------------------------------------------------------------------------------------------------------
+Still Can't Build?
+------------------------------------------------------------------------------------------------------
+Take a look at http://howtobuildfbreaderj.blogspot.com/2012/01/how-to-build-fbreaderj-fbreader-on.html
