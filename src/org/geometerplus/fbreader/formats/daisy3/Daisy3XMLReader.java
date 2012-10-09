@@ -37,7 +37,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 	
 	private static final String[] NO_FORMAT_ELEMENTS = {"abbr", "acronym", "address", "annoref",
 		"annotation", "author", "bdo", "bridgehead", "code", "col", "colgroup", "dd",
-		"dfn", "dl", "dt", "dtbook", "img", "imggroup", "kbd", "lic", 
+		"dfn", "dl", "dt", "dtbook", "imggroup", "kbd", "lic", 
 		"linegroup", "linenum", "link", "meta", "note", "noteref", "q",
 		"samp", "sent", "span", "sub", "sup", "title", "w", "thead", "tbody", "tr", "table"
 	};
@@ -95,6 +95,7 @@ public class Daisy3XMLReader extends ZLXMLReaderAdapter {
 		
 		addAction("li", Daisy3XMLTagListAction.getInstance());
 		addAction("a", new Daisy3XMLTagHyperlinkAction());
+		addAction("img", new Daisy3XMLTagImageAction(null, "src"));
         addAction("pagenum", Daisy3XMLTagPageControlAction.getInstance());
 		
 		for (final String tag : BLOCK_ELEMENTS) {
