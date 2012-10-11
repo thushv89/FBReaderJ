@@ -86,9 +86,11 @@ public class TipsActivity extends Activity {
 					finish();
 				}
 			});
-            if (accessibilityManager.isEnabled()) {
+/*            if (accessibilityManager.isEnabled()) {
                 finish();
-            }
+            }*/
+            //Never show tips dialog
+            finish();
 		} else {
 			checkBox.setText(resource.getResource("dontShowAgain").getValue());
 
