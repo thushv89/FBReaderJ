@@ -55,7 +55,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.sqlite.SQLiteDatabase;
@@ -121,9 +120,6 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
     private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
     private Activity myActivity;
 	private BooksharePeriodicalDataSource dataSource;
-	private SharedPreferences mTwtrSharedPref;
-	private String verifier;
-	private TextView bookshare_share_with_friends;
 	private PeriodicalsSQLiteHelper periodicalDBHelper;
 	private SQLiteDatabase periodicalDb;
 	
@@ -284,7 +280,6 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 						//Need to set status of the subscibe checkbox everytime user comes to 'details' page
 						chkbx_subscribe_periodical=(CheckBox)findViewById(R.id.bookshare_chkbx_subscribe_periodical);
 						
-						chkbx_subscribe_periodical.setNextFocusDownId(R.id.bookshare_share_with_friends);
 						chkbx_subscribe_periodical.setNextFocusUpId(R.id.bookshare_btn_download);
 						
 						if(dataSource.doesExist(periodicalDb, PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS, 
@@ -292,18 +287,9 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 							chkbx_subscribe_periodical.setChecked(true);
 						}
 						bookshare_subscribe_explained=(TextView)findViewById(R.id.bookshare_subscribe_explained);
-						
-						bookshare_share_with_friends = (TextView) findViewById(R.id.bookshare_share_with_friends);
-						
-						bookshare_share_with_friends.setNextFocusDownId(R.id.fb_share);
-						bookshare_share_with_friends.setNextFocusUpId(R.id.bookshare_btn_download);
-						
+
 	                    bookshare_book_detail_revision.setNextFocusDownId(R.id.bookshare_book_detail_category);
 	                    bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
-
-                        TextView shareText = (TextView) findViewById(R.id.bookshare_share_with_friends);
-                        shareText.setVisibility(View.GONE);
-	                    
 	                    book_detail_view.requestFocus();
 
 	                    
@@ -323,8 +309,6 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 							
 	                        btn_download.setNextFocusDownId(R.id.bookshare_chkbx_subscribe_periodical);
 	                        btn_download.setNextFocusUpId(R.id.bookshare_book_detail_title);
-	                        
-	                        bookshare_book_detail_edition.setNextFocusUpId(R.id.bookshare_share_with_friends);
 	                        
 							btn_download.setOnClickListener(new OnClickListener(){
 								public void onClick(View v){

@@ -8,8 +8,6 @@ import org.accessibility.VoiceableDialog;
 import org.bookshare.net.BookshareWebservice;
 import org.benetech.android.R;
 
-import ca.idi.tecla.lib.InputAccess;
-
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;

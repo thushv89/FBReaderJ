@@ -47,7 +47,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -232,40 +231,24 @@ public class Bookshare_Book_Details extends Activity {
 					btn_download = (Button) findViewById(R.id.bookshare_btn_download);
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
 
-
-                    TextView shareText = (TextView) findViewById(R.id.bookshare_share_with_friends);
-                    shareText.setVisibility(View.GONE);
-
-
-					bookshare_book_detail_isbn
-							.setNextFocusUpId(R.id.twtr_share);
-
-					bookshare_book_detail_language
-							.setNextFocusDownId(R.id.bookshare_book_detail_category);
-					bookshare_book_detail_category
-							.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
-					bookshare_book_detail_publish_date
-							.setNextFocusUpId(R.id.bookshare_book_detail_category);
-					bookshare_book_detail_synopsis_text
-							.setNextFocusUpId(R.id.bookshare_book_detail_copyright);
+					bookshare_book_detail_language.setNextFocusDownId(R.id.bookshare_book_detail_category);
+					bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
+					bookshare_book_detail_publish_date.setNextFocusUpId(R.id.bookshare_book_detail_category);
+					bookshare_book_detail_synopsis_text.setNextFocusUpId(R.id.bookshare_book_detail_copyright);
 
 					book_detail_view.requestFocus();
 					// If the book is not downloadable, do not show the download
 					// button
 					if (!isDownloadable) {
 						btn_download.setVisibility(View.GONE);
-						bookshare_book_detail_authors
-								.setNextFocusDownId(R.id.bookshare_download_not_available_msg);
-						bookshare_download_not_available_text
-								.setNextFocusUpId(R.id.bookshare_book_detail_authors);
+						bookshare_book_detail_authors.setNextFocusDownId(R.id.bookshare_download_not_available_msg);
+                        bookshare_book_detail_isbn.setNextFocusUpId(R.id.bookshare_download_not_available_msg);
+						bookshare_download_not_available_text.setNextFocusUpId(R.id.bookshare_book_detail_authors);
 					} else {
-						bookshare_download_not_available_text
-								.setVisibility(View.GONE);
-						btn_download.setNextFocusDownId(R.id.fb_share);
-						btn_download
-								.setNextFocusUpId(R.id.bookshare_book_detail_authors);
-						bookshare_book_detail_authors
-								.setNextFocusDownId(R.id.bookshare_btn_download);
+						bookshare_download_not_available_text.setVisibility(View.GONE);
+						btn_download.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
+						btn_download.setNextFocusUpId(R.id.bookshare_book_detail_authors);
+						bookshare_book_detail_authors.setNextFocusDownId(R.id.bookshare_btn_download);
 						btn_download.setOnClickListener(new OnClickListener() {
 							public void onClick(View v) {
 
@@ -314,16 +297,11 @@ public class Bookshare_Book_Details extends Activity {
 										if (null != downloadedBookDir) {
 											ZLFile opfFile = getOpfFile();
 											if (null != opfFile) {
-												startActivity(new Intent(
-														getApplicationContext(),
-														FBReader.class)
-														.setAction(
-																Intent.ACTION_VIEW)
-														.putExtra(
-																FBReader.BOOK_PATH_KEY,
-																opfFile.getPath())
-														.addFlags(
-																Intent.FLAG_ACTIVITY_CLEAR_TOP));
+												startActivity(
+                                                    new Intent(getApplicationContext(), FBReader.class)
+														.setAction(Intent.ACTION_VIEW)
+														.putExtra(FBReader.BOOK_PATH_KEY,opfFile.getPath())
+														.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
 											}
 
 										}

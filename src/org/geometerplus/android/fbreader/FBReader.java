@@ -34,7 +34,6 @@ import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
-import ca.idi.tecla.lib.InputAccess;
 
 import com.bugsense.trace.BugSenseHandler;
 

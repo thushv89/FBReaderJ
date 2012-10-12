@@ -43,8 +43,6 @@ import org.geometerplus.fbreader.library.*;
 
 import org.geometerplus.android.util.UIUtil;
 
-import ca.idi.tecla.lib.InputAccess;
-
 public class BookmarksActivity extends TabActivity implements MenuItem.OnMenuItemClickListener {
 	private static final int OPEN_ITEM_ID = 0;
 	private static final int EDIT_ITEM_ID = 1;

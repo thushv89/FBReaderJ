@@ -26,18 +26,13 @@ E.g., on my computer 'local.properties' consists of 2 lines:
    Bookshare developer key if you want to access the Bookshare library. You can obtain a Bookshare developer key from
    http://developer.bookshare.org.  You can also optionally enter your Bugsense key to get crash reports.
 
-3. You will have to edit src/org/geometerplus/android/fbreader/network/bookshare/socialnetworks/SocialNetworkKeys. 
-   To work with Facebook sharing features, create an App with Facebook Developer Account and obtain Access Token and
-   Application Id,. For Twitter sharing features, you will need to create a Twitter app and obtain Consumer Key and Consumer Secret.
-   Then populate respective fields in SocialNetworkKeys class with those information.
-
-4. If you use Linux or MacOS, just run 'ant clean debug' to create an installable package that will provide debugging info.
+3. If you use Linux or MacOS, just run 'ant clean debug' to create an installable package that will provide debugging info.
 
 If you are Windows user
-  2a. Run ndk-build (a program from Android NDK directory) in your project directory;
+  3a. Run ndk-build (a program from Android NDK directory) in your project directory;
       This program only runs from Cygwin >= 1.7, please read NDK docs for details.
       Read and try config cygwin using 'cygwin_installation_and_configuration.pdf'
-  2b. Run 'ant release'.
+  3b. Run 'ant release'.
 
 4. Sign your package manually.
 
