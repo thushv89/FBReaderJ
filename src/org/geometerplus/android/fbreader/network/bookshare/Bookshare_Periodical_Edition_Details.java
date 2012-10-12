@@ -34,13 +34,6 @@ import org.benetech.android.R;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.android.fbreader.network.BookDownloaderService;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_FacebookHandler;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.Bookshare_Twitter_Handler.GetAccessTokenTask;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetowkPosts;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.SocialNetworkKeys;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterAccessTokenListener;
-import org.geometerplus.android.fbreader.network.bookshare.socialnetworks.TwitterWebActivity;
 import org.geometerplus.android.fbreader.subscription.AllDbPeriodicalEntity;
 import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
 import org.geometerplus.android.fbreader.subscription.PeriodicalDBUtils;
@@ -85,7 +78,7 @@ import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Bookshare_Periodical_Edition_Details extends Activity implements TwitterAccessTokenListener{
+public class Bookshare_Periodical_Edition_Details extends Activity {
 
 	
 	private String username;
@@ -110,9 +103,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 	private String selectedPeriodicalTitle;
 	private String selectedPeriodicalId;
 	private Button btn_download;
-	private Button twtr_share;
-	private Button fb_share;
-	
+
 	boolean isDownloadable;
 	private final int BOOKSHARE_PERIODICAL_EDITION_DETAILS_FINISHED = 1;
 	
@@ -129,8 +120,6 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
     private String downloadedBookDir;
     private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
     private Activity myActivity;
-    private Bookshare_FacebookHandler fbHandler;
-    private Bookshare_Twitter_Handler twtrHandler;
 	private BooksharePeriodicalDataSource dataSource;
 	private SharedPreferences mTwtrSharedPref;
 	private String verifier;
@@ -165,9 +154,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 		selectedPeriodicalTitle=intent.getStringExtra("PERIODICAL_TITLE");
 		selectedPeriodicalId=intent.getStringExtra("PERIODICAL_ID");
 		
-		fbHandler= new Bookshare_FacebookHandler(this);
-		twtrHandler = new Bookshare_Twitter_Handler(this);
-		
+
 		// Obtain the application wide SharedPreferences object and store the login information
 		//Get information about user. (i.e. Whether he's an organizational member)
 		SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -217,40 +204,9 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 				new DownloadFilesTask().execute();
 			}
 		}
-		else if(requestCode == Bookshare_Twitter_Handler.BOOKSHARE_TWITTER_REQUEST){
-			if(resultCode==Activity.RESULT_OK){
-				verifier=data.getStringExtra(TwitterWebActivity.VERIFIER_EXTRA);
-				if (verifier != null) {
-					GetAccessTokenTask accTokenTask = twtrHandler.new GetAccessTokenTask();
-					accTokenTask.setVerifier(verifier);
-					accTokenTask.execute(new TwitterAccessTokenListener[]{this});
-				}
-			}
+	}
 
-		} else {
-            fbHandler.authorizeCallback(requestCode, resultCode, data);
-        }
-	}
-		
-		
-	@Override
-	public void onAccessTokenFound(String result,String accessToken,
-			String accessTokenSecret) {
-		if (Bookshare_Twitter_Handler.SUCCESS_STRING.equals(result)) {
-			Editor e = mTwtrSharedPref.edit();
-			e.putString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_PREF, accessToken);
-			e.putString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_SECRET_PREF,
-					accessTokenSecret);
-			e.commit();
-		}
-		postOnTwitter(accessToken, accessTokenSecret);
-		
-	}
-	
-	//Actual post of twitter update is extracted to this
-	private void postOnTwitter(String accessToken,String accessTokenSecret){
-		(twtrHandler.new UpdateStatusTask()).execute(new String[] {accessToken,accessTokenSecret,SocialNetowkPosts.getShortenedPeriodicalPost(metadata_bean)});
-	}
+
 	
 		// Handler for processing the returned stream from book detail search
 		Handler handler = new Handler(){
@@ -322,9 +278,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 						btn_download = (Button)findViewById(R.id.bookshare_btn_download);
 						bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
 	                    
-						fb_share = (Button)findViewById(R.id.fb_share);
-						twtr_share = (Button)findViewById(R.id.twtr_share);
-						
+
 						bookshare_book_detail_title_text.setNextFocusDownId(R.id.bookshare_btn_download);
 						
 						//Need to set status of the subscibe checkbox everytime user comes to 'details' page
@@ -344,56 +298,14 @@ public class Bookshare_Periodical_Edition_Details extends Activity implements Tw
 						bookshare_share_with_friends.setNextFocusDownId(R.id.fb_share);
 						bookshare_share_with_friends.setNextFocusUpId(R.id.bookshare_btn_download);
 						
-						fb_share.setNextFocusDownId(R.id.twtr_share);
-						fb_share.setNextFocusRightId(R.id.twtr_share);
-						
-						twtr_share.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
-						twtr_share.setNextFocusUpId(R.id.fb_share);
-						twtr_share.setNextFocusLeftId(R.id.fb_share);
-						
 	                    bookshare_book_detail_revision.setNextFocusDownId(R.id.bookshare_book_detail_category);
 	                    bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
 
-                        fb_share.setVisibility(View.GONE);
-                        twtr_share.setVisibility(View.GONE);
                         TextView shareText = (TextView) findViewById(R.id.bookshare_share_with_friends);
                         shareText.setVisibility(View.GONE);
 	                    
 	                    book_detail_view.requestFocus();
-	                    
-	                    
-	            			            		
-	                    twtr_share.setOnClickListener(new OnClickListener() {
-							
-							@Override
-							public void onClick(View arg0) {
-								mTwtrSharedPref = getSharedPreferences("twtr_oauth",
-										Activity.MODE_PRIVATE);
-								
-								String accessToken = mTwtrSharedPref.getString(SocialNetworkKeys.TWITTER_ACCESS_TOKEN_PREF,
-										null);
-								String accessTokenSecret = mTwtrSharedPref.getString(
-                                        SocialNetworkKeys.TWITTER_ACCESS_TOKEN_SECRET_PREF, null);
 
-								if(accessToken == null || accessTokenSecret == null){
-									twtrHandler.setUpTwitterForPosting();
-								}else{
-									postOnTwitter(accessToken, accessTokenSecret);
-								}
-								
-							}
-						});
-	                    
-	                    fb_share.setOnClickListener(new OnClickListener() {
-							
-							@Override
-							public void onClick(View arg0) {
-								fbHandler.ssoInitialAuth();	//get Single Sign
-								fbHandler.getFBPermission();	//get permission to check user's friend details
-								fbHandler.getAccessToken();	//get Access token which allows to do so
-								fbHandler.postPeriodicalOnWall(metadata_bean);	
-							}
-						});
 	                    
 						// If the book is not downloadable, do not show the download button
 						if(!isDownloadable){
