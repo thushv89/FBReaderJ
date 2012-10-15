@@ -336,9 +336,6 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 
             final ScrollingPreferences scrollingPreferences = ScrollingPreferences.Instance();
 
-            //final Screen tapZonesScreen = createPreferenceScreen("tapZones");
-            //tapZonesScreen.addOption(scrollingPreferences.TapZonesSchemeOption, "tapZonesScheme");
-
             final ZLKeyBindings keyBindings = fbReader.keyBindings();
 
             final Screen scrollingScreen = createPreferenceScreen("scrolling");
@@ -422,7 +419,7 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 
 		    dictionaryScreen.addOption(fbReader.WordTappingActionOption, "tappingAction");
 
-		    final Screen subscriptionScreen = createPreferenceScreen("subscriptionSettings");
+		    //final Screen subscriptionScreen = createPreferenceScreen("subscriptionSettings");
 		    //subscriptionScreen.addOption(, resourceKey)
 		    
 		    
