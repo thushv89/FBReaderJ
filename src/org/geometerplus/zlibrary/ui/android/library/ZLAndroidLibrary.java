@@ -57,7 +57,7 @@ public final class ZLAndroidLibrary extends ZLibrary {
 			// PanDigital
 			"PD_Novel".equals(Build.MODEL)  ||
             // Nook
-            "nook".equals(Build.BRAND)   ;
+            "nook".equalsIgnoreCase(Build.BRAND)   ;
 	}
 
 	private Boolean myIsKindleFire = null;
@@ -81,7 +81,7 @@ public final class ZLAndroidLibrary extends ZLibrary {
 
 	ZLAndroidLibrary(Application application) {
 		myApplication = application;
-        if ("nook".equals(Build.BRAND)) {
+        if ("nook".equalsIgnoreCase(Build.BRAND)) {
             BatteryLevelToTurnScreenOffOption = new ZLIntegerRangeOption("LookNFeel", "BatteryLevelToTurnScreenOff", 0, 100, 100);
         }
 	}

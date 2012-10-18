@@ -26,16 +26,12 @@ import android.os.Environment;
 
 public abstract class Paths {
 	public static String cardDirectory() {
-        if ("nook".equals(Build.BRAND)) {
-          return "/media";
-        } else {
-		    return Environment.getExternalStorageDirectory().getPath();
-        }
+        return Environment.getExternalStorageDirectory().getPath();
 	}
 
 	public static ZLStringOption BooksDirectoryOption() {
         String booksDir = "/Books";
-        if ("nook".equals(Build.BRAND)) {
+        if ("nook".equalsIgnoreCase(Build.BRAND)) {
             booksDir = "/GoReadBooks";
         }
 		return new ZLStringOption("Files", "BooksDirectory", cardDirectory() + booksDir);
