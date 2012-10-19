@@ -2,9 +2,11 @@
 This fork is an initiative for developing an e-book reader for DAISY 3 files.
 -----------------------------------------------------------------------------
 
+Web demo at http://benetech.github.com/FBReaderJ
+
 DAISY 3 is a format that helps to make reading easier for those having reading disabilities.
 Benetech (http://www.benetech.org/), the organization that leads the efforts for making the world 
-a better place for the print disabled, is originator of this project.
+a better place for the print disabled, is maintainer of this project.
 Benetech staff and olunteer programmers help to develop and maintain this fork.
 
 This is a fork of the FBReaderJ project located at https://github.com/geometer/FBReaderJ.
@@ -22,10 +24,6 @@ We will be working on a more sophisticated version of that module.
 This version also supports other formats, such as epub, fb2, palmdoc and tcr.
 
 To build this project, please follow the instructions in the HowToBuild file.
-
-The link for Bookshare developer API is http://developer.bookshare.org/
-
-The user manual for this app can be edited at http://booki.flossmanuals.net/bookshare-reader-user-guide/_edit/
 
 If you plan to build this project, you need an API key, which can be obtained by registered at
 http://developer.bookshare.org and acquiring an API key.
