@@ -104,7 +104,7 @@ public class Bookshare_Menu extends ListActivity {
             R.drawable.isbn,
             R.drawable.latest,
             R.drawable.isbn,
-        //    R.drawable.periodicals,		//Icon for 'All Periodicals' (thushv)
+            R.drawable.periodicals,		//Icon for 'All Periodicals' (thushv)
             R.drawable.titles
 		};
         
@@ -112,7 +112,7 @@ public class Bookshare_Menu extends ListActivity {
 		//Create a TreeMap for use in the SimpleAdapter
         String[] items = {getResources().getString(R.string.bks_menu_title_label),
                 getResources().getString(R.string.bks_menu_author_label), getResources().getString(R.string.bks_menu_isbn_label),
-                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label),logInMenuItem};
+                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label), getResources().getString(R.string.bks_menu_periodicals_label), logInMenuItem};
 		for(int i = 0; i < drawables.length; i++){
 			TreeMap<String, Object> row_item = new TreeMap<String, Object>();
 			row_item.put("Name", items[i]);
