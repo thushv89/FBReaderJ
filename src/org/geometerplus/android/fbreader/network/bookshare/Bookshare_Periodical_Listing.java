@@ -50,6 +50,7 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
+import com.google.analytics.tracking.android.EasyTracker;
 
 
 public class Bookshare_Periodical_Listing extends ListActivity{
@@ -117,6 +118,18 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 
 		getListing(requestURI);
 	}
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
 
 
 	/**This method fetch data returned from a certain URI

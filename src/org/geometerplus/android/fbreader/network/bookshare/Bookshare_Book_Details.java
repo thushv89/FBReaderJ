@@ -19,6 +19,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import com.google.analytics.tracking.android.EasyTracker;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
@@ -31,6 +32,7 @@ import org.apache.http.HttpResponse;
 import org.benetech.android.R;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
+import org.geometerplus.android.fbreader.benetech.Analytics;
 import org.geometerplus.android.fbreader.network.BookDownloaderService;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -175,7 +177,17 @@ public class Bookshare_Book_Details extends Activity {
 	}
 
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
 
 	// Handler for processing the returned stream from book detail search
 	Handler handler = new Handler() {
@@ -272,6 +284,8 @@ public class Bookshare_Book_Details extends Activity {
 										startActivityForResult(intent,
 												START_BOOKSHARE_OM_LIST);
 									} else {
+                                        EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI,
+                                            Analytics.EVENT_ACTION_BUTTON, Analytics.EVENT_LABEL_DOWNLOAD_BOOK, null);
 										new DownloadFilesTask().execute();
 										showAlert(getResources()
 												.getString(

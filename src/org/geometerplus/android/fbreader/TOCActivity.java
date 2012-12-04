@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.view.*;
 import android.widget.*;
 import android.app.ListActivity;
+import com.google.analytics.tracking.android.EasyTracker;
 
 import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.fbreader.library.Bookmark;
@@ -77,6 +78,18 @@ public class TOCActivity extends ListActivity {
         list = (ListView) dialog.findViewById(R.id.accessible_list);
         myActivity = this;
 	}
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
 
 	private static final int PROCESS_TREE_ITEM_ID = 0;
 	private static final int READ_BOOK_ITEM_ID = 1;

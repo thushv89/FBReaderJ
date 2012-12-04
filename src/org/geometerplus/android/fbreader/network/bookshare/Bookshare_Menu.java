@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import org.accessibility.ParentCloserDialog;
 import org.accessibility.VoiceableDialog;
 import org.benetech.android.R;
+import org.geometerplus.android.fbreader.benetech.Analytics;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -40,6 +41,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import com.google.analytics.tracking.android.EasyTracker;
 
 /**
  * This ListActivity shows options for retrieving data from Bookshare.
@@ -104,7 +106,7 @@ public class Bookshare_Menu extends ListActivity {
             R.drawable.isbn,
             R.drawable.latest,
             R.drawable.isbn,
-            R.drawable.periodicals,		//Icon for 'All Periodicals' (thushv)
+//            R.drawable.periodicals,		//Icon for 'All Periodicals' (thushv)
             R.drawable.titles
 		};
         
@@ -112,7 +114,7 @@ public class Bookshare_Menu extends ListActivity {
 		//Create a TreeMap for use in the SimpleAdapter
         String[] items = {getResources().getString(R.string.bks_menu_title_label),
                 getResources().getString(R.string.bks_menu_author_label), getResources().getString(R.string.bks_menu_isbn_label),
-                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label), getResources().getString(R.string.bks_menu_periodicals_label), logInMenuItem};
+                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label), logInMenuItem};
 		for(int i = 0; i < drawables.length; i++){
 			TreeMap<String, Object> row_item = new TreeMap<String, Object>();
 			row_item.put("Name", items[i]);
@@ -172,12 +174,18 @@ public class Bookshare_Menu extends ListActivity {
 				TextView txt_name = (TextView)row_view.findViewById(R.id.text1);
 
 				if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_title_label))){
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_BKS_SEARCH,
+                        Analytics.EVENT_LABEL_SEARCH_TITLE, null);
                     showTitleSearch();
 				}
 				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_author_label))){
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_BKS_SEARCH,
+                        Analytics.EVENT_LABEL_SEARCH_AUTHOR, null);
                     showAuthorSearch();
 				}
 				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_isbn_label))){
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_BKS_SEARCH,
+                        Analytics.EVENT_LABEL_SEARCH_ISBN, null);
                     showISBNSearch();
 				}
 				else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_latest_label))){
@@ -197,6 +205,8 @@ public class Bookshare_Menu extends ListActivity {
 						intent.putExtra("username", username);
 						intent.putExtra("password", password);
 					}
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_BKS_SEARCH,
+                        Analytics.EVENT_LABEL_SEARCH_LATEST, null);
 					startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
 				}
 				
@@ -214,6 +224,8 @@ public class Bookshare_Menu extends ListActivity {
 						intent.putExtra("username", username);
 						intent.putExtra("password", password);
 					}
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_BKS_SEARCH,
+                        Analytics.EVENT_LABEL_SEARCH_POPULAR, null);
 					startActivityForResult(intent, START_BOOKSHARE_BOOKS_LISTING_ACTIVITY);
 				}
 				//This is when user clickes on 'All Periodicals' (thushv)
@@ -245,6 +257,8 @@ public class Bookshare_Menu extends ListActivity {
                 else if(txt_name.getText().equals(getResources().getString(R.string.bks_menu_log_in))) {
                     Intent intent = new Intent(getApplicationContext(), Bookshare_Webservice_Login.class);
                     startActivity(intent);
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_LOGIN,
+                        Analytics.EVENT_ACTION_LOGIN, null);
                     finish();
                 }
 				
@@ -277,7 +291,8 @@ public class Bookshare_Menu extends ListActivity {
                             confirmDialog.dismiss();
                         }
                     });
-                    
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_LOGOUT,
+                        Analytics.EVENT_ACTION_LOGOUT, null);
                     confirmDialog.show();
                 }
 			}
@@ -357,9 +372,16 @@ public class Bookshare_Menu extends ListActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        EasyTracker.getInstance().activityStart(this);
         if (!isNetworkAvailable()) {
             confirmAndClose(getResources().getString(R.string.bks_menu_no_internet), 3500);
         }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
     }
 
     private void doSearch() {

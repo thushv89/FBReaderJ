@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityManager;
+import com.google.analytics.tracking.android.EasyTracker;
 
 import org.geometerplus.zlibrary.core.application.ZLKeyBindings;
 import org.geometerplus.zlibrary.core.options.ZLIntegerOption;
@@ -457,4 +458,16 @@ public class PreferenceActivity extends ZLPreferenceActivity {
 		aboutScreen.addPreference(new UrlPreference(this, aboutScreen.Resource, "twitter"));
 		aboutScreen.addPreference(new UrlPreference(this, aboutScreen.Resource, "forum"));
 	}
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
 }

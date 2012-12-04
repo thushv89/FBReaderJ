@@ -45,6 +45,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import com.google.analytics.tracking.android.EasyTracker;
 
 /**
  * This ListActivity shows the search results
@@ -111,6 +112,18 @@ public class Bookshare_Books_Listing extends ListActivity{
 		}
 		getListing(requestURI);
 	}
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
     
     /*
      * Display voiceable message and then close

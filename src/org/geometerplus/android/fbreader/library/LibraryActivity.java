@@ -32,8 +32,10 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import com.google.analytics.tracking.android.EasyTracker;
 
 import org.accessibility.VoiceableDialog;
+import org.geometerplus.android.fbreader.benetech.Analytics;
 import org.geometerplus.android.fbreader.benetech.LabelsListAdapter;
 import org.geometerplus.zlibrary.core.options.ZLStringOption;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -104,6 +106,18 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
 	protected FBTree getTreeByKey(FBTree.Key key) {
 		return key != null ? myLibrary.getLibraryTree(key) : myLibrary.getRootTree();
 	}
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
 
 	@Override
 	public void onPause() {
@@ -368,6 +382,8 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
             dialog.hide();
             switch (position) {
                 case OPEN_BOOK_ITEM_ID:
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BOOK_MENU,
+                        Analytics.EVENT_LABEL_OPEN_BOOK, null);
                     openBook(book);
                     break;
                 case 1:
@@ -375,13 +391,19 @@ public class LibraryActivity extends TreeActivity implements MenuItem.OnMenuItem
                         myLibrary.removeBookFromFavorites(book);
                         notifyFavoritesAction(R.string.library_removed_from_favorites);
                         getListView().invalidateViews();
+                        EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BOOK_MENU,
+                            Analytics.EVENT_LABEL_FAVORITES_REMOVE, null);
                     } else {
                         myLibrary.addBookToFavorites(book);
                         notifyFavoritesAction(R.string.library_added_to_favorites);
+                        EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BOOK_MENU,
+                            Analytics.EVENT_LABEL_FAVORITES_ADD, null);
                     }
                     break;
                 case 2:
                     tryToAccessiblyDeleteBook(book);
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BOOK_MENU,
+                        Analytics.EVENT_LABEL_DELETE_BOOK, null);
                     break;
             }
         }

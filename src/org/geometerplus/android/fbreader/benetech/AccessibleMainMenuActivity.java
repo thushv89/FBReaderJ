@@ -22,6 +22,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import com.google.analytics.tracking.android.EasyTracker;
 
 public class AccessibleMainMenuActivity extends Activity {
 
@@ -105,6 +106,18 @@ public class AccessibleMainMenuActivity extends Activity {
 		return false;
 	}
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
+
     /**
      * Order of FBReader's main menu options. Each enum entry has an associated label and onClick operation.
      */
@@ -113,18 +126,24 @@ public class AccessibleMainMenuActivity extends Activity {
 	    speak(resources.getString(R.string.menu_speak), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SPEAK);
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_MENU,
+                    Analytics.EVENT_LABEL_READ, null);
                 activity.finish();
 	        }
 	    }),
         tableOfContents(resources.getString(R.string.menu_toc), new MenuOperation() {
             public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_TOC);
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_MENU,
+                    Analytics.EVENT_LABEL_TOC, null);
                 activity.finish();
             }
         }),
         navigate(resources.getString(R.string.menu_navigate), new MenuOperation() {
             public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.ACCESSIBLE_NAVIGATION);
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_MENU,
+                    Analytics.EVENT_LABEL_NAVIGATE, null);
                 activity.finish();
             }
         }),
@@ -155,12 +174,16 @@ public class AccessibleMainMenuActivity extends Activity {
 	    settings(resources.getString(R.string.menu_settings), new MenuOperation() {
 	        public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_PREFERENCES);
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_MENU,
+                    Analytics.EVENT_LABEL_SETTINGS, null);
                 activity.finish();
 	        }
 	    }),
         accessibilitySettings(resources.getString(R.string.menu_accessibility_settings), new MenuOperation() {
             public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_ACCESSIBILITY_SETTINGS);
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_MENU,
+                    Analytics.EVENT_LABEL_ACCESSIBILITY_SETTINGS, null);
                 activity.finish();
             }
         }),
@@ -170,12 +193,16 @@ public class AccessibleMainMenuActivity extends Activity {
                 intent.setAction("com.android.settings.TTS_SETTINGS");
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 me.startActivity(intent);
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_MENU,
+                    Analytics.EVENT_LABEL_TTS_SETTINGS, null);
                 activity.finish();
             }
         }),
         help(resources.getString(R.string.menu_help), new MenuOperation() {
             public void click(final Activity activity) {
                 ZLApplication.Instance().doAction(ActionCode.SHOW_HELP);
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_MENU,
+                    Analytics.EVENT_LABEL_HELP, null);
                 activity.finish();
             }
         })

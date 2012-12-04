@@ -44,6 +44,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import com.google.analytics.tracking.android.EasyTracker;
 
 /**
  * 
@@ -102,6 +103,19 @@ public class Bookshare_OM_List extends ListActivity{
 			}
 		}.start();
 	}
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EasyTracker.getInstance().activityStop(this);
+    }
 
 //	@Override
 /*	protected void onActivityResult(int requestCode, int resultCode, Intent data){

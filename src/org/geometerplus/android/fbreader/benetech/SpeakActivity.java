@@ -47,6 +47,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.Button;
+import com.google.analytics.tracking.android.EasyTracker;
 import com.hyperionics.fbreader.plugin.tts_plus.TtsSentenceExtractor;
 
 import org.accessibility.SimpleGestureFilter;
@@ -226,6 +227,8 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 
 		setListener(R.id.speak_menu_back, new View.OnClickListener() {
 			public void onClick(View v) {
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BUTTON,
+                    Analytics.EVENT_LABEL_PREV, null);
                 goBackward();
 			}
 		});
@@ -241,6 +244,8 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         );
 		setListener(R.id.speak_menu_forward, new View.OnClickListener() {
 			public void onClick(View v) {
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BUTTON,
+                    Analytics.EVENT_LABEL_NEXT, null);
                 goForward();
 			}
 		});
@@ -262,11 +267,15 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 		});*/
 		setListener(R.id.speak_menu_pause, new View.OnClickListener() {
 			public void onClick(View v) {
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BUTTON,
+                    Analytics.EVENT_LABEL_PLAY_PAUSE, null);
                 playOrPause();
             }
 		});
         setListener(R.id.speak_menu_contents, new View.OnClickListener() {
             public void onClick(View v) {
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_BUTTON,
+                    Analytics.EVENT_LABEL_TOC, null);
                 showContents();
             }
         });
@@ -352,6 +361,12 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        EasyTracker.getInstance().activityStart(this);
+    }
+
+    @Override
 	protected void onPause() {
 		super.onPause();
 	}
@@ -363,6 +378,7 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         //LastReadPageOfCurrentBook.saveLocationOfLastReadPage(this);
         savePosition();
 		super.onStop();
+        EasyTracker.getInstance().activityStop(this);
 	}
 
 	@Override
@@ -705,14 +721,22 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
         switch (direction) {
             case SimpleGestureFilter.SWIPE_RIGHT :
                 goForward();
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_GESTURE,
+                    Analytics.EVENT_LABEL_NEXT, null);
                 break;
             case SimpleGestureFilter.SWIPE_LEFT :
                 goBackward();
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_GESTURE,
+                    Analytics.EVENT_LABEL_PREV, null);
                 break;
             case SimpleGestureFilter.SWIPE_DOWN :
                 showMainMenu();
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_GESTURE,
+                    Analytics.EVENT_LABEL_MENU, null);
                 break;
             case SimpleGestureFilter.SWIPE_UP :
+                EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_GESTURE,
+                    Analytics.EVENT_LABEL_TOC, null);
                 showContents();
                 break;
           }
@@ -721,6 +745,8 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     @Override
     public void onDoubleTap() {
         myVib.vibrate(VIBE_PATTERN, -1);
+        EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_UI, Analytics.EVENT_ACTION_GESTURE,
+            Analytics.EVENT_LABEL_PLAY_PAUSE, null);
         playOrPause();
     }
 

@@ -36,6 +36,8 @@ import android.view.accessibility.AccessibilityManager;
 import android.widget.RelativeLayout;
 
 import com.bugsense.trace.BugSenseHandler;
+import com.google.analytics.tracking.android.EasyTracker;
+import com.google.analytics.tracking.android.GoogleAnalytics;
 
 import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
@@ -270,6 +272,9 @@ public final class FBReader extends ZLAndroidActivity {
 	@Override
 	public void onStart() {
 		super.onStart();
+        GoogleAnalytics.getInstance(this).setAppOptOut(BookshareDeveloperKey.OPT_OUT_GOOGLE_ANALYTICS);
+        EasyTracker.getInstance().activityStart(this);
+
 		final ZLAndroidLibrary zlibrary = (ZLAndroidLibrary)ZLibrary.Instance();
 
 		final int fullScreenFlag =
@@ -340,6 +345,7 @@ public final class FBReader extends ZLAndroidActivity {
 		ApiServerImplementation.sendEvent(this, ApiListener.EVENT_READ_MODE_CLOSED);
 		PopupPanel.removeAllWindows(FBReaderApp.Instance(), this);
 		super.onStop();
+        EasyTracker.getInstance().activityStop(this);
 	}
 
 	@Override
