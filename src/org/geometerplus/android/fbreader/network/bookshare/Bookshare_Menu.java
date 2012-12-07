@@ -62,7 +62,7 @@ public class Bookshare_Menu extends ListActivity {
 	private EditText dialog_search_term;
 	private TextView dialog_search_title;
 	private TextView dialog_example_text;
-	private EditText search_text;
+
 	private Button dialog_ok;
     private String search_term = "";
 	private String URI_String = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL + Bookshare_Webservice_Login.BOOKSHARE_API_HOST + "/book/";
@@ -88,8 +88,6 @@ public class Bookshare_Menu extends ListActivity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.bookshare_menu_main);
 		
-		search_text=(EditText)findViewById(R.id.searchText);
-		search_text.setVisibility(View.GONE);
 		// Fetch the login info from the caller intent
 		Intent callerIntent  = getIntent();
 		username = callerIntent.getStringExtra("username");
@@ -104,7 +102,7 @@ public class Bookshare_Menu extends ListActivity {
             R.drawable.isbn,
             R.drawable.latest,
             R.drawable.isbn,
-        //    R.drawable.periodicals,		//Icon for 'All Periodicals' (thushv)
+            R.drawable.periodicals,		//Icon for 'All Periodicals' (thushv)
             R.drawable.titles
 		};
         
@@ -112,7 +110,8 @@ public class Bookshare_Menu extends ListActivity {
 		//Create a TreeMap for use in the SimpleAdapter
         String[] items = {getResources().getString(R.string.bks_menu_title_label),
                 getResources().getString(R.string.bks_menu_author_label), getResources().getString(R.string.bks_menu_isbn_label),
-                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label),logInMenuItem};
+                getResources().getString(R.string.bks_menu_latest_label), getResources().getString(R.string.bks_menu_popular_label), getResources().getString(R.string.bks_menu_periodicals_label),
+                logInMenuItem};
 		for(int i = 0; i < drawables.length; i++){
 			TreeMap<String, Object> row_item = new TreeMap<String, Object>();
 			row_item.put("Name", items[i]);
