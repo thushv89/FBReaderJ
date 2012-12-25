@@ -90,7 +90,6 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 	private TextView bookshare_book_detail_title_text;
 	private TextView bookshare_book_detail_authors;
 	private TextView bookshare_book_detail_edition;
-	private TextView bookshare_book_detail_revision;
 	private TextView bookshare_book_detail_category;
 	private TextView bookshare_book_detail_publish_date;
 	private TextView bookshare_book_detail_publisher;
@@ -252,11 +251,12 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 						
 						bookshare_book_detail_authors = (TextView)findViewById(R.id.bookshare_book_detail_authors);
 						bookshare_book_detail_authors.setVisibility(View.GONE);
+
+                        TextView bookshare_book_detail_language = (TextView)findViewById(R.id.bookshare_book_detail_language);
+                        bookshare_book_detail_language.setVisibility(View.GONE);
 						
 						bookshare_book_detail_edition= (TextView)findViewById(R.id.bookshare_book_detail_isbn);
 						bookshare_book_detail_edition.setText("Edition: ");
-						bookshare_book_detail_revision = (TextView)findViewById(R.id.bookshare_book_detail_language);
-						bookshare_book_detail_revision.setText("Revision: ");
 						bookshare_book_detail_category = (TextView)findViewById(R.id.bookshare_book_detail_category);
 						
 						bookshare_book_detail_publish_date = (TextView)findViewById(R.id.bookshare_book_detail_publish_date);
@@ -288,7 +288,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 						}
 						bookshare_subscribe_explained=(TextView)findViewById(R.id.bookshare_subscribe_explained);
 
-	                    bookshare_book_detail_revision.setNextFocusDownId(R.id.bookshare_book_detail_category);
+	                    bookshare_book_detail_edition.setNextFocusDownId(R.id.bookshare_book_detail_category);
 	                    bookshare_book_detail_category.setNextFocusDownId(R.id.bookshare_book_detail_publish_date);
 	                    book_detail_view.requestFocus();
 
@@ -296,16 +296,14 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 						// If the book is not downloadable, do not show the download button
 						if(!isDownloadable){
 							btn_download.setVisibility(View.GONE);
+                            bookshare_book_detail_title_text.setNextFocusDownId(R.id.bookshare_download_not_available_msg);
 	                        bookshare_book_detail_edition.setNextFocusUpId(R.id.bookshare_download_not_available_msg);
-	                        bookshare_download_not_available_text.setNextFocusUpId(R.id.bookshare_book_detail_authors);
+	                        bookshare_download_not_available_text.setNextFocusUpId(R.id.bookshare_book_detail_title);
+	                        bookshare_download_not_available_text.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
+                            chkbx_subscribe_periodical.setVisibility(View.GONE);
+                            bookshare_subscribe_explained.setVisibility(View.GONE);
 						} else {
 							bookshare_download_not_available_text.setVisibility(View.GONE);
-							
-							//If user is logged in only, show the subscribe option
-							if(isFree){
-								chkbx_subscribe_periodical.setVisibility(View.GONE);
-								bookshare_subscribe_explained.setVisibility(View.GONE);
-							}
 							
 	                        btn_download.setNextFocusDownId(R.id.bookshare_chkbx_subscribe_periodical);
 	                        btn_download.setNextFocusUpId(R.id.bookshare_book_detail_title);
@@ -406,16 +404,6 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 							}
 	                        bookshare_book_detail_title_text.append(temp);
 							temp = "";
-						}
-
-												
-						if(metadata_bean.getRevision() != null){
-							temp = metadata_bean.getRevision().trim().equals("") ? getResources().getString(R.string.book_details_not_available) : metadata_bean.getRevision();
-							bookshare_book_detail_revision.append(temp);
-							temp = "";
-						}
-						else{
-							bookshare_book_detail_revision.append(getResources().getString(R.string.book_details_not_available));
 						}
 
 						if(metadata_bean.getCategory() != null){
@@ -990,7 +978,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 		
 		//Determine whether the book is downloadable.
 		private void setIsDownloadable(final Bookshare_Edition_Metadata_Bean bean) {
-			isDownloadable = (bean.getDownloadFormats() != null && bean.getDownloadFormats().length > 0);
+			isDownloadable = (!isFree) && (bean.getDownloadFormats() != null && bean.getDownloadFormats().length > 0);
 		}
 	    
 	    /*
