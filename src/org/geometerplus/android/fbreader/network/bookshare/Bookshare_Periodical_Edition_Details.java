@@ -380,14 +380,15 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 									//TODO: Update sEntity revision/edition to latest from the AllDbPeriodical db
 									
 									//If user enables the subscribed option
+                                    final VoiceableDialog finishedDialog = new VoiceableDialog(myActivity);
 									if(isChecked){										
-										dataSource.insertEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);									
-										Toast.makeText(getApplicationContext(), "You're subscribed to "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
-									}//user unsubscribe 
+										dataSource.insertEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);
+                                        finishedDialog.popup("You're subscribed to "+selectedPeriodicalTitle, 2000);
+									}//user unsubscribe
 									else{
 										dataSource.deleteEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);
 										//if(delEntity != null){
-											Toast.makeText(getApplicationContext(), "You're unsubscribed from "+selectedPeriodicalTitle, Toast.LENGTH_SHORT).show();
+                                        finishedDialog.popup("You're unsubscribed from "+selectedPeriodicalTitle, 2000);
 										//}
 									}
 								}
