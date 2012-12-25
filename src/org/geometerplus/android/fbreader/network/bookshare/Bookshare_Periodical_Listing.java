@@ -210,6 +210,12 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 
 					row_item.put("icon", R.drawable.periodicals);
 					row_item.put("periodical_id", bean.getId());
+                    if(isFree){
+                        row_item.put("download_icon", R.drawable.black_icon);
+                    }
+                    else{
+                        row_item.put("download_icon", R.drawable.download_icon);
+                    }
 
 					list.add(row_item);
 				}
@@ -229,15 +235,14 @@ public class Bookshare_Periodical_Listing extends ListActivity{
             final MySimpleAdapter simpleadapter = new MySimpleAdapter(
                 getApplicationContext(),list,
                 R.layout.bookshare_menu_item,
-                new String[]{"title","icon","periodical_id"},
-                new int[]{R.id.text1,R.id.row_icon,R.id.bookId});
+                new String[]{"title","authors","icon","download_icon","periodical_id"},
+                new int[]{R.id.text1, R.id.text2, R.id.row_icon, R.id.bookshare_download_icon,R.id.bookId});
 
 			//Set the adapter for this view
 			setListAdapter(simpleadapter);
 			
 			ListView lv = getListView();
-			lv.setTextFilterEnabled(true);
-			
+
 			View decorView = getWindow().getDecorView();
 			if (null != decorView) {
 				String resultsMessage;
@@ -469,12 +474,15 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 			.setText((String) data.get("title"));
 
             // would have preferred to set this as setContentDescription, but that didn't voice
-            ((TextView) convertView.findViewById(R.id.text2)).setVisibility(View.GONE);
+            ((TextView) convertView.findViewById(R.id.text2))
+            .setText(isFree ? "(not downloadable)" : "(downloadable)");
 
             ((ImageView) convertView.findViewById(R.id.row_icon))
                    .setImageResource((Integer) data.get("icon"));
 
-			
+            ((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
+                    .setImageResource((Integer) data.get("download_icon"));
+
 			((TextView) convertView.findViewById(R.id.bookId))
 			.setText((String) data.get("periodical_id"));
 			
