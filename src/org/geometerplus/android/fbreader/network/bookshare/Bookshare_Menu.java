@@ -239,15 +239,12 @@ public class Bookshare_Menu extends ListActivity {
 					intent.putExtra(REQUEST_TYPE, ALL_PERIODICAL_REQUEST);
 					intent.putExtra(REQUEST_URI, search_term);
 					if(!isFree){
-						
 						intent.putExtra("username", username);
 						intent.putExtra("password", password);
-						startActivityForResult(intent, START_BOOKSHARE_PERIODICAL_LISTING_ACTIVITY);
-					}else{
-						AlertDialog loginAlert=createLoginDialogBox();
-						loginAlert.show();
 					}
-							
+                    EasyTracker.getTracker().trackEvent(Analytics.EVENT_CATEGORY_SEARCH, Analytics.EVENT_ACTION_PERIODICALS_BROWSE,
+                        Analytics.EVENT_LABEL_SEARCH_PERIODICALS, null);
+                    startActivityForResult(intent, START_BOOKSHARE_PERIODICAL_LISTING_ACTIVITY);
 					
 					
 				}
