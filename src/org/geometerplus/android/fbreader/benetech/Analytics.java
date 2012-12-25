@@ -13,6 +13,7 @@ public class Analytics {
     public static final String EVENT_ACTION_MENU = "menu_click";
     public static final String EVENT_ACTION_GESTURE = "gesture";
     public static final String EVENT_ACTION_BKS_SEARCH = "bookshare_search";
+    public static final String EVENT_ACTION_PERIODICALS_BROWSE = "bookshare_periodicals_browse";
     public static final String EVENT_ACTION_LOGIN = "bookshare_login";
     public static final String EVENT_ACTION_LOGOUT = "bookshare_logout";
     public static final String EVENT_ACTION_BOOK_MENU = "book_menu";
@@ -35,7 +36,7 @@ public class Analytics {
     public static final String EVENT_LABEL_SEARCH_ISBN = "isbn_search";
     public static final String EVENT_LABEL_SEARCH_LATEST = "latest_books";
     public static final String EVENT_LABEL_SEARCH_POPULAR = "popular_books";
-    public static final String EVENT_LABEL_SEARCH_PERIODICALS = "popular_books";
+    public static final String EVENT_LABEL_SEARCH_PERIODICALS = "periodicals";
 
     public static final String EVENT_LABEL_OPEN_BOOK = "open_book";
     public static final String EVENT_LABEL_FAVORITES_ADD = "add_to_favorites";
