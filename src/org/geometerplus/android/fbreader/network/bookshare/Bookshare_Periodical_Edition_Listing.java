@@ -69,8 +69,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	private final int START_BOOKSHARE_EDITION_DETAILS_ACTIVITY = 13;
 	private final int BOOKSHARE_EDITION_DETAILS_FINISHED = 14;
 	private final int BOOKSHARE_EDITION_LISTING_FINISHED = 11;
-	private final int START_BOOKSHARE_LOGIN_ACTIVITY = 12;
-	
+
 	private final int PREVIOUS_PAGE_BOOK_ID = -1;
 	private final int NEXT_PAGE_BOOK_ID = -2;
 	private int current_result_page = 1;
@@ -83,8 +82,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	private Boolean isFree=false;
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	private Resources resources;
-	private EditText search_text;
-	
+
 	private String uri;	//string which contains the uri to fetch periodical details
 	private String bookshare_ID;
 	private String bookshare_edition;
@@ -207,9 +205,6 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 
 					setContentView(R.layout.bookshare_menu_main);
 
-					search_text=(EditText)findViewById(R.id.searchText);
-					search_text.setVisibility(View.GONE);
-					
 					// Dismiss the progress dialog
 					pd_spinning.cancel();
 

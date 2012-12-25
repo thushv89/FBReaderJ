@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,7 +23,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 
-import android.app.Activity;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -33,17 +31,10 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -88,9 +79,6 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
 	private Resources resources;
 
-	private EditText searchET;
-
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
@@ -133,7 +121,7 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 
 
 	/**This method fetch data returned from a certain URI
-	 * @param requestURI - The URI to bring data from
+	 * @param uri - The URI to bring data from
 	 */
 	private void getListing(final String uri) {
 		vectorResults = new Vector<Bookshare_Periodical_Bean>();
@@ -197,8 +185,6 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 			if(msg.what == DATA_FETCHED){
 
 				setContentView(R.layout.bookshare_menu_main);
-				searchET=(EditText)findViewById(R.id.searchText);								
-				searchET.setSingleLine();
 				// Dismiss the progress dialog
 				pd_spinning.cancel();
 
@@ -223,7 +209,7 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 					row_item.put("title", bean.getTitle());
 
 					row_item.put("icon", R.drawable.periodicals);
-					row_item.put("book_id", bean.getId());
+					row_item.put("periodical_id", bean.getId());
 
 					list.add(row_item);
 				}
@@ -240,28 +226,14 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 
 			// Instantiate the custom SimpleAdapter for populating the ListView
 			// The bookId view in the layout file is used to store the id , but is not shown on screen
-			final MySimpleAdapter simpleadapter = new MySimpleAdapter(
-					getApplicationContext(),list,
-					R.layout.bookshare_menu_item);
+            final MySimpleAdapter simpleadapter = new MySimpleAdapter(
+                getApplicationContext(),list,
+                R.layout.bookshare_menu_item,
+                new String[]{"title","icon","periodical_id"},
+                new int[]{R.id.text1,R.id.row_icon,R.id.bookId});
+
 			//Set the adapter for this view
 			setListAdapter(simpleadapter);
-
-			searchET.addTextChangedListener(new TextWatcher() {
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    // Call back the Adapter with current character to Filter
-                    simpleadapter.getFilter().filter(s.toString());
-                }
-
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count,int after) {
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                }
-            });
 			
 			ListView lv = getListView();
 			lv.setTextFilterEnabled(true);
@@ -343,7 +315,7 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 			row_item.put("title", title);
 			row_item.put("authors", "");
 			row_item.put("icon", iconId);
-			row_item.put("book_id", String.valueOf(id));
+			row_item.put("periodical_id", String.valueOf(id));
 			row_item.put("download_icon", iconId);
 			list.add(row_item);
 		}
@@ -475,32 +447,11 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 	// A custom ArrayAdapter class for providing data to the ListView
 	// Here we need to filter items by the text entered in the Edittext above
 	// Only the Periodical which contains the string entered in the edittext must be shown to the user. 
-	private class MySimpleAdapter extends ArrayAdapter implements Filterable{
-		
-		private List<TreeMap<String, Object>> allItemsArray;
-	    private List<TreeMap<String, Object>> filteredItemsArray;
-	    private Activity context;
-	    private TitleFilter filter;
-	    private LayoutInflater inflator;
-	    
-		public MySimpleAdapter(Context context, List<TreeMap<String, Object>> data,
-				int resource) {
-			super(context, resource, data);
-			allItemsArray=new ArrayList();
-			allItemsArray.addAll(data);
-			filteredItemsArray=new ArrayList<TreeMap<String,Object>>();
-			filteredItemsArray.addAll(allItemsArray);
+    private class MySimpleAdapter extends SimpleAdapter{
+        public MySimpleAdapter(Context context, List<? extends Map<String, ?>> data,
+            int resource, String[] from, int[] to) {
+          super(context, data, resource, from, to);
 		}
-
-		
-		@Override
-	    public Filter getFilter() {
-	        if (filter == null){
-	          filter=new TitleFilter();	        }
-	        
-	        
-	        return filter;
-	      }
 		
 		/*
 		 * Retrieves view for the item in the adapter, at the
@@ -517,84 +468,17 @@ public class Bookshare_Periodical_Listing extends ListActivity{
 			((TextView) convertView.findViewById(R.id.text1))
 			.setText((String) data.get("title"));
 
-			/*----------------------------------------------------------------------------
-			StringBuilder authorsBuilder = new StringBuilder("");
-			if ( (data.get("authors") != null) &&   ((String)data.get("authors")).length() > 0) {
-				authorsBuilder = new StringBuilder("by ");
-				authorsBuilder.append((String) data.get("authors"));
-				if((Integer)data.get("download_icon") == R.drawable.black_icon) {
-					authorsBuilder.append(" ( not downloadable )");
-				}
-			}
+            // would have preferred to set this as setContentDescription, but that didn't voice
+            ((TextView) convertView.findViewById(R.id.text2)).setVisibility(View.GONE);
 
-			// would have preferred to set this as setContentDescription, but that didn't voice
-			((TextView) convertView.findViewById(R.id.text2))
-			.setText(authorsBuilder.toString());
+            ((ImageView) convertView.findViewById(R.id.row_icon))
+                   .setImageResource((Integer) data.get("icon"));
 
-			((ImageView) convertView.findViewById(R.id.row_icon))
-			.setImageResource((Integer) data.get("icon"));
-			------------------------------------------------------------------------------*/
-			
-			
-			if(data.get("download_icon") != null){
-				((ImageView)convertView.findViewById(R.id.bookshare_download_icon))
-				.setImageResource((Integer) data.get("download_icon"));
-
-				((TextView) convertView.findViewById(R.id.bookId))
-				.setText((String) data.get("book_id"));
-			}
 			
 			((TextView) convertView.findViewById(R.id.bookId))
-			.setText((String) data.get("book_id"));
+			.setText((String) data.get("periodical_id"));
 			
 			return convertView;
 		}
-		
-		 private class TitleFilter extends Filter
-	        {
-
-			 	//do the filtering process
-	            @Override
-	            protected FilterResults performFiltering(CharSequence constraint) {
-	                
-	                constraint = constraint.toString().toLowerCase();
-	                FilterResults result = new FilterResults();
-	                if(constraint != null && constraint.toString().length() > 0)
-	                {
-	                    ArrayList<TreeMap<String, Object>> filteredItems = new ArrayList<TreeMap<String, Object>>();
-	                   
-	                    for(int i = 0, l = allItemsArray.size(); i < l; i++)
-	                    {
-	                    	TreeMap<String, Object> periodical = allItemsArray.get(i);
-	                        if(periodical.get("title").toString().toLowerCase().contains(constraint))
-	                            filteredItems.add(periodical);
-	                    }
-	                    result.count = filteredItems.size();
-	                    result.values = filteredItems;
-	                }
-	                else
-	                {
-	                    synchronized(this)
-	                    {
-	                        result.values = allItemsArray;
-	                        result.count = allItemsArray.size();
-	                    }
-	                }
-	                return result;
-	            }
-
-	            //add results to filteredItemList
-	            @SuppressWarnings("unchecked")
-	            @Override
-	            protected void publishResults(CharSequence constraint, FilterResults results) {
-	               
-	            	filteredItemsArray = (ArrayList<TreeMap<String, Object>>)results.values;
-	                notifyDataSetChanged();
-	                clear();
-	                for(int i = 0, l = filteredItemsArray.size(); i < l; i++)
-	                    add(filteredItemsArray.get(i));
-	                notifyDataSetInvalidated();
-	            }
-	       }
 	}
 }

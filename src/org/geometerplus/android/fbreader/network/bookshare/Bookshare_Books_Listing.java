@@ -15,7 +15,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.accessibility.ParentCloserDialog;
-import org.accessibility.VoiceableDialog;
 import org.bookshare.net.BookshareWebservice;
 import org.benetech.android.R;
 import org.xml.sax.Attributes;
@@ -27,7 +26,6 @@ import org.xml.sax.helpers.DefaultHandler;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -39,7 +37,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -81,7 +78,6 @@ public class Bookshare_Books_Listing extends ListActivity{
 	private String developerKey = BookshareDeveloperKey.DEVELOPER_KEY;
     private Resources resources;
 
-    private EditText search_text;
 	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -178,7 +174,7 @@ public class Bookshare_Books_Listing extends ListActivity{
 		
 		if((index = strBuilder.indexOf("?api_key=")) != -1){
 			strBuilder.delete(index, strBuilder.length());
-			strBuilder.append("/page/"+current_result_page+"?api_key="+developerKey);
+			strBuilder.append("/page/").append(current_result_page).append("?api_key=").append(developerKey);
 		}
 		getListing(strBuilder.toString());
 	}
@@ -193,9 +189,6 @@ public class Bookshare_Books_Listing extends ListActivity{
 			if(msg.what == DATA_FETCHED){
 
 				setContentView(R.layout.bookshare_menu_main);
-
-				search_text=(EditText)findViewById(R.id.searchText);
-				search_text.setVisibility(View.GONE);
 				
 				// Dismiss the progress dialog
 				pd_spinning.cancel();
