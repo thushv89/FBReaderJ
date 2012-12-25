@@ -42,7 +42,6 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -313,9 +312,8 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 							editionBuilder.insert(2, "/");
 							editionBuilder.insert(5, "/");
 							editionBuilder.insert(0, "Edition: ");
-							editionBuilder.append("\t Revision: "+bean.getRevision());
-							
-							if(editionBuilder.toString().equalsIgnoreCase(periodicalEdition.getText().toString().trim())){
+
+							if(periodicalEdition.getText().toString().trim().startsWith(editionBuilder.toString())){
 								bookshare_ID = bean.getId();
 								bookshare_edition=bean.getEdition();
 								bookshare_revision=bean.getRevision();
@@ -330,20 +328,9 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 								if(isOM){
 									uri = URI_BOOKSHARE_PERIODICAL_EDITION_SEARCH + bookshare_ID + "/edition/" + bookshare_edition + "/revision/" + bookshare_revision +"?api_key="+developerKey;
 								}
-								/*--------------------------------------------------------------------
-								if((isFree && bean.getAvailableToDownload().equals("1") &&
-										bean.getFreelyAvailable().equals("1")) ||
-										(!isFree && bean.getAvailableToDownload().equals("1"))){
-									intent.putExtra("isDownloadable", true);
-								}
-								else{
-									intent.putExtra("isDownloadable", false);
-								}
-								--------------------------------------------------------------------*/
 								
 						
 								//intent.putExtra("ID_SEARCH_URI", uri);
-								if(!isFree){
 									Intent intent = new Intent(getApplicationContext(),Bookshare_Periodical_Edition_Details.class);
 									intent.putExtra("username", username);
 									intent.putExtra("password", password);
@@ -355,10 +342,7 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 									//It might be not to give user suprises by having a different view for periodicals
 									//So thought of making it the same
 									//getListView().showContextMenuForChild(view);
-								}else{
-									alert.show();
 
-								}
 								
 								//startActivityForResult(intent, START_BOOKSHARE_EDITION_DETAILS_ACTIVITY);
 								break;
@@ -632,9 +616,9 @@ public class Bookshare_Periodical_Edition_Listing extends ListActivity{
 	                }
 	                
 	                editionRevisionBuilder.append(editionBuilder.toString());
-	                editionRevisionBuilder.append("\t Revision: ");
-	                editionRevisionBuilder.append(((String)data.get("revision")));
-	               
+	                editionRevisionBuilder.append(" ");
+	                editionRevisionBuilder.append(isFree ? "(not downloadable)" : "(downloadable)");
+
 	            }
 
 	            //set the TextViews with appropriate texts
