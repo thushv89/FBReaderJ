@@ -56,6 +56,12 @@ public final class FBReaderApp extends ZLApplication {
 	public static enum WordTappingAction {
 		doNothing, selectSingleWord, startSelecting, openDictionary
 	}
+	
+	// Subscription feature settings
+	public static enum AutomaticDownloadType {
+		downloadAll, downloadMostRecent
+	}
+		
 	public final ZLEnumOption<WordTappingAction> WordTappingActionOption =
 		new ZLEnumOption<WordTappingAction>("Options", "WordTappingAction", WordTappingAction.startSelecting);
 

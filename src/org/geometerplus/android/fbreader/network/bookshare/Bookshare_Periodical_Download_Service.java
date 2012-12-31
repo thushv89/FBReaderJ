@@ -2,7 +2,7 @@ package org.geometerplus.android.fbreader.network.bookshare;
 
 import java.util.ArrayList;
 
-import org.geometerplus.android.fbreader.subscription.SubscribedDbPeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.SubscribedDbPeriodicalEntity;
 
 import android.app.Service;
 import android.content.Intent;

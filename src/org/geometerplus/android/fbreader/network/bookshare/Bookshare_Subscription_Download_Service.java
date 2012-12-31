@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,12 +31,20 @@ import org.benetech.android.R;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.android.fbreader.network.BookDownloaderService;
-import org.geometerplus.android.fbreader.subscription.AllDbPeriodicalEntity;
-import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
-import org.geometerplus.android.fbreader.subscription.IPeriodicalDownloadAPI;
-import org.geometerplus.android.fbreader.subscription.PeriodicalsSQLiteHelper;
-import org.geometerplus.android.fbreader.subscription.SubscribedDbPeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.AllDbPeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.BooksharePeriodicalDataSource;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.IPeriodicalDownloadAPI;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalDBUtils;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalEditionListFetcher;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalEditionListener;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalEditionMetadataFetcher;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalMetadataListener;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalsSQLiteHelper;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.SubscribedDbPeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.SubscriptionDownloadService;
+
 import org.geometerplus.fbreader.Paths;
+import org.geometerplus.fbreader.fbreader.FBReaderApp.AutomaticDownloadType;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
 import org.xml.sax.Attributes;
@@ -58,6 +67,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -79,7 +89,13 @@ public class Bookshare_Subscription_Download_Service extends Service {
 	private Bookshare_Edition_Metadata_Bean metadata_bean;
 	private Set<Integer> myOngoingNotifications = new HashSet<Integer>();
 	private SQLiteDatabase periodicalDb;
+	private PeriodicalEditionListFetcher editionFetcher;
+	private PeriodicalEditionMetadataFetcher metadataFetcher;
+	private ServiceBinder serviceBinder = new ServiceBinder();
 
+	private String usernameKey = "username";
+	private String passwordKey = "password";
+	
 	@Override
 	public IBinder onBind(Intent arg0) {
 		return new ServiceBinder();
@@ -117,208 +133,158 @@ public class Bookshare_Subscription_Download_Service extends Service {
 
 	}
 
-	public class ServiceBinder extends Binder implements IPeriodicalDownloadAPI {
-
-		private InputStream inputStream;
-		private final int DATA_FETCHED = 99;
-		Vector<Bookshare_Periodical_Edition_Bean> results;
-		private boolean total_pages_count_known = false;
-		private int total_pages_result;
+	public class ServiceBinder extends Binder implements IPeriodicalDownloadAPI, PeriodicalEditionListener,
+	PeriodicalMetadataListener {
+		AutomaticDownloadType downType;
 
 		@Override
 		public boolean downloadPeriodical(Bookshare_Edition_Metadata_Bean bean) {
 			metadata_bean = bean;
-			new DownloadFilesTask().execute();
+
+			Intent downloadService = new Intent(
+					Bookshare_Subscription_Download_Service.this,
+					SubscriptionDownloadService.class);
+			downloadService.putExtra(usernameKey, username);
+			downloadService.putExtra(passwordKey, password);
+			downloadService.putExtra("metadata_bean", metadata_bean);
+			startService(downloadService);
+			// new DownloadFilesTask().execute();
 			return false;
 		}
 
 		@Override
-		public Vector<Bookshare_Periodical_Edition_Bean> getUpdates(String id) {
-			getListing(uri);
+		public void getUpdates(AutomaticDownloadType downType, String id) {
 
-			return null;
+			this.downType = downType;
+			String serviceURI = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
+					+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
+					+ "/periodical/id/"
+					+ id
+					+ "/for/"
+					+ username
+					+ "?api_key="
+					+ developerKey;
+			Log.i(getClass().getName(),
+					"Fetching Periodical List for periodical with id: " + id
+					+ " for: " + username);
+
+			editionFetcher = new PeriodicalEditionListFetcher();
+			editionFetcher.getListing(serviceURI, password, this);
+
+		}
+
+		@Override
+		public void onPeriodicalEditionListResponse(
+				Vector<Bookshare_Periodical_Edition_Bean> results) {
+			if (results == null) {
+				Log.e(getClass().getName(),
+						"Couldn't fetch any periodical Editions");
+			} else {
+				Log.i(getClass().getName(),
+						"Found and Fetched " + results.size() + " periodicals");
+				ArrayList<AllDbPeriodicalEntity> entities = new ArrayList<AllDbPeriodicalEntity>();
+				for (Bookshare_Periodical_Edition_Bean bean : results) {
+					Log.i(getClass().getName(),
+							"Found and fetched periodical: Title "
+									+ bean.getTitle() + " Edition: "
+									+ bean.getEdition());
+					if (bean.getId() != null && bean.getEdition() != null
+							&& TextUtils.isDigitsOnly(bean.getRevision())) {
+						entities.add(new AllDbPeriodicalEntity(bean.getId(),
+								bean.getTitle(), bean.getEdition(), Integer
+								.parseInt(bean.getRevision()), null,
+								null));
+					}
+				}
+
+				// URL to request metadata of particular edition of a periodical
+				String serviceURI;
+				// if user has set settings to download only the most recent
+				if (downType == AutomaticDownloadType.downloadMostRecent) {
+					AllDbPeriodicalEntity maxEntity = PeriodicalDBUtils
+							.getMostRecentEdition(entities);
+
+					// download the periodical only if it's not been downloaded
+					// before
+					if (!dataSource.doesExist(periodicalDb,
+							PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS,
+							maxEntity)) {
+						serviceURI = getEditionRequestURL(maxEntity);
+
+						metadataFetcher = new PeriodicalEditionMetadataFetcher(
+								maxEntity.getId(), maxEntity.getTitle());
+						metadataFetcher.getListing(serviceURI, password, this);
+					}
+				}
+				// If user has set settings to download all periodicals
+				else if (downType == AutomaticDownloadType.downloadAll) {
+					for (AllDbPeriodicalEntity entity : entities) {
+						// download the periodical only if it's not been
+						// downloaded before
+						// TODO: Download periodicals which is higer than the
+						// highest in alldbperiodicals
+						if (!dataSource.doesExist(periodicalDb,
+								PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS,
+								entity)) {
+							serviceURI = getEditionRequestURL(entity);
+
+							metadataFetcher = new PeriodicalEditionMetadataFetcher(
+									entity.getId(), entity.getTitle());
+							metadataFetcher.getListing(serviceURI, password,
+									this);
+
+							// This is to reduce number of queries per second
+							try {
+								Thread.sleep(1000);
+							} catch (InterruptedException ex) {
+								Log.e(getClass().getName(), ex.getCause()
+										+ " ," + ex.getMessage());
+							}
+						}
+					}
+				}
+			}
+
+		}
+
+		private String getEditionRequestURL(AllDbPeriodicalEntity entity) {
+			String serviceURI = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
+					+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
+					+ "/periodical/id/"
+					+ entity.getId()
+					+ "/edition/"
+					+ entity.getEdition()
+					+ "/revision/"
+					+ entity.getRevision()
+					+ "/for/" + username + "?api_key=" + developerKey;
+			return serviceURI;
 		}
 
 		@Override
 		public Bookshare_Edition_Metadata_Bean getDetails(
 				Bookshare_Periodical_Edition_Bean bean) {
-			// TODO Auto-generated method stub
+			if (bean == null) {
+				Log.e(getClass().getName(), "Couldn't obtain edition details");
+			} else {
+				Log.i(getClass().getName(),
+						"Fetched Periodical: " + bean.getId() + " "
+								+ bean.getTitle() + " " + bean.getEdition());
+			}
 			return null;
 		}
 
-		private void getListing(final String uri) {
-			results = new Vector<Bookshare_Periodical_Edition_Bean>();
-
-			new Thread() {
-				public void run() {
-					try {
-						inputStream = bws.getResponseStream(password, uri);
-
-						// Once the response is obtained, send message to the
-						// handler
-						Message msg = Message.obtain();
-						msg.what = DATA_FETCHED;
-						msg.setTarget(handler);
-						msg.sendToTarget();
-					} catch (IOException ioe) {
-						System.out.println(ioe);
-					} catch (URISyntaxException use) {
-						System.out.println(use);
-					}
-				}
-			}.start();
-
-		}
-
-		Handler handler = new Handler() {
-
-			@Override
-			public void handleMessage(Message msg) {
-
-				// Message received that data has been fetched from the
-				// bookshare web services
-				if (msg.what == DATA_FETCHED) {
-
-					String response_HTML = bws
-							.convertStreamToString(inputStream);
-
-					// Cleanup the HTML formatted tags
-					String response = response_HTML.replace("&apos;", "\'")
-							.replace("&quot;", "\"").replace("&amp;", "and")
-							.replace("&#xd;", "").replace("&#x97;", "-");
-
-					System.out.println(response);
-					// Parse the response of search result
-					parseResponse(response);
-				}
-			}
-		};
-
-		private void parseResponse(String response) {
-
-			InputSource is = new InputSource(new StringReader(response));
-
-			try {
-				/* Get a SAXParser from the SAXPArserFactory. */
-				SAXParserFactory spf = SAXParserFactory.newInstance();
-				SAXParser sp;
-				sp = spf.newSAXParser();
-
-				/* Get the XMLReader of the SAXParser we created. */
-				XMLReader parser = sp.getXMLReader();
-				parser.setContentHandler(new SAXHandler());
-				parser.parse(is);
-			} catch (SAXException e) {
-				System.out.println(e);
-			} catch (ParserConfigurationException e) {
-				System.out.println(e);
-			} catch (IOException ioe) {
-				System.out.println(ioe);
-			}
-		}
-
-		private class SAXHandler extends DefaultHandler {
-
-			boolean result = false;
-			boolean id = false;
-			boolean title = false;
-			boolean edition = false;
-			boolean revision = false;
-			boolean num_pages = false;
-
-			boolean editionElementVisited = false;
-			boolean revisionElementVisited = false;
-
-			String editionStr;
-
-			Bookshare_Periodical_Edition_Bean result_bean;
-
-			public void startElement(String namespaceURI, String localName,
-					String qName, Attributes atts) {
-
-				if (!total_pages_count_known) {
-					if (qName.equalsIgnoreCase("num-pages")) {
-						num_pages = true;
-						total_pages_count_known = false;
-					}
-				}
-
-				if (qName.equalsIgnoreCase("result")) {
-					result = true;
-					result_bean = new Bookshare_Periodical_Edition_Bean();
-					editionElementVisited = false;
-					revisionElementVisited = false;
-
-				}
-				if (qName.equalsIgnoreCase("id")) {
-					id = true;
-				}
-				if (qName.equalsIgnoreCase("title")) {
-					title = true;
-				}
-				if (qName.equalsIgnoreCase("edition")) {
-					edition = true;
-					if (!editionElementVisited) {
-						editionElementVisited = true;
-					}
-				}
-				if (qName.equalsIgnoreCase("revision")) {
-					revision = true;
-					if (!revisionElementVisited) {
-						revisionElementVisited = true;
-					}
-				}
+		@Override
+		public void onPeriodicalMetadataResponse(
+				Bookshare_Edition_Metadata_Bean result) {
+			if (result == null) {
+				Log.e(getClass().getName(), "Couldn't obtain edition details");
+			} else {
+				downloadPeriodical(result);
+				Log.i(getClass().getName(),
+						"Fetched Periodical: " + result.getPeriodicalId() + " "
+								+ result.getTitle() + " " + result.getEdition());
 			}
 
-			public void endElement(String uri, String localName, String qName) {
-
-				if (num_pages) {
-					if (qName.equalsIgnoreCase("num-pages")) {
-						num_pages = false;
-					}
-				}
-				if (qName.equalsIgnoreCase("result")) {
-					result = false;
-					results.add(result_bean);
-					result_bean = null;
-				}
-				if (qName.equalsIgnoreCase("id")) {
-					id = false;
-				}
-				if (qName.equalsIgnoreCase("title")) {
-					title = false;
-				}
-				if (qName.equalsIgnoreCase("edition")) {
-					edition = false;
-				}
-				if (qName.equalsIgnoreCase("revision")) {
-					revision = false;
-				}
-
-			}
-
-			public void characters(char[] c, int start, int length) {
-
-				if (num_pages) {
-					total_pages_result = Integer.parseInt(new String(c, start,
-							length));
-				}
-				if (result) {
-					if (id) {
-						result_bean.setId(new String(c, start, length));
-					}
-					if (title) {
-						result_bean.setTitle(new String(c, start, length));
-					}
-					if (edition) {
-						result_bean.setEdition(new String(c, start, length));
-					}
-					if (revision) {
-						result_bean.setRevision(new String(c, start, length));
-					}
-
-				}
-			}
 		}
 
 	}
@@ -343,11 +309,11 @@ public class Bookshare_Subscription_Download_Service extends Service {
 			String download_uri;
 			if (isFree)
 				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-						+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
-						+ "/download/content/"
-						+ id
-						+ "/version/1?api_key="
-						+ developerKey;
+				+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
+				+ "/download/content/"
+				+ id
+				+ "/version/1?api_key="
+				+ developerKey;
 			// TODO: Uncomment & Implement
 			/*
 			 * else if(isOM){
@@ -437,8 +403,8 @@ public class Bookshare_Subscription_Download_Service extends Service {
 							// Unzip the encrypted archive file
 							if (!isFree) {
 								System.out
-										.println("******Before creating ZipFile******"
-												+ zip_file);
+								.println("******Before creating ZipFile******"
+										+ zip_file);
 								// Initiate ZipFile object with the path/name of
 								// the zip file.
 								ZipFile zipFile = new ZipFile(zip_file);
@@ -447,7 +413,7 @@ public class Bookshare_Subscription_Download_Service extends Service {
 								// protected
 								if (zipFile.isEncrypted()) {
 									System.out
-											.println("******isEncrypted******");
+									.println("******isEncrypted******");
 
 									// if yes, then set the password for the zip
 									// file
@@ -579,10 +545,10 @@ public class Bookshare_Subscription_Download_Service extends Service {
 						PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,
 						subEntity)) {
 					dataSource
-							.insertEntity(
-									periodicalDb,
-									PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,
-									subEntity);
+					.insertEntity(
+							periodicalDb,
+							PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,
+							subEntity);
 				}
 			} else {
 
@@ -600,10 +566,10 @@ public class Bookshare_Subscription_Download_Service extends Service {
 						file = new File(getOpfFile().getPath());
 					}
 					notificationManager
-							.notify(id,
-									createDownloadFinishNotification(file,
-											metadata_bean.getTitle(),
-											message.what != 0));
+					.notify(id,
+							createDownloadFinishNotification(file,
+									metadata_bean.getTitle(),
+									message.what != 0));
 				}
 			};
 
@@ -639,20 +605,20 @@ public class Bookshare_Subscription_Download_Service extends Service {
 		final ZLResource resource = BookDownloaderService.getResource();
 		final String tickerText = success ? resource.getResource(
 				"tickerSuccess").getValue() : resource.getResource(
-				"tickerError").getValue();
-		final String contentText = success ? resource.getResource(
-				"contentSuccess").getValue() : resource.getResource(
-				"contentError").getValue();
-		final Notification notification = new Notification(
-				android.R.drawable.stat_sys_download_done, tickerText,
-				System.currentTimeMillis());
-		notification.flags |= Notification.FLAG_AUTO_CANCEL;
-		final Intent intent = success ? getFBReaderIntent(file) : new Intent();
-		final PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				intent, 0);
-		notification.setLatestEventInfo(getApplicationContext(), title,
-				contentText, contentIntent);
-		return notification;
+						"tickerError").getValue();
+				final String contentText = success ? resource.getResource(
+						"contentSuccess").getValue() : resource.getResource(
+								"contentError").getValue();
+						final Notification notification = new Notification(
+								android.R.drawable.stat_sys_download_done, tickerText,
+								System.currentTimeMillis());
+						notification.flags |= Notification.FLAG_AUTO_CANCEL;
+						final Intent intent = success ? getFBReaderIntent(file) : new Intent();
+						final PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+								intent, 0);
+						notification.setLatestEventInfo(getApplicationContext(), title,
+								contentText, contentIntent);
+						return notification;
 	}
 
 	private Notification createDownloadProgressNotification(String title) {
