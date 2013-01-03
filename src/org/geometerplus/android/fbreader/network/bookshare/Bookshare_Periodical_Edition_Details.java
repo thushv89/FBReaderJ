@@ -34,12 +34,12 @@ import org.benetech.android.R;
 import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.android.fbreader.network.BookDownloaderService;
-import org.geometerplus.android.fbreader.subscription.AllDbPeriodicalEntity;
-import org.geometerplus.android.fbreader.subscription.BooksharePeriodicalDataSource;
-import org.geometerplus.android.fbreader.subscription.PeriodicalDBUtils;
-import org.geometerplus.android.fbreader.subscription.PeriodicalEntity;
-import org.geometerplus.android.fbreader.subscription.PeriodicalsSQLiteHelper;
-import org.geometerplus.android.fbreader.subscription.SubscribedDbPeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.AllDbPeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.BooksharePeriodicalDataSource;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalDBUtils;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalsSQLiteHelper;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.SubscribedDbPeriodicalEntity;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.resources.ZLResource;
@@ -254,7 +254,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 
                         TextView bookshare_book_detail_language = (TextView)findViewById(R.id.bookshare_book_detail_language);
                         bookshare_book_detail_language.setVisibility(View.GONE);
-						
+
 						bookshare_book_detail_edition= (TextView)findViewById(R.id.bookshare_book_detail_isbn);
 						bookshare_book_detail_edition.setText("Edition: ");
 						bookshare_book_detail_category = (TextView)findViewById(R.id.bookshare_book_detail_category);
@@ -304,6 +304,12 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
                             bookshare_subscribe_explained.setVisibility(View.GONE);
 						} else {
 							bookshare_download_not_available_text.setVisibility(View.GONE);
+							
+							//If user is logged in only, show the subscribe option
+							if(isFree){
+								chkbx_subscribe_periodical.setVisibility(View.GONE);
+								bookshare_subscribe_explained.setVisibility(View.GONE);
+							}
 							
 	                        btn_download.setNextFocusDownId(R.id.bookshare_chkbx_subscribe_periodical);
 	                        btn_download.setNextFocusUpId(R.id.bookshare_book_detail_title);
@@ -381,10 +387,10 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 									
 									//If user enables the subscribed option
                                     final VoiceableDialog finishedDialog = new VoiceableDialog(myActivity);
-									if(isChecked){										
-										dataSource.insertEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);
+									if(isChecked){
+										dataSource.insertEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);									
                                         finishedDialog.popup("You're subscribed to "+selectedPeriodicalTitle, 2000);
-									}//user unsubscribe
+									}//user unsubscribe 
 									else{
 										dataSource.deleteEntity(periodicalDb,PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,sEntity);
 										//if(delEntity != null){
@@ -560,7 +566,8 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 			
 			// Will be called in a separate thread
 			@Override
-			protected Void doInBackground(Void... params) {			 
+			protected Void doInBackground(Void... params) {
+                Log.i("GoRead", " DownloadFilesTask start doInBackground");
 				final String id = metadata_bean.getContentId();
 				String download_uri;
 				if(isFree)
@@ -579,7 +586,7 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 	            notificationManager.notify(Integer.valueOf(id), progressNotification);
 				
 				try{
-					System.out.println("download_uri :"+download_uri);
+                    Log.i("GoRead", " download_uri : " + download_uri);
 					HttpResponse response = bws.getHttpResponse(password, download_uri);
 					// Get hold of the response entity
 					HttpEntity entity = response.getEntity();

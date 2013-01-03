@@ -1,6 +1,9 @@
+
 package org.geometerplus.android.fbreader.network.bookshare;
 
-public class Bookshare_Edition_Metadata_Bean {
+import java.io.Serializable;
+
+public class Bookshare_Edition_Metadata_Bean implements Serializable{
 	private String periodicalId;	//This id is common for different editions of same periodical
 	private String contentId;	//This id is unique for each edition
 	private String daisy;

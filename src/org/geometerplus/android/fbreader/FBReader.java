@@ -27,9 +27,11 @@ import java.util.*;
 
 import android.app.SearchManager;
 import android.content.*;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.*;
 import android.view.accessibility.AccessibilityManager;
@@ -43,12 +45,17 @@ import org.geometerplus.android.fbreader.benetech.AccessibleMainMenuActivity;
 import org.benetech.android.R;
 import org.geometerplus.android.fbreader.benetech.SpeakActivity;
 import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.BooksharePeriodicalDataSource;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalEntity;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalsSQLiteHelper;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.SubscriptionAlarmTriggerService;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
 import org.geometerplus.zlibrary.core.library.ZLibrary;
 
+import org.geometerplus.zlibrary.core.options.ZLEnumOption;
 import org.geometerplus.zlibrary.text.view.ZLTextView;
 import org.geometerplus.zlibrary.text.hyphenation.ZLTextHyphenator;
 
@@ -88,6 +95,14 @@ public final class FBReader extends ZLAndroidActivity {
 	private static final String PLUGIN_ACTION_PREFIX = "___";
 	private final List<PluginApi.ActionInfo> myPluginActions =
 		new LinkedList<PluginApi.ActionInfo>();
+
+    private BooksharePeriodicalDataSource dataSource;
+
+    Intent alarmServiceIntent;
+
+    public static final String SUBSCRIBED_PERIODICAL_IDS_KEY = "subscribed_periodical_ids";
+    public static final String AUTOMATIC_DOWNLOAD_TYPE_KEY = "download_type";
+
 	private final BroadcastReceiver myPluginInfoReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -198,8 +213,55 @@ public final class FBReader extends ZLAndroidActivity {
             prefsEditor.commit();
         }
 
+        //Activating subscription download
+        activateSubscriptionDownload(prefs);
+
         BugSenseHandler.setup(this, BookshareDeveloperKey.BUGSENSE_KEY);
 	}
+
+    public void activateSubscriptionDownload(SharedPreferences prefs) {
+        ZLEnumOption<FBReaderApp.AutomaticDownloadType> downloadOption = new ZLEnumOption<FBReaderApp.AutomaticDownloadType>(
+                "DownloadTypeOptions", "AutomaticDownloadType",
+                FBReaderApp.AutomaticDownloadType.downloadMostRecent);
+
+        PeriodicalsSQLiteHelper dbHelper = new PeriodicalsSQLiteHelper(getApplicationContext());
+        SQLiteDatabase periodicalDb = dbHelper.getWritableDatabase();
+        dataSource = BooksharePeriodicalDataSource
+                .getInstance(getApplicationContext());
+
+        String username = prefs.getString("username", "");
+        String password = prefs.getString("password", "");
+        boolean OM = prefs.getBoolean("isOM", false);
+
+        alarmServiceIntent = new Intent(this,
+                SubscriptionAlarmTriggerService.class);
+
+        ArrayList<String> ids = getSubscribedPeriodicalIds(periodicalDb);
+        alarmServiceIntent.putStringArrayListExtra(
+                SUBSCRIBED_PERIODICAL_IDS_KEY, ids);
+        alarmServiceIntent.putExtra(AUTOMATIC_DOWNLOAD_TYPE_KEY, downloadOption
+                .getValue().name());
+
+        if (!OM && username != null && password != null
+                && !TextUtils.isEmpty(username)) {
+            startService(alarmServiceIntent);
+
+            Log.i("GoRead", getClass().getSimpleName() +
+                    " User is logged in. Download service binded");
+            // bindService(serviceIntent, sc, Context.BIND_AUTO_CREATE);
+        }
+    }
+
+    private ArrayList<String> getSubscribedPeriodicalIds(SQLiteDatabase db) {
+    		ArrayList<String> ids = new ArrayList<String>();
+    		final ArrayList<PeriodicalEntity> entities = new ArrayList<PeriodicalEntity>();
+    		entities.addAll(dataSource.getAllEntities(db,
+    				PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS));
+    		for (PeriodicalEntity entity : entities) {
+    			ids.add(entity.getId());
+    		}
+    		return ids;
+    	}
 
  	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
