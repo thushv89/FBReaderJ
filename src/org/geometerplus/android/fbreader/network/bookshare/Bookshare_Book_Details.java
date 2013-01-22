@@ -151,9 +151,9 @@ public class Bookshare_Book_Details extends Activity {
 					msg.what = DATA_FETCHED;
 					msg.sendToTarget();
 				} catch (IOException ioe) {
-					System.out.println(ioe);
+					Log.e(FBReader.LOG_LABEL, "Problem fetching details", ioe);
 				} catch (URISyntaxException use) {
-					System.out.println(use);
+                    Log.e(FBReader.LOG_LABEL, "Problem fetching details", use);
 				}
 			}
 		}.start();
@@ -650,7 +650,6 @@ public class Bookshare_Book_Details extends Activity {
 					progressNotification);
 
 			try {
-				System.out.println("download_uri :" + download_uri);
 				HttpResponse response = bws.getHttpResponse(password,
 						download_uri);
 				// Get hold of the response entity
@@ -666,7 +665,7 @@ public class Bookshare_Book_Details extends Activity {
 						}
 						filename = temp;
 						filename = filename.replaceAll(" +", "_").replaceAll(
-								":", "__");
+								":", "__").replaceAll("/", "-");
 						if (isOM) {
 							filename = filename + "_" + firstName + "_"
 									+ lastName;
@@ -705,7 +704,7 @@ public class Bookshare_Book_Details extends Activity {
 							bout.close();
 							in.close();
 
-							System.out.println("******** Downloading complete");
+							Log.i(FBReader.LOG_LABEL,"******** Downloading complete");
 
 							// Unzip the encrypted archive file
 							if (!isFree) {
@@ -813,7 +812,7 @@ public class Bookshare_Book_Details extends Activity {
 							}
 							downloadSuccess = true;
 						} catch (ZipException e) {
-							Log.e("FBR", "Zip Exception", e);
+							Log.e(FBReader.LOG_LABEL, "Zip Exception", e);
 						}
 					} else {
 						downloadSuccess = false;
@@ -823,9 +822,9 @@ public class Bookshare_Book_Details extends Activity {
 					}
 				}
 			} catch (URISyntaxException use) {
-				System.out.println("URISyntaxException: " + use);
+                Log.e(FBReader.LOG_LABEL, "Problem downloading", use);
 			} catch (IOException ie) {
-				System.out.println("IOException: " + ie);
+                Log.e(FBReader.LOG_LABEL, "Problem downloading", ie);
 			}
 			return null;
 		}
