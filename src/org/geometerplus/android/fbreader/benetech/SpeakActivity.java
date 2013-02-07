@@ -341,17 +341,22 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
 	@Override
 	protected void onResume() {
 		super.onResume();
-        findViewById(R.id.speak_menu_pause).requestFocus();
 
-        if (! abortedTOCReturn) {
-            setCurrentLocation();
-        }
-        abortedTOCReturn = false;
+        try {
+            findViewById(R.id.speak_menu_pause).requestFocus();
 
-        if (resumePlaying || justPaused) {
-            resumePlaying = false;
-            myTTS.playEarcon(START_READING_EARCON, TextToSpeech.QUEUE_ADD, null);
-            speakParagraph(getNextParagraph());
+            if (! abortedTOCReturn) {
+                setCurrentLocation();
+            }
+            abortedTOCReturn = false;
+
+            if (resumePlaying || justPaused) {
+                resumePlaying = false;
+                myTTS.playEarcon(START_READING_EARCON, TextToSpeech.QUEUE_ADD, null);
+                speakParagraph(getNextParagraph());
+            }
+        } catch (Exception e) {
+            Log.e("GoRead", "Error on resuming of speak activity", e);
         }
 	}
 
