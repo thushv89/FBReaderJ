@@ -28,6 +28,7 @@ import org.geometerplus.android.fbreader.network.BookDownloaderService;
 import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Edition_Metadata_Bean;
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Error_Bean;
+import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Periodical_Edition_Details;
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.zlibrary.core.filesystem.ZLFile;
@@ -50,7 +51,7 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 /**
- * This is an intent service. This was used to stop simultaneous downloas as it
+ * This is an intent service. This was used to stop simultaneous downloads as it
  * causes system not to respond as well as corrupt zip files. So with this
  * downloads are done sequentially
  * 
@@ -110,14 +111,11 @@ public class SubscriptionDownloadService extends IntentService {
 		metadata_bean = (Bookshare_Edition_Metadata_Bean) intent
 				.getSerializableExtra("metadata_bean");
 
-		Log.i("GoRead", getClass().getSimpleName() +
+		Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() +
 				" Downloding one by one... " + "Title: "
 						+ metadata_bean.getTitle() + " Edition: "
 						+ metadata_bean.getEdition());
-		// new DownloadFilesTask().execute();
 
-		// From here onwards till method's end it's similar to
-		// DownloadFilesTask() Task
 		final String id = metadata_bean.getContentId();
 		String download_uri;
 		if (isFree)
@@ -147,10 +145,11 @@ public class SubscriptionDownloadService extends IntentService {
 
 		final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		myOngoingNotifications.add(Integer.valueOf(id));
+        Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() + " added progress notification for download_uri: " + download_uri);
 		notificationManager.notify(Integer.valueOf(id), progressNotification);
 
 		try {
-            Log.i("GoRead", getClass().getSimpleName() + " about to make http call with download_uri: " + download_uri);
+            Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() + " about to make http call with download_uri: " + download_uri);
 			HttpResponse response = bws.getHttpResponse(password, download_uri);
 			// Get hold of the response entity
 			HttpEntity entity = response.getEntity();
@@ -187,120 +186,19 @@ public class SubscriptionDownloadService extends IntentService {
 				final String headerValue = header.getValue();
 				if (headerValue.contains("zip") || headerValue.contains("bks2")) {
 					try {
-						System.out.println("Contains zip");
-						java.io.BufferedInputStream in = new java.io.BufferedInputStream(
-								entity.getContent());
-						java.io.FileOutputStream fos = new java.io.FileOutputStream(
-								downloaded_zip_file);
-						java.io.BufferedOutputStream bout = new BufferedOutputStream(
-								fos, 1024);
-						byte[] data = new byte[1024];
-						int x = 0;
-						while ((x = in.read(data, 0, 1024)) >= 0) {
-							bout.write(data, 0, x);
-						}
-						fos.flush();
-						bout.flush();
-						fos.close();
-						bout.close();
-						in.close();
+						Log.i(FBReader.LOG_LABEL, "Contains zip");
+						java.io.BufferedInputStream in = new java.io.BufferedInputStream(entity.getContent());
+						java.io.FileOutputStream fos = new java.io.FileOutputStream(downloaded_zip_file);
+                        Bookshare_Periodical_Edition_Details.copyStream(in, fos);
 
-                        Log.i("GoRead", getClass().getSimpleName() + " : Downloading complete");
+                        Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() + " : Downloading complete");
 
-						// Unzip the encrypted archive file
 						if (!isFree) {
-							System.out
-									.println("******Before creating ZipFile******"
-											+ zip_file);
-							// Initiate ZipFile object with the path/name of
-							// the zip file.
-							ZipFile zipFile = new ZipFile(zip_file);
-
-							// Check to see if the zip file is password
-							// protected
-							if (zipFile.isEncrypted()) {
-								System.out.println("******isEncrypted******");
-
-								// if yes, then set the password for the zip
-								// file
-								if (!isOM) {
-									zipFile.setPassword(password);
-								}
-								// Set the OM password sent by the Intent
-								else {
-									// Obtain the SharedPreferences object
-									// shared across the application. It is
-									// stored in login activity
-									SharedPreferences login_preference = PreferenceManager
-											.getDefaultSharedPreferences(getApplicationContext());
-									omDownloadPassword = login_preference
-											.getString("downloadPassword", "");
-									zipFile.setPassword(omDownloadPassword);
-								}
-							}
-
-							// Get the list of file headers from the zip
-							// file
-							List fileHeaderList = zipFile.getFileHeaders();
-
-							System.out.println("******Before for******");
-							// Loop through the file headers
-							for (int i = 0; i < fileHeaderList.size(); i++) {
-								FileHeader fileHeader = (FileHeader) fileHeaderList
-										.get(i);
-								System.out.println(downloadedBookDir);
-								// Extract the file to the specified
-								// destination
-								zipFile.extractFile(fileHeader,
-										downloadedBookDir);
-							}
+                            Bookshare_Periodical_Edition_Details.UnzipEncryptedFile(zip_file, isOM, password,
+                                omDownloadPassword, downloadedBookDir, getApplicationContext());
 						}
-						// Unzip the non-encrypted archive file
 						else {
-							try {
-								File file = new File(downloadedBookDir);
-								file.mkdir();
-								String destinationname = downloadedBookDir
-										+ "/";
-								byte[] buf = new byte[1024];
-								ZipInputStream zipinputstream = null;
-								ZipEntry zipentry;
-								zipinputstream = new ZipInputStream(
-										new FileInputStream(zip_file));
-
-								zipentry = zipinputstream.getNextEntry();
-								while (zipentry != null) {
-									// for each entry to be extracted
-									String entryName = zipentry.getName();
-									System.out
-											.println("entryname " + entryName);
-									int n;
-									FileOutputStream fileoutputstream;
-									File newFile = new File(entryName);
-									String directory = newFile.getParent();
-
-									if (directory == null) {
-										if (newFile.isDirectory())
-											break;
-									}
-
-									fileoutputstream = new FileOutputStream(
-											destinationname + entryName);
-
-									while ((n = zipinputstream.read(buf, 0,
-											1024)) > -1)
-										fileoutputstream.write(buf, 0, n);
-
-									fileoutputstream.close();
-									zipinputstream.closeEntry();
-									zipentry = zipinputstream.getNextEntry();
-
-								}// while
-
-								zipinputstream.close();
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+                            Bookshare_Periodical_Edition_Details.UnzipNonEncryptedFile(zip_file, downloadedBookDir);
 						}
 						// Delete the downloaded zip file as it has been
 						// extracted
@@ -310,7 +208,7 @@ public class SubscriptionDownloadService extends IntentService {
 						}
 						downloadSuccess = true;
 					} catch (ZipException e) {
-						Log.e("GoRead", "Zip Exception", e);
+						Log.e(FBReader.LOG_LABEL, "Zip Exception", e);
 					}
 				} else {
 					downloadSuccess = false;
@@ -319,13 +217,13 @@ public class SubscriptionDownloadService extends IntentService {
 				}
 			}
 		} catch (URISyntaxException use) {
-            Log.e("GoRead", " uri problem downloading subscription", use);
+            Log.e(FBReader.LOG_LABEL, " uri problem downloading subscription", use);
 		} catch (IOException ie) {
-            Log.e("GoRead", " io problem downloading subscription", ie);
+            Log.e(FBReader.LOG_LABEL, " io problem downloading subscription", ie);
 		}
 
 		if (downloadSuccess) {
-            Log.i("GoRead", "SubscriptionDownloadService downloadSuccess");
+            Log.i(FBReader.LOG_LABEL, "SubscriptionDownloadService downloadSuccess");
 			// Get download time/date
 			Calendar currCal = Calendar.getInstance();
 			String currentDate = currCal.get(Calendar.MONTH) + "/"
@@ -375,7 +273,7 @@ public class SubscriptionDownloadService extends IntentService {
 
 		final Handler downloadFinishHandler = new Handler() {
 			public void handleMessage(Message message) {
-                Log.i("GoRead", " downloadFinishHandler.handleMessage, message=" + message.toString());
+                Log.i(FBReader.LOG_LABEL, " downloadFinishHandler.handleMessage, message=" + message.toString());
 				final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 				int id = Integer.valueOf(metadata_bean.getContentId());
 				notificationManager.cancel(id);
@@ -384,7 +282,7 @@ public class SubscriptionDownloadService extends IntentService {
 				if (downloadSuccess) {
 					file = new File(getOpfFile().getPath());
 				}
-                Log.i("GoRead", " SubscriptionDownloadService handleMessage - should update notification");
+                Log.i(FBReader.LOG_LABEL, " SubscriptionDownloadService handleMessage - should update notification");
 				notificationManager.notify(
 						id,
 						createDownloadFinishNotification(file,
@@ -393,313 +291,11 @@ public class SubscriptionDownloadService extends IntentService {
 		};
 
 		downloadFinishHandler.sendEmptyMessage(downloadSuccess ? 1 : 0);
+        Log.i(FBReader.LOG_LABEL, "Just sent downloadFinishhandler a value of " + downloadSuccess);
 		periodicalDb.close();
 
 	}
 
-	private class DownloadFilesTask extends AsyncTask<Void, Void, Void> {
-
-		private Bookshare_Error_Bean error;
-		final BookshareWebservice bws = new BookshareWebservice(
-				Bookshare_Webservice_Login.BOOKSHARE_API_HOST);
-
-		private boolean downloadSuccess;
-
-		// Will be called in the UI thread
-		@Override
-		protected void onPreExecute() {
-			downloadedBookDir = null;
-
-		}
-
-		// Will be called in a separate thread
-		@Override
-		protected Void doInBackground(Void... params) {
-            Log.i("GoRead", " SubscriptionDownloadService DownloadFilesTask.doInBackground");
-			final String id = metadata_bean.getContentId();
-			String download_uri;
-			if (isFree)
-				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-						+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
-						+ "/download/content/"
-						+ id
-						+ "/version/1?api_key="
-						+ developerKey;
-			// TODO: Uncomment & Implement
-			/*
-			 * else if(isOM){
-			 * 
-			 * download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-			 * + Bookshare_Webservice_Login.BOOKSHARE_API_HOST +
-			 * "/download/member/"
-			 * +memberId+"content/"+id+"/version/1/for/"+username
-			 * +"?api_key="+developerKey; }
-			 */
-			else {
-				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-						+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
-						+ "/download/content/"
-						+ id
-						+ "/version/1/for/"
-						+ username + "?api_key=" + developerKey;
-			}
-
-			final Notification progressNotification = createDownloadProgressNotification(metadata_bean
-					.getTitle());
-
-			final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-			myOngoingNotifications.add(Integer.valueOf(id));
-			notificationManager.notify(Integer.valueOf(id),
-					progressNotification);
-
-			try {
-				System.out.println("download_uri :" + download_uri);
-				HttpResponse response = bws.getHttpResponse(password,
-						download_uri);
-				// Get hold of the response entity
-				HttpEntity entity = response.getEntity();
-
-				if (entity != null) {
-					String filename = "bookshare_" + Math.random() * 10000
-							+ ".zip";
-					if (metadata_bean.getTitle() != null
-							&& metadata_bean.getEdition() != null) {
-						String temp = "";
-						// Changed the file name to <title>_<edition>
-						temp = metadata_bean.getTitle() + "_"
-								+ metadata_bean.getEdition();
-
-						filename = temp;
-						filename = filename.replaceAll(" +", "_").replaceAll(
-								":", "__");
-						if (isOM) {
-							// TODO: Uncomment & Implement
-							// filename = filename + "_" + firstName + "_" +
-							// lastName;
-						}
-					}
-					String zip_file = Paths.BooksDirectoryOption().getValue()
-							+ "/" + filename + ".zip";
-					downloadedBookDir = Paths.BooksDirectoryOption().getValue()
-							+ "/" + filename;
-
-					File downloaded_zip_file = new File(zip_file);
-					if (downloaded_zip_file.exists()) {
-						downloaded_zip_file.delete();
-					}
-					Header header = entity.getContentType();
-					// Log.w("FBR", "******  zip_file *****" + zip_file);
-					final String headerValue = header.getValue();
-					if (headerValue.contains("zip")
-							|| headerValue.contains("bks2")) {
-						try {
-							System.out.println("Contains zip");
-							java.io.BufferedInputStream in = new java.io.BufferedInputStream(
-									entity.getContent());
-							java.io.FileOutputStream fos = new java.io.FileOutputStream(
-									downloaded_zip_file);
-							java.io.BufferedOutputStream bout = new BufferedOutputStream(
-									fos, 1024);
-							byte[] data = new byte[1024];
-							int x = 0;
-							while ((x = in.read(data, 0, 1024)) >= 0) {
-								bout.write(data, 0, x);
-							}
-							fos.flush();
-							bout.flush();
-							fos.close();
-							bout.close();
-							in.close();
-
-							System.out.println("******** Downloading complete");
-
-							// Unzip the encrypted archive file
-							if (!isFree) {
-								System.out
-										.println("******Before creating ZipFile******"
-												+ zip_file);
-								// Initiate ZipFile object with the path/name of
-								// the zip file.
-								ZipFile zipFile = new ZipFile(zip_file);
-
-								// Check to see if the zip file is password
-								// protected
-								if (zipFile.isEncrypted()) {
-									System.out
-											.println("******isEncrypted******");
-
-									// if yes, then set the password for the zip
-									// file
-									if (!isOM) {
-										zipFile.setPassword(password);
-									}
-									// Set the OM password sent by the Intent
-									else {
-										// Obtain the SharedPreferences object
-										// shared across the application. It is
-										// stored in login activity
-										SharedPreferences login_preference = PreferenceManager
-												.getDefaultSharedPreferences(getApplicationContext());
-										omDownloadPassword = login_preference
-												.getString("downloadPassword",
-														"");
-										zipFile.setPassword(omDownloadPassword);
-									}
-								}
-
-								// Get the list of file headers from the zip
-								// file
-								List fileHeaderList = zipFile.getFileHeaders();
-
-								System.out.println("******Before for******");
-								// Loop through the file headers
-								for (int i = 0; i < fileHeaderList.size(); i++) {
-									FileHeader fileHeader = (FileHeader) fileHeaderList
-											.get(i);
-									System.out.println(downloadedBookDir);
-									// Extract the file to the specified
-									// destination
-									zipFile.extractFile(fileHeader,
-											downloadedBookDir);
-								}
-							}
-							// Unzip the non-encrypted archive file
-							else {
-								try {
-									File file = new File(downloadedBookDir);
-									file.mkdir();
-									String destinationname = downloadedBookDir
-											+ "/";
-									byte[] buf = new byte[1024];
-									ZipInputStream zipinputstream = null;
-									ZipEntry zipentry;
-									zipinputstream = new ZipInputStream(
-											new FileInputStream(zip_file));
-
-									zipentry = zipinputstream.getNextEntry();
-									while (zipentry != null) {
-										// for each entry to be extracted
-										String entryName = zipentry.getName();
-										System.out.println("entryname "
-												+ entryName);
-										int n;
-										FileOutputStream fileoutputstream;
-										File newFile = new File(entryName);
-										String directory = newFile.getParent();
-
-										if (directory == null) {
-											if (newFile.isDirectory())
-												break;
-										}
-
-										fileoutputstream = new FileOutputStream(
-												destinationname + entryName);
-
-										while ((n = zipinputstream.read(buf, 0,
-												1024)) > -1)
-											fileoutputstream.write(buf, 0, n);
-
-										fileoutputstream.close();
-										zipinputstream.closeEntry();
-										zipentry = zipinputstream
-												.getNextEntry();
-
-									}// while
-
-									zipinputstream.close();
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-							// Delete the downloaded zip file as it has been
-							// extracted
-							downloaded_zip_file = new File(zip_file);
-							if (downloaded_zip_file.exists()) {
-								downloaded_zip_file.delete();
-							}
-							downloadSuccess = true;
-						} catch (ZipException e) {
-							Log.e("FBR", "Zip Exception", e);
-						}
-					} else {
-						downloadSuccess = false;
-						error = new Bookshare_Error_Bean();
-						error.parseInputStream(response.getEntity()
-								.getContent());
-					}
-				}
-			} catch (URISyntaxException use) {
-				System.out.println("URISyntaxException: " + use);
-			} catch (IOException ie) {
-				System.out.println("IOException: " + ie);
-			}
-			return null;
-		}
-
-		// Will be called in the UI thread
-		@Override
-		protected void onPostExecute(Void param) {
-
-			if (downloadSuccess) {
-				// Get download time/date
-				Calendar currCal = Calendar.getInstance();
-				String currentDate = currCal.get(Calendar.MONTH) + "/"
-						+ currCal.get(Calendar.DATE) + "/"
-						+ currCal.get(Calendar.YEAR) + "";
-				String currentTime = currCal.get(Calendar.HOUR_OF_DAY) + ":"
-						+ currCal.get(Calendar.MINUTE) + ":"
-						+ currCal.get(Calendar.SECOND) + "";
-
-				// create alldb and subscribeddb entities to be inserted to
-				// their respective dbs
-				AllDbPeriodicalEntity allEntity = new AllDbPeriodicalEntity(
-						metadata_bean.getPeriodicalId(),
-						metadata_bean.getTitle(), metadata_bean.getEdition(),
-						Integer.parseInt(metadata_bean.getRevision()),
-						currentDate, currentTime);
-				SubscribedDbPeriodicalEntity subEntity = new SubscribedDbPeriodicalEntity(
-						metadata_bean.getPeriodicalId(),
-						metadata_bean.getTitle(), metadata_bean.getEdition(),
-						Integer.parseInt(metadata_bean.getRevision()));
-				dataSource.insertEntity(periodicalDb,
-						PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS,
-						allEntity);
-				if (dataSource.doesExist(periodicalDb,
-						PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,
-						subEntity)) {
-					dataSource
-							.insertEntity(
-									periodicalDb,
-									PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,
-									subEntity);
-				}
-			} else {
-
-				downloadedBookDir = null;
-			}
-
-			final Handler downloadFinishHandler = new Handler() {
-				public void handleMessage(Message message) {
-					final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-					int id = Integer.valueOf(metadata_bean.getContentId());
-					notificationManager.cancel(id);
-					myOngoingNotifications.remove(Integer.valueOf(id));
-					File file = null;
-					if (downloadSuccess) {
-						file = new File(getOpfFile().getPath());
-					}
-					notificationManager
-							.notify(id,
-									createDownloadFinishNotification(file,
-											metadata_bean.getTitle(),
-											message.what != 0));
-				}
-			};
-
-			downloadFinishHandler.sendEmptyMessage(downloadSuccess ? 1 : 0);
-			periodicalDb.close();
-		}
-	}
 
 	private ZLFile getOpfFile() {
 		ZLFile bookDir = ZLFile.createFileByPath(downloadedBookDir);
@@ -726,7 +322,7 @@ public class SubscriptionDownloadService extends IntentService {
 
 	private Notification createDownloadFinishNotification(File file,
 			String title, boolean success) {
-        Log.i("GoRead", " SubscriptionDownloadService createDownloadFinishNotification with success = " + success);
+        Log.i(FBReader.LOG_LABEL, " SubscriptionDownloadService createDownloadFinishNotification with success = " + success);
 		final ZLResource resource = BookDownloaderService.getResource();
 		final String tickerText = success ? resource.getResource(
 				"tickerSuccess").getValue() : resource.getResource(

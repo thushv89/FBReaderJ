@@ -46,9 +46,9 @@ import org.benetech.android.R;
 import org.geometerplus.android.fbreader.benetech.SpeakActivity;
 import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
 import org.geometerplus.android.fbreader.network.bookshare.subscription.BooksharePeriodicalDataSource;
+import org.geometerplus.android.fbreader.network.bookshare.subscription.Bookshare_Subscription_Download_Service;
 import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalEntity;
 import org.geometerplus.android.fbreader.network.bookshare.subscription.PeriodicalsSQLiteHelper;
-import org.geometerplus.android.fbreader.network.bookshare.subscription.SubscriptionAlarmTriggerService;
 import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.library.Library;
 import org.geometerplus.zlibrary.core.application.ZLApplication;
@@ -98,8 +98,6 @@ public final class FBReader extends ZLAndroidActivity {
 		new LinkedList<PluginApi.ActionInfo>();
 
     private BooksharePeriodicalDataSource dataSource;
-
-    Intent alarmServiceIntent;
 
     public static final String SUBSCRIBED_PERIODICAL_IDS_KEY = "subscribed_periodical_ids";
     public static final String AUTOMATIC_DOWNLOAD_TYPE_KEY = "download_type";
@@ -234,22 +232,18 @@ public final class FBReader extends ZLAndroidActivity {
         String password = prefs.getString("password", "");
         boolean OM = prefs.getBoolean("isOM", false);
 
-        alarmServiceIntent = new Intent(this,
-                SubscriptionAlarmTriggerService.class);
-
         ArrayList<String> ids = getSubscribedPeriodicalIds(periodicalDb);
-        alarmServiceIntent.putStringArrayListExtra(
-                SUBSCRIBED_PERIODICAL_IDS_KEY, ids);
-        alarmServiceIntent.putExtra(AUTOMATIC_DOWNLOAD_TYPE_KEY, downloadOption
-                .getValue().name());
 
         if (!OM && username != null && password != null
                 && !TextUtils.isEmpty(username)) {
-            startService(alarmServiceIntent);
 
-            Log.i("GoRead", getClass().getSimpleName() +
-                    " User is logged in. Download service binded");
-            // bindService(serviceIntent, sc, Context.BIND_AUTO_CREATE);
+            Intent serviceIntent = new Intent(this, Bookshare_Subscription_Download_Service.class);
+            String downloadTypeStr = downloadOption.getValue().name();
+            Log.i(FBReader.LOG_LABEL, "putting extras in onStartCommand");
+            serviceIntent.putStringArrayListExtra(SUBSCRIBED_PERIODICAL_IDS_KEY, ids);
+            serviceIntent.putExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY, downloadTypeStr);
+            startService(serviceIntent);
+
         }
     }
 

@@ -10,6 +10,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.util.Log;
 
 /**
  * Used in order to trigger the subscription service if the application is left
@@ -36,27 +37,31 @@ public class SubscriptionAlarmTriggerService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Intent serviceIntent = new Intent(this,
-				Bookshare_Subscription_Download_Service.class);
+        try {
+            Intent serviceIntent = new Intent(this,
+                    Bookshare_Subscription_Download_Service.class);
 
-		long daysTimeinMillis = 1000 * 60 * 60 * 24;
+            long daysTimeinMillis = 1000 * 60 * 60 * 24;
+            Log.i(FBReader.LOG_LABEL, "made it past init of onStartCommand");
+            ArrayList<String> ids = intent
+                    .getStringArrayListExtra(FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY);
+            String downloadTypeStr = intent
+                    .getStringExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY);
+            Log.i(FBReader.LOG_LABEL, "putting extras in onStartCommand");
+            serviceIntent.putStringArrayListExtra(
+                    FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY, ids);
+            serviceIntent.putExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY,
+                    downloadTypeStr);
+            Log.i(FBReader.LOG_LABEL, "getting AlarmManager");
+            alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+            pendingIntent = PendingIntent.getService(getBaseContext(), 0,
+                    serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-		ArrayList<String> ids = intent
-				.getStringArrayListExtra(FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY);
-		String downloadTypeStr = intent
-				.getStringExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY);
-
-		serviceIntent.putStringArrayListExtra(
-				FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY, ids);
-		serviceIntent.putExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY,
-				downloadTypeStr);
-
-		alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-		pendingIntent = PendingIntent.getService(getBaseContext(), 0,
-				serviceIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-		alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
-				System.currentTimeMillis(), daysTimeinMillis, pendingIntent);
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis(), daysTimeinMillis, pendingIntent);
+        } catch (Exception e) {
+            Log.e("GoRead", "Error on start of alarm trigger service", e);
+        }
 
 		return super.onStartCommand(intent, flags, startId);
 

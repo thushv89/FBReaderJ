@@ -131,66 +131,74 @@ public class Bookshare_Subscription_Download_Service extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.i("GoRead", getClass().getSimpleName() +
+		Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() +
 				" **** Service Started by Alarm Manager ****");
+        try {
+            if (serviceBinder == null) {
+                serviceBinder = new ServiceBinder();
+            }
+            Log.i(FBReader.LOG_LABEL, "about to get username and password in onStart");
+            SharedPreferences logingPrefs = PreferenceManager
+                    .getDefaultSharedPreferences(getApplicationContext());
+            username = logingPrefs.getString(usernameKey, "");
+            password = logingPrefs.getString(passwordKey, "");
+            Log.i(FBReader.LOG_LABEL, "about to set dataSource in onStart");
+            dataSource = BooksharePeriodicalDataSource
+                    .getInstance(getApplicationContext());
+            dbHelper = new PeriodicalsSQLiteHelper(getApplicationContext());
+            Log.i(FBReader.LOG_LABEL, "about to instantiate periodicalDB in onStart");
+            // instantiate periodical db only if its null or is not opened currently
+            if (periodicalDb == null) {
+                periodicalDb = dbHelper.getWritableDatabase();
+            } else {
+                if (!periodicalDb.isOpen()) {
+                    periodicalDb = dbHelper.getWritableDatabase();
+                }
+            }
+            Log.i(FBReader.LOG_LABEL, "about to check username and password in onStart");
+            if (username == null || password == null || TextUtils.isEmpty(username)) {
+                isFree = true;
+            }
 
-		if (serviceBinder == null) {
-			serviceBinder = new ServiceBinder();
-		}
+            ArrayList<String> ids = (ArrayList<String>) intent
+                    .getStringArrayListExtra(FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY);
 
-		SharedPreferences logingPrefs = PreferenceManager
-				.getDefaultSharedPreferences(getApplicationContext());
-		username = logingPrefs.getString(usernameKey, "");
-		password = logingPrefs.getString(passwordKey, "");
+            String downTypeStr = intent
+                    .getStringExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY);
+            AutomaticDownloadType downType;
+            if (null != ids) {
+                Log.i("GoRead", getClass().getSimpleName() + " Extras passed: id array size" + ids.size()
+                        + " , " + downTypeStr);
+            } else {
+                Log.i("GoRead", getClass().getSimpleName() + " Extras passed: ids are null"
+                                        + " , " + downTypeStr);
+            }
+            // Determine the download type user has set
+            if (AutomaticDownloadType.downloadAll.toString().equals(downTypeStr)) {
+                downType = AutomaticDownloadType.downloadAll;
+            } else {
+                downType = AutomaticDownloadType.downloadMostRecent;
+            }
 
-		dataSource = BooksharePeriodicalDataSource
-				.getInstance(getApplicationContext());
-		dbHelper = new PeriodicalsSQLiteHelper(getApplicationContext());
+            if (ids != null && ids.size() > 0) {
+                for (String id : ids) {
+                    Log.i("GoRead", getClass().getSimpleName() +
+                            " Periodical search started by alarm: " + id);
+                    serviceBinder.getUpdates(downType, id);
 
-		// instantiate periodical db only if its null or is not opened currently
-		if (periodicalDb == null) {
-			periodicalDb = dbHelper.getWritableDatabase();
-		} else {
-			if (!periodicalDb.isOpen()) {
-				periodicalDb = dbHelper.getWritableDatabase();
-			}
-		}
-
-		if (username == null || password == null || TextUtils.isEmpty(username)) {
-			isFree = true;
-		}
-
-		ArrayList<String> ids = (ArrayList<String>) intent
-				.getStringArrayListExtra(FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY);
-
-		String downTypeStr = intent
-				.getStringExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY);
-		AutomaticDownloadType downType;
-		Log.i("GoRead", getClass().getSimpleName() + " Extras passed: id array size" + ids.size()
-				+ " , " + downTypeStr);
-		// Determine the download type user has set
-		if (AutomaticDownloadType.downloadAll.toString().equals(downTypeStr)) {
-			downType = AutomaticDownloadType.downloadAll;
-		} else {
-			downType = AutomaticDownloadType.downloadMostRecent;
-		}
-
-		if (ids != null && ids.size() > 0) {
-			for (String id : ids) {
-				Log.i("GoRead", getClass().getSimpleName() +
-						" Periodical search started by alarm: " + id);
-				serviceBinder.getUpdates(downType, id);
-
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					Log.e("GoRead", getClass().getSimpleName(),e);
-				}
-			}
-		} else {
-			Log.e("GoRead", getClass().getSimpleName() +
-					" Couldn't find any subscribed Periodicals");
-		}
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        Log.e("GoRead", getClass().getSimpleName(),e);
+                    }
+                }
+            } else {
+                Log.e("GoRead", getClass().getSimpleName() +
+                        " Couldn't find any subscribed Periodicals");
+            }
+        } catch (Exception e) {
+            Log.e(FBReader.LOG_LABEL, "problem starting download service", e);
+        }
 		return super.onStartCommand(intent, flags, startId);
 
 	}
@@ -202,6 +210,8 @@ public class Bookshare_Subscription_Download_Service extends Service {
 
 		@Override
 		public boolean downloadPeriodical(Bookshare_Edition_Metadata_Bean bean) {
+            Log.i("GoRead", getClass().getSimpleName() +
+            						" About to start SubscriptionDownloadService for periodical: " + bean.getPeriodicalId() + " and edition: " + bean.getEdition());
 			metadata_bean = bean;
 
 			Intent downloadService = new Intent(
@@ -211,7 +221,6 @@ public class Bookshare_Subscription_Download_Service extends Service {
 			downloadService.putExtra(passwordKey, password);
 			downloadService.putExtra("metadata_bean", metadata_bean);
 			startService(downloadService);
-			// new DownloadFilesTask().execute();
 			return false;
 		}
 
@@ -263,7 +272,7 @@ public class Bookshare_Subscription_Download_Service extends Service {
 				// URL to request metadata of particular edition of a periodical
 				String serviceURI;
 				// if user has set settings to download only the most recent
-				if (downType == AutomaticDownloadType.downloadMostRecent) {
+				//if (downType == AutomaticDownloadType.downloadMostRecent) {
 					AllDbPeriodicalEntity maxEntity = PeriodicalDBUtils
 							.getMostRecentEdition(entities);
 
@@ -278,9 +287,9 @@ public class Bookshare_Subscription_Download_Service extends Service {
 								maxEntity.getId(), maxEntity.getTitle());
 						metadataFetcher.getListing(serviceURI, password, this);
 					}
-				}
+				//}
 				// If user has set settings to download all periodicals
-				else if (downType == AutomaticDownloadType.downloadAll) {
+/*				else if (downType == AutomaticDownloadType.downloadAll) {
 					for (AllDbPeriodicalEntity entity : entities) {
 						// download the periodical only if it's not been
 						// downloaded before
@@ -304,7 +313,7 @@ public class Bookshare_Subscription_Download_Service extends Service {
 							}
 						}
 					}
-				}
+				}*/
 			}
 
 		}
@@ -319,6 +328,8 @@ public class Bookshare_Subscription_Download_Service extends Service {
 					+ "/revision/"
 					+ entity.getRevision()
 					+ "/for/" + username + "?api_key=" + developerKey;
+            Log.i("GoRead", getClass().getSimpleName() +
+            						" request url is " + serviceURI);
 			return serviceURI;
 		}
 
@@ -351,372 +362,5 @@ public class Bookshare_Subscription_Download_Service extends Service {
 
 	}
 
-	private class DownloadFilesTask extends AsyncTask<Void, Void, Void> {
-
-		private Bookshare_Error_Bean error;
-		final BookshareWebservice bws = new BookshareWebservice(
-				Bookshare_Webservice_Login.BOOKSHARE_API_HOST);
-		private boolean downloadSuccess;
-
-		// Will be called in the UI thread
-		@Override
-		protected void onPreExecute() {
-			downloadedBookDir = null;
-
-		}
-
-		// Will be called in a separate thread
-		@Override
-		protected Void doInBackground(Void... params) {
-			final String id = metadata_bean.getContentId();
-			String download_uri;
-			if (isFree)
-				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-						+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
-						+ "/download/content/"
-						+ id
-						+ "/version/1?api_key="
-						+ developerKey;
-			// TODO: Uncomment & Implement
-			/*
-			 * else if(isOM){
-			 * 
-			 * download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-			 * + Bookshare_Webservice_Login.BOOKSHARE_API_HOST +
-			 * "/download/member/"
-			 * +memberId+"content/"+id+"/version/1/for/"+username
-			 * +"?api_key="+developerKey; }
-			 */
-			else {
-				download_uri = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-						+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
-						+ "/download/content/"
-						+ id
-						+ "/version/1/for/"
-						+ username + "?api_key=" + developerKey;
-			}
-
-			final Notification progressNotification = createDownloadProgressNotification(metadata_bean
-					.getTitle());
-
-			final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-			myOngoingNotifications.add(Integer.valueOf(id));
-			notificationManager.notify(Integer.valueOf(id),
-					progressNotification);
-
-			try {
-                Log.i("GoRead", getClass().getSimpleName() + " download_uri: " + download_uri);
-				HttpResponse response = bws.getHttpResponse(password,
-						download_uri);
-				// Get hold of the response entity
-				HttpEntity entity = response.getEntity();
-
-				if (entity != null) {
-					String filename = "bookshare_" + Math.random() * 10000
-							+ ".zip";
-					if (metadata_bean.getTitle() != null
-							&& metadata_bean.getEdition() != null) {
-						String temp = "";
-						// Changed the file name to <title>_<edition>
-						temp = metadata_bean.getTitle() + "_"
-								+ metadata_bean.getEdition();
-
-						filename = temp;
-						filename = filename.replaceAll(" +", "_").replaceAll(
-								":", "__");
-						if (isOM) {
-							// TODO: Uncomment & Implement
-							// filename = filename + "_" + firstName + "_" +
-							// lastName;
-						}
-					}
-					String zip_file = Paths.BooksDirectoryOption().getValue()
-							+ "/" + filename + ".zip";
-					downloadedBookDir = Paths.BooksDirectoryOption().getValue()
-							+ "/" + filename;
-
-					File downloaded_zip_file = new File(zip_file);
-					if (downloaded_zip_file.exists()) {
-						downloaded_zip_file.delete();
-					}
-					Header header = entity.getContentType();
-					// Log.w("FBR", "******  zip_file *****" + zip_file);
-					final String headerValue = header.getValue();
-					if (headerValue.contains("zip")
-							|| headerValue.contains("bks2")) {
-						try {
-							System.out.println("Contains zip");
-							java.io.BufferedInputStream in = new java.io.BufferedInputStream(
-									entity.getContent());
-							java.io.FileOutputStream fos = new java.io.FileOutputStream(
-									downloaded_zip_file);
-							java.io.BufferedOutputStream bout = new BufferedOutputStream(
-									fos, 1024);
-							byte[] data = new byte[1024];
-							int x = 0;
-							while ((x = in.read(data, 0, 1024)) >= 0) {
-								bout.write(data, 0, x);
-							}
-							fos.flush();
-							bout.flush();
-							fos.close();
-							bout.close();
-							in.close();
-
-							System.out.println("******** Downloading complete");
-
-							// Unzip the encrypted archive file
-							if (!isFree) {
-								System.out
-										.println("******Before creating ZipFile******"
-												+ zip_file);
-								// Initiate ZipFile object with the path/name of
-								// the zip file.
-								ZipFile zipFile = new ZipFile(zip_file);
-
-								// Check to see if the zip file is password
-								// protected
-								if (zipFile.isEncrypted()) {
-									System.out
-											.println("******isEncrypted******");
-
-									// if yes, then set the password for the zip
-									// file
-									if (!isOM) {
-										zipFile.setPassword(password);
-									}
-									// Set the OM password sent by the Intent
-									else {
-										// Obtain the SharedPreferences object
-										// shared across the application. It is
-										// stored in login activity
-										SharedPreferences login_preference = PreferenceManager
-												.getDefaultSharedPreferences(getApplicationContext());
-										omDownloadPassword = login_preference
-												.getString("downloadPassword",
-														"");
-										zipFile.setPassword(omDownloadPassword);
-									}
-								}
-
-								// Get the list of file headers from the zip
-								// file
-								List fileHeaderList = zipFile.getFileHeaders();
-
-								System.out.println("******Before for******");
-								// Loop through the file headers
-								for (int i = 0; i < fileHeaderList.size(); i++) {
-									FileHeader fileHeader = (FileHeader) fileHeaderList
-											.get(i);
-									System.out.println(downloadedBookDir);
-									// Extract the file to the specified
-									// destination
-									zipFile.extractFile(fileHeader,
-											downloadedBookDir);
-								}
-							}
-							// Unzip the non-encrypted archive file
-							else {
-								try {
-									File file = new File(downloadedBookDir);
-									file.mkdir();
-									String destinationname = downloadedBookDir
-											+ "/";
-									byte[] buf = new byte[1024];
-									ZipInputStream zipinputstream = null;
-									ZipEntry zipentry;
-									zipinputstream = new ZipInputStream(
-											new FileInputStream(zip_file));
-
-									zipentry = zipinputstream.getNextEntry();
-									while (zipentry != null) {
-										// for each entry to be extracted
-										String entryName = zipentry.getName();
-										System.out.println("entryname "
-												+ entryName);
-										int n;
-										FileOutputStream fileoutputstream;
-										File newFile = new File(entryName);
-										String directory = newFile.getParent();
-
-										if (directory == null) {
-											if (newFile.isDirectory())
-												break;
-										}
-
-										fileoutputstream = new FileOutputStream(
-												destinationname + entryName);
-
-										while ((n = zipinputstream.read(buf, 0,
-												1024)) > -1)
-											fileoutputstream.write(buf, 0, n);
-
-										fileoutputstream.close();
-										zipinputstream.closeEntry();
-										zipentry = zipinputstream
-												.getNextEntry();
-
-									}// while
-
-									zipinputstream.close();
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-							// Delete the downloaded zip file as it has been
-							// extracted
-							downloaded_zip_file = new File(zip_file);
-							if (downloaded_zip_file.exists()) {
-								downloaded_zip_file.delete();
-							}
-							downloadSuccess = true;
-						} catch (ZipException e) {
-							Log.e("FBR", "Zip Exception", e);
-						}
-					} else {
-						downloadSuccess = false;
-						error = new Bookshare_Error_Bean();
-						error.parseInputStream(response.getEntity()
-								.getContent());
-					}
-				}
-			} catch (URISyntaxException use) {
-				System.out.println("URISyntaxException: " + use);
-			} catch (IOException ie) {
-				System.out.println("IOException: " + ie);
-			}
-			return null;
-		}
-
-		// Will be called in the UI thread
-		@Override
-		protected void onPostExecute(Void param) {
-
-			if (downloadSuccess) {
-				// Get download time/date
-				Calendar currCal = Calendar.getInstance();
-				String currentDate = currCal.get(Calendar.MONTH) + "/"
-						+ currCal.get(Calendar.DATE) + "/"
-						+ currCal.get(Calendar.YEAR) + "";
-				String currentTime = currCal.get(Calendar.HOUR_OF_DAY) + ":"
-						+ currCal.get(Calendar.MINUTE) + ":"
-						+ currCal.get(Calendar.SECOND) + "";
-
-				// create alldb and subscribeddb entities to be inserted to
-				// their respective dbs
-				AllDbPeriodicalEntity allEntity = new AllDbPeriodicalEntity(
-						metadata_bean.getPeriodicalId(),
-						metadata_bean.getTitle(), metadata_bean.getEdition(),
-						Integer.parseInt(metadata_bean.getRevision()),
-						currentDate, currentTime);
-				SubscribedDbPeriodicalEntity subEntity = new SubscribedDbPeriodicalEntity(
-						metadata_bean.getPeriodicalId(),
-						metadata_bean.getTitle(), metadata_bean.getEdition(),
-						Integer.parseInt(metadata_bean.getRevision()));
-				dataSource.insertEntity(periodicalDb,
-						PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS,
-						allEntity);
-				if (dataSource.doesExist(periodicalDb,
-						PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,
-						subEntity)) {
-					dataSource
-							.insertEntity(
-									periodicalDb,
-									PeriodicalsSQLiteHelper.TABLE_SUBSCRIBED_PERIODICALS,
-									subEntity);
-				}
-			} else {
-
-				downloadedBookDir = null;
-			}
-
-			final Handler downloadFinishHandler = new Handler() {
-				public void handleMessage(Message message) {
-					final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-					int id = Integer.valueOf(metadata_bean.getContentId());
-					notificationManager.cancel(id);
-					myOngoingNotifications.remove(Integer.valueOf(id));
-					File file = null;
-					if (downloadSuccess) {
-						file = new File(getOpfFile().getPath());
-					}
-					notificationManager
-							.notify(id,
-									createDownloadFinishNotification(file,
-											metadata_bean.getTitle(),
-											message.what != 0));
-				}
-			};
-
-			downloadFinishHandler.sendEmptyMessage(downloadSuccess ? 1 : 0);
-		}
-	}
-
-	private ZLFile getOpfFile() {
-		ZLFile bookDir = ZLFile.createFileByPath(downloadedBookDir);
-		List<ZLFile> bookEntries = bookDir.children();
-		ZLFile opfFile = null;
-		for (ZLFile entry : bookEntries) {
-			if (entry.getExtension().equals("opf")) {
-				opfFile = entry;
-				break;
-			}
-		}
-		return opfFile;
-	}
-
-	private Intent getFBReaderIntent(final File file) {
-		final Intent intent = new Intent(getApplicationContext(),
-				FBReader.class);
-		if (file != null) {
-			intent.setAction(Intent.ACTION_VIEW).setData(Uri.fromFile(file));
-		}
-		return intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-				| Intent.FLAG_ACTIVITY_NEW_TASK);
-	}
-
-	private Notification createDownloadFinishNotification(File file,
-			String title, boolean success) {
-        Log.i("GoRead", "start createDownloadFinishNotification with title, " + title);
-		final ZLResource resource = BookDownloaderService.getResource();
-		final String tickerText = success ? resource.getResource(
-				"tickerSuccess").getValue() : resource.getResource(
-				"tickerError").getValue();
-		final String contentText = success ? resource.getResource(
-				"contentSuccess").getValue() : resource.getResource(
-				"contentError").getValue();
-		final Notification notification = new Notification(
-				android.R.drawable.stat_sys_download_done, tickerText,
-				System.currentTimeMillis());
-		notification.flags |= Notification.FLAG_AUTO_CANCEL;
-		final Intent intent = success ? getFBReaderIntent(file) : new Intent();
-		final PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				intent, 0);
-		notification.setLatestEventInfo(getApplicationContext(), title,
-				contentText, contentIntent);
-		return notification;
-	}
-
-	private Notification createDownloadProgressNotification(String title) {
-        Log.i("GoRead", "start createDownloadProgressNotification with title, " + title);
-		final RemoteViews contentView = new RemoteViews(getPackageName(),
-				R.layout.download_notification);
-		contentView.setTextViewText(R.id.download_notification_title, title);
-		contentView.setTextViewText(R.id.download_notification_progress_text,
-				"");
-		contentView.setProgressBar(R.id.download_notification_progress_bar,
-				100, 0, true);
-
-		final PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				new Intent(), 0);
-
-		final Notification notification = new Notification();
-		notification.icon = android.R.drawable.stat_sys_download;
-		notification.flags |= Notification.FLAG_ONGOING_EVENT;
-		notification.contentView = contentView;
-		notification.contentIntent = contentIntent;
-
-		return notification;
-	}
 
 }

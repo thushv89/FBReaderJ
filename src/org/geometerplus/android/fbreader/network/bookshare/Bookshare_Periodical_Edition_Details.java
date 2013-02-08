@@ -1,5 +1,6 @@
 package org.geometerplus.android.fbreader.network.bookshare;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +22,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import android.content.Context;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
@@ -619,103 +621,17 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 								System.out.println("Contains zip");
 								java.io.BufferedInputStream in = new java.io.BufferedInputStream(entity.getContent());
 								java.io.FileOutputStream fos = new java.io.FileOutputStream(downloaded_zip_file);
-								java.io.BufferedOutputStream bout = new BufferedOutputStream(fos,1024);
-								byte[] data = new byte[1024];
-								int x=0;
-								while((x=in.read(data,0,1024))>=0){
-									bout.write(data,0,x);
-								}
-								fos.flush();
-								bout.flush();
-								fos.close();
-								bout.close();
-								in.close();
+                                copyStream(in, fos);
 								
-								System.out.println("******** Downloading complete");
+                                Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() + " : Downloading complete");
 								
-								// Unzip the encrypted archive file 
 								if(!isFree){
-									System.out.println("******Before creating ZipFile******"+zip_file);
-									// Initiate ZipFile object with the path/name of the zip file.
-									ZipFile zipFile = new ZipFile(zip_file);
-									
-									// Check to see if the zip file is password protected
-									if (zipFile.isEncrypted()) {
-										System.out.println("******isEncrypted******");
-
-										// if yes, then set the password for the zip file
-										if(!isOM){
-											zipFile.setPassword(password);
-										}									
-										// Set the OM password sent by the Intent
-										else{
-											// Obtain the SharedPreferences object shared across the application. It is stored in login activity
-											SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-											omDownloadPassword = login_preference.getString("downloadPassword", "");
-											zipFile.setPassword(omDownloadPassword);
-										}
-									}
-									
-									// Get the list of file headers from the zip file
-									List fileHeaderList = zipFile.getFileHeaders();
-
-									System.out.println("******Before for******");
-									// Loop through the file headers
-									for (int i = 0; i < fileHeaderList.size(); i++) {
-										FileHeader fileHeader = (FileHeader)fileHeaderList.get(i);
-										System.out.println(downloadedBookDir);
-										// Extract the file to the specified destination
-										zipFile.extractFile(fileHeader, downloadedBookDir);
-									}
+                                    UnzipEncryptedFile(zip_file, isOM, password, omDownloadPassword, downloadedBookDir,
+                                        getApplicationContext());
 								}
-								// Unzip the non-encrypted archive file
 								else{
-									try
-							        {
-										File file = new File(downloadedBookDir);
-										file.mkdir();
-							            String destinationname = downloadedBookDir + "/";
-							            byte[] buf = new byte[1024];
-							            ZipInputStream zipinputstream = null;
-							            ZipEntry zipentry;
-							            zipinputstream = new ZipInputStream(new FileInputStream(zip_file));
-
-							            zipentry = zipinputstream.getNextEntry();
-							            while (zipentry != null)
-							            {
-							                // for each entry to be extracted
-							                String entryName = zipentry.getName();
-							                System.out.println("entryname "+entryName);
-							                int n;
-							                FileOutputStream fileoutputstream;
-							                File newFile = new File(entryName);
-							                String directory = newFile.getParent();
-							                
-							                if(directory == null)
-							                {
-							                    if(newFile.isDirectory())
-							                        break;
-							                }
-							                
-							                fileoutputstream = new FileOutputStream(
-							                   destinationname+entryName);             
-
-							                while ((n = zipinputstream.read(buf, 0, 1024)) > -1)
-							                    fileoutputstream.write(buf, 0, n);
-
-							                fileoutputstream.close(); 
-							                zipinputstream.closeEntry();
-							                zipentry = zipinputstream.getNextEntry();
-
-							            }//while
-
-							            zipinputstream.close();
-							        }
-							        catch (Exception e)
-							        {
-							            e.printStackTrace();
-							        }
-								}
+                                    UnzipNonEncryptedFile(zip_file, downloadedBookDir);
+                                }
 								// Delete the downloaded zip file as it has been extracted
 								downloaded_zip_file = new File(zip_file);
 								if(downloaded_zip_file.exists()){
@@ -794,13 +710,102 @@ public class Bookshare_Periodical_Edition_Details extends Activity {
 			}
 	    }
 
+    public static void copyStream(BufferedInputStream in, FileOutputStream fos) throws IOException {
+        BufferedOutputStream bout = new BufferedOutputStream(fos,1024);
+        byte[] data = new byte[1024];
+        int x=0;
+        while((x=in.read(data,0,1024))>=0){
+            bout.write(data,0,x);
+        }
+        fos.flush();
+        bout.flush();
+        fos.close();
+        bout.close();
+        in.close();
+    }
 
-	   
+    public static void UnzipNonEncryptedFile(String zip_file, String downloadedBookDir) {
+        try {
+            File file = new File(downloadedBookDir);
+            file.mkdir();
+            String destinationname = downloadedBookDir + "/";
+            byte[] buf = new byte[1024];
+            ZipInputStream zipinputstream = null;
+            ZipEntry zipentry;
+            zipinputstream = new ZipInputStream(new FileInputStream(zip_file));
 
-		
-		
-	    
-		/**
+            zipentry = zipinputstream.getNextEntry();
+            while (zipentry != null) {
+                // for each entry to be extracted
+                String entryName = zipentry.getName();
+                System.out.println("entryname "+entryName);
+                int n;
+                FileOutputStream fileoutputstream;
+                File newFile = new File(entryName);
+                String directory = newFile.getParent();
+
+                if(directory == null)
+                {
+                    if(newFile.isDirectory())
+                    break;
+                }
+
+                fileoutputstream = new FileOutputStream(
+                destinationname+entryName);
+
+                while ((n = zipinputstream.read(buf, 0, 1024)) > -1)
+                    fileoutputstream.write(buf, 0, n);
+
+                fileoutputstream.close();
+                zipinputstream.closeEntry();
+                zipentry = zipinputstream.getNextEntry();
+
+            }//while
+
+            zipinputstream.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void UnzipEncryptedFile(String zip_file, boolean isOM, String password, String omDownloadPassword, String downloadedBookDir, Context context) throws ZipException {
+        Log.i(FBReader.LOG_LABEL, "******Before creating ZipFile******" + zip_file);
+        // Initiate ZipFile object with the path/name of the zip file.
+        ZipFile zipFile = new ZipFile(zip_file);
+
+        // Check to see if the zip file is password protected
+        if (zipFile.isEncrypted()) {
+        Log.i(FBReader.LOG_LABEL, "******isEncrypted******");
+
+            // if yes, then set the password for the zip file
+            if(!isOM){
+                zipFile.setPassword(password);
+            }
+            // Set the OM password sent by the Intent
+            else{
+                // Obtain the SharedPreferences object shared across the application. It is stored in login activity
+                SharedPreferences login_preference = PreferenceManager.getDefaultSharedPreferences(context);
+                omDownloadPassword = login_preference.getString("downloadPassword", "");
+                zipFile.setPassword(omDownloadPassword);
+            }
+        }
+
+        // Get the list of file headers from the zip file
+        List fileHeaderList = zipFile.getFileHeaders();
+
+        Log.i(FBReader.LOG_LABEL, "******Before for******");
+        // Loop through the file headers
+        for (int i = 0; i < fileHeaderList.size(); i++) {
+            FileHeader fileHeader = (FileHeader)fileHeaderList.get(i);
+            System.out.println(downloadedBookDir);
+            // Extract the file to the specified destination
+            zipFile.extractFile(fileHeader, downloadedBookDir);
+        }
+    }
+
+
+    /**
 		 * Uses a SAX parser to parse the response
 		 * @param response String representing the response
 		 */
