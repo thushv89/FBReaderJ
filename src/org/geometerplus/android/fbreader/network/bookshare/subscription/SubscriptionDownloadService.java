@@ -398,7 +398,7 @@ public class SubscriptionDownloadService extends IntentService {
 		private Bookshare_Error_Bean error;
 		final BookshareWebservice bws = new BookshareWebservice(
 				Bookshare_Webservice_Login.BOOKSHARE_API_HOST);
-
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		private boolean downloadSuccess;
 
 		// Will be called in the UI thread
@@ -442,7 +442,7 @@ public class SubscriptionDownloadService extends IntentService {
 			final Notification progressNotification = createDownloadProgressNotification(metadata_bean
 					.getTitle());
 
-			final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+			
 			myOngoingNotifications.add(Integer.valueOf(id));
 			notificationManager.notify(Integer.valueOf(id),
 					progressNotification);
@@ -675,7 +675,7 @@ public class SubscriptionDownloadService extends IntentService {
 
 			final Handler downloadFinishHandler = new Handler() {
 				public void handleMessage(Message message) {
-					final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+					
 					int id = Integer.valueOf(metadata_bean.getContentId());
 					notificationManager.cancel(id);
 					myOngoingNotifications.remove(Integer.valueOf(id));
@@ -688,6 +688,7 @@ public class SubscriptionDownloadService extends IntentService {
 									createDownloadFinishNotification(file,
 											metadata_bean.getTitle(),
 											message.what != 0));
+					
 				}
 			};
 
@@ -719,6 +720,13 @@ public class SubscriptionDownloadService extends IntentService {
 				| Intent.FLAG_ACTIVITY_NEW_TASK);
 	}
 
+	@Override
+	public void onDestroy() {
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		notificationManager.cancelAll();
+		super.onDestroy();
+	}
+	
 	private Notification createDownloadFinishNotification(File file,
 			String title, boolean success) {
 		final ZLResource resource = BookDownloaderService.getResource();
