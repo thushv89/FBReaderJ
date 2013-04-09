@@ -234,6 +234,7 @@
         <service android:name="org.geometerplus.android.fbreader.network.bookshare.subscription.Bookshare_Subscription_Download_Service"></service>
         <service android:name="org.geometerplus.android.fbreader.network.bookshare.subscription.SubscriptionAlarmTriggerService"></service>
         <service android:name="org.geometerplus.android.fbreader.network.bookshare.subscription.SubscriptionDownloadService"></service>
+        <service android:name="org.geometerplus.android.fbreader.network.bookshare.subscription.TestIntentService"></service>
         
     </application>
 </manifest>

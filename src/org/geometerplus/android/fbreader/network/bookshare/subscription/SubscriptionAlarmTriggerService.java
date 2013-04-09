@@ -35,9 +35,10 @@ public class SubscriptionAlarmTriggerService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		
 		Intent serviceIntent = new Intent(this,
 				Bookshare_Subscription_Download_Service.class);
-
+		
 		long daysTimeinMillis = 1000 * 60 * 60 * 24;
 
 		ArrayList<String> ids = intent

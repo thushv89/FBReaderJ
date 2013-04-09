@@ -42,14 +42,20 @@
                                 android:layout_height="wrap_content"/>
 
 						<Button
-							android:id="@+id/bookshare_btn_download"
-							android:layout_width="fill_parent"
-							android:layout_height="wrap_content"
-                            android:layout_marginTop="20dip"
-                            android:layout_marginBottom="10dip"
-							android:text="@string/book_details_download_button"
-							android:textStyle="bold"
-                            android:focusable="true"/>
+						    android:id="@+id/bookshare_btn_download"
+						    android:layout_width="fill_parent"
+						    android:layout_height="wrap_content"
+						    android:layout_marginBottom="10dip"
+						    android:layout_marginTop="20dip"
+						    android:focusable="true"
+						    android:text="@string/book_details_download_button"
+						    android:textStyle="bold" />
+
+						<Button
+						    android:id="@+id/bookshare_btn_with_images_download"
+						    android:layout_width="match_parent"
+						    android:layout_height="wrap_content"
+						    android:text="@string/book_details_download_with_images_btn" />
 
 						<TextView
 						    android:id="@+id/bookshare_download_not_available_msg"

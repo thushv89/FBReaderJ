@@ -310,7 +310,29 @@ public class Bookshare_Books_Listing extends ListActivity{
 								else{
 									intent.putExtra("isDownloadable", false);
 								}
+								
+								ArrayList<Integer> availableDownVersions = new ArrayList<Integer>();
+								if(bean.getDownloadFormats()!= null && bean.getDownloadFormats().length>0){
+									for(String str : bean.getDownloadFormats()){
+										if(str.equalsIgnoreCase("BRF")){
+											availableDownVersions.add(0);
+										}else if(str.equalsIgnoreCase("Daisy")){
+											availableDownVersions.add(1);
+										}else if(str.equalsIgnoreCase("DAISY with multiple DTBooks")){
+											availableDownVersions.add(2);
+										}
+									}
+								}
+								
+								if(availableDownVersions.contains(1) && bean.getImages().equals("1")){
+									availableDownVersions.add(4);
+								}
+								//-------------- THUHSV --------------------
+								intent.putIntegerArrayListExtra("availableDownloadVersions", availableDownVersions);
+								//------------------------------------------
+								
 								intent.putExtra("ID_SEARCH_URI", uri);
+								
 								if(!isFree){
 									intent.putExtra("username", username);
 									intent.putExtra("password", password);

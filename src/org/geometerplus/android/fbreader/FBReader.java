@@ -245,7 +245,9 @@ public final class FBReader extends ZLAndroidActivity {
 
 		if (!isOM && username != null && password != null
 				&& !TextUtils.isEmpty(username)) {
-			startService(alarmServiceIntent);
+			//--------------- THUSHV -----------------
+			//TODO: For the moment disable this as I'm working on download books with images
+			//startService(alarmServiceIntent);
 
 			Log.i(getClass().getName(),
 					"User is logged in. Download service binded");

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -75,6 +76,8 @@ public class Bookshare_Book_Details extends Activity {
 	private String username;
 	private String password;
 	private Bookshare_Metadata_Bean metadata_bean;
+	private ArrayList<Integer> availableDownVersions;
+	
 	private InputStream inputStream;
 	private BookshareWebservice bws = new BookshareWebservice(
 			Bookshare_Webservice_Login.BOOKSHARE_API_HOST);
@@ -91,7 +94,9 @@ public class Bookshare_Book_Details extends Activity {
 	private TextView bookshare_book_detail_synopsis_text;
 	private TextView bookshare_download_not_available_text;
 	private TextView subscribe_described_text;
+	
 	private Button btn_download;
+	private Button btn_download_with_images;
 	private CheckBox chkbox_subscribe;
 
 	boolean isDownloadable;
@@ -127,6 +132,7 @@ public class Bookshare_Book_Details extends Activity {
 		username = intent.getStringExtra("username");
 		password = intent.getStringExtra("password");
 
+		availableDownVersions = intent.getIntegerArrayListExtra("availableDownloadVersions");
 		if (username == null || password == null) {
 			isFree = true;
 		}
@@ -229,6 +235,8 @@ public class Bookshare_Book_Details extends Activity {
 					subscribe_described_text.setVisibility(View.GONE);
 
 					btn_download = (Button) findViewById(R.id.bookshare_btn_download);
+					btn_download_with_images = (Button) findViewById(R.id.bookshare_btn_with_images_download);
+					
 					bookshare_download_not_available_text = (TextView) findViewById(R.id.bookshare_download_not_available_msg);
 
 					bookshare_book_detail_language.setNextFocusDownId(R.id.bookshare_book_detail_category);
@@ -241,10 +249,14 @@ public class Bookshare_Book_Details extends Activity {
 					// button
 					if (!isDownloadable) {
 						btn_download.setVisibility(View.GONE);
+						btn_download_with_images.setVisibility(View.GONE);
 						bookshare_book_detail_authors.setNextFocusDownId(R.id.bookshare_download_not_available_msg);
                         bookshare_book_detail_isbn.setNextFocusUpId(R.id.bookshare_download_not_available_msg);
 						bookshare_download_not_available_text.setNextFocusUpId(R.id.bookshare_book_detail_authors);
 					} else {
+						if(!availableDownVersions.contains(4)){
+							btn_download_with_images.setVisibility(View.GONE);
+						}
 						bookshare_download_not_available_text.setVisibility(View.GONE);
 						btn_download.setNextFocusDownId(R.id.bookshare_book_detail_isbn);
 						btn_download.setNextFocusUpId(R.id.bookshare_book_detail_authors);
@@ -581,7 +593,7 @@ public class Bookshare_Book_Details extends Activity {
 
 	// A custom AsyncTask class for carrying out the downloading task in a
 	// separate background thread
-	private class DownloadFilesTask extends AsyncTask<Void, Void, Void> {
+	private class DownloadFilesTask extends AsyncTask<String, Void, Void> {
 
 		private Bookshare_Error_Bean error;
 
@@ -597,7 +609,7 @@ public class Bookshare_Book_Details extends Activity {
 
 		// Will be called in a separate thread
 		@Override
-		protected Void doInBackground(Void... params) {
+		protected Void doInBackground(String... params) {
 			final String id = metadata_bean.getContentId();
 			String download_uri;
 			if (isFree)
