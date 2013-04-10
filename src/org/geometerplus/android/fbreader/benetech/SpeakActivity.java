@@ -374,6 +374,10 @@ public class SpeakActivity extends Activity implements TextToSpeech.OnInitListen
     @Override
 	protected void onPause() {
 		super.onPause();
+	    if (justPaused) {
+		    resumePlaying = false;
+		    justPaused = false;
+	    }
 	}
 
 	@Override
