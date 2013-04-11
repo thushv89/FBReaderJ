@@ -296,6 +296,12 @@ public class SubscriptionDownloadService extends IntentService {
 
 	}
 
+	 @Override
+	public void onDestroy() {
+		 final NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		 notificationManager.cancelAll();
+		super.onDestroy();
+	}
 
 	private ZLFile getOpfFile() {
 		ZLFile bookDir = ZLFile.createFileByPath(downloadedBookDir);
