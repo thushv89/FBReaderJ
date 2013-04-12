@@ -61,14 +61,14 @@ import android.widget.RemoteViews;
  * @author thushan
  * 
  */
-public class Bookshare_Subscription_Download_Service extends Service {
+public class Bookshare_Subscription_Download_Service extends Service implements
+PeriodicalEditionListener,PeriodicalMetadataListener{
 
 	// SubscriptionSQLiteHelper dbHelper;
 	BooksharePeriodicalDataSource dataSource;
 	PeriodicalsSQLiteHelper dbHelper;
 	private String username;
 	private String password;
-	private String downloadedBookDir;
 	private String omDownloadPassword;
 	private boolean isFree = false;
 	private boolean isOM;
@@ -79,32 +79,16 @@ public class Bookshare_Subscription_Download_Service extends Service {
 	private SQLiteDatabase periodicalDb;
 	private PeriodicalEditionListFetcher editionFetcher;
 	private PeriodicalEditionMetadataFetcher metadataFetcher;
-	private ServiceBinder serviceBinder = new ServiceBinder();
-
+	private int currIdsIndex = 0;	//this variable is to keep track of for how many periodicals download started
+	
 	private String usernameKey = "username";
 	private String passwordKey = "password";
-
+	private AutomaticDownloadType downType;
+	private ArrayList<String> ids;
+	
 	@Override
 	public IBinder onBind(Intent arg0) {
-
-		SharedPreferences logingPrefs = PreferenceManager
-				.getDefaultSharedPreferences(getApplicationContext());
-		username = logingPrefs.getString(usernameKey, "");
-		password = logingPrefs.getString(passwordKey, "");
-
-		// TODO: Get first name, last name, member id
-		dataSource = BooksharePeriodicalDataSource
-				.getInstance(getApplicationContext());
-		dbHelper = new PeriodicalsSQLiteHelper(getApplicationContext());
-		periodicalDb = dbHelper.getWritableDatabase();
-
-		editionFetcher = new PeriodicalEditionListFetcher();
-
-		if (username == null || password == null || TextUtils.isEmpty(username)) {
-			isFree = true;
-		}
-
-		return serviceBinder;
+		return null;
 	}
 
 	@Override
@@ -117,14 +101,11 @@ public class Bookshare_Subscription_Download_Service extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-
-		// dbHelper=new SubscriptionSQLiteHelper(getApplicationContext());
-		// dataSrc=new BooksharePeriodicalDataSource(getApplicationContext());
-
 	}
 
 	@Override
 	public void onDestroy() {
+		Log.i(FBReader.LOG_LABEL, "Bookshare_Subscription_Download_Service is terminated");
 		super.onDestroy();
 		periodicalDb.close();
 	}
@@ -133,234 +114,239 @@ public class Bookshare_Subscription_Download_Service extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() +
 				" **** Service Started by Alarm Manager ****");
-        try {
-            if (serviceBinder == null) {
-                serviceBinder = new ServiceBinder();
-            }
-            Log.i(FBReader.LOG_LABEL, "about to get username and password in onStart");
-            SharedPreferences logingPrefs = PreferenceManager
-                    .getDefaultSharedPreferences(getApplicationContext());
-            username = logingPrefs.getString(usernameKey, "");
-            password = logingPrefs.getString(passwordKey, "");
-            Log.i(FBReader.LOG_LABEL, "about to set dataSource in onStart");
-            dataSource = BooksharePeriodicalDataSource
-                    .getInstance(getApplicationContext());
-            dbHelper = new PeriodicalsSQLiteHelper(getApplicationContext());
-            Log.i(FBReader.LOG_LABEL, "about to instantiate periodicalDB in onStart");
-            // instantiate periodical db only if its null or is not opened currently
-            if (periodicalDb == null) {
+		
+		Log.i(FBReader.LOG_LABEL, "about to get username and password in onStart");
+		SharedPreferences logingPrefs = PreferenceManager
+				.getDefaultSharedPreferences(getApplicationContext());
+		username = logingPrefs.getString(usernameKey, "");
+		password = logingPrefs.getString(passwordKey, "");
+
+		Log.i(FBReader.LOG_LABEL, "about to set dataSource in onStart");
+		// TODO: Get first name, last name, member id
+		dataSource = BooksharePeriodicalDataSource
+				.getInstance(getApplicationContext());
+		dbHelper = new PeriodicalsSQLiteHelper(getApplicationContext());
+		
+		Log.i(FBReader.LOG_LABEL, "about to instantiate periodicalDB in onStart");
+		// instantiate periodical db only if its null or is not opened currently
+        if (periodicalDb == null) {
+            periodicalDb = dbHelper.getWritableDatabase();
+        } else {
+            if (!periodicalDb.isOpen()) {
                 periodicalDb = dbHelper.getWritableDatabase();
-            } else {
-                if (!periodicalDb.isOpen()) {
-                    periodicalDb = dbHelper.getWritableDatabase();
-                }
             }
-            Log.i(FBReader.LOG_LABEL, "about to check username and password in onStart");
-            if (username == null || password == null || TextUtils.isEmpty(username)) {
-                isFree = true;
-            }
-
-            ArrayList<String> ids = (ArrayList<String>) intent
-                    .getStringArrayListExtra(FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY);
-
-            String downTypeStr = intent
-                    .getStringExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY);
-            AutomaticDownloadType downType;
-            if (null != ids) {
-                Log.i("GoRead", getClass().getSimpleName() + " Extras passed: id array size" + ids.size()
-                        + " , " + downTypeStr);
-            } else {
-                Log.i("GoRead", getClass().getSimpleName() + " Extras passed: ids are null"
-                                        + " , " + downTypeStr);
-            }
-            // Determine the download type user has set
-            if (AutomaticDownloadType.downloadAll.toString().equals(downTypeStr)) {
-                downType = AutomaticDownloadType.downloadAll;
-            } else {
-                downType = AutomaticDownloadType.downloadMostRecent;
-            }
-
-            if (ids != null && ids.size() > 0) {
-                for (String id : ids) {
-                    Log.i("GoRead", getClass().getSimpleName() +
-                            " Periodical search started by alarm: " + id);
-                    serviceBinder.getUpdates(downType, id);
-
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        Log.e("GoRead", getClass().getSimpleName(),e);
-                    }
-                }
-            } else {
-                Log.e("GoRead", getClass().getSimpleName() +
-                        " Couldn't find any subscribed Periodicals");
-            }
-        } catch (Exception e) {
-            Log.e(FBReader.LOG_LABEL, "problem starting download service", e);
         }
-		return super.onStartCommand(intent, flags, startId);
+
+		Log.i(FBReader.LOG_LABEL, "about to check username and password in onStart");
+		if (username == null || password == null || TextUtils.isEmpty(username)) {
+			isFree = true;
+		}
+		
+		editionFetcher = new PeriodicalEditionListFetcher();
+		
+		//setting variables from the other extras from parent
+		ids = (ArrayList<String>) intent
+                .getStringArrayListExtra(FBReader.SUBSCRIBED_PERIODICAL_IDS_KEY);
+
+        String downTypeStr = intent
+                .getStringExtra(FBReader.AUTOMATIC_DOWNLOAD_TYPE_KEY);
+        AutomaticDownloadType downType;
+        if (null != ids) {
+            Log.i("GoRead", getClass().getSimpleName() + " Extras passed: id array size" + ids.size()
+                    + " , " + downTypeStr);
+        } else {
+            Log.i("GoRead", getClass().getSimpleName() + " Extras passed: ids are null"
+                                    + " , " + downTypeStr);
+        }
+        // Determine the download type user has set
+        if (AutomaticDownloadType.downloadAll.toString().equals(downTypeStr)) {
+            downType = AutomaticDownloadType.downloadAll;
+        } else {
+            downType = AutomaticDownloadType.downloadMostRecent;
+        }
+        
+        if (ids != null && ids.size() > 0) {            
+                Log.i("GoRead", getClass().getSimpleName() +
+                        " Periodical search started by alarm: " + ids.get(currIdsIndex));
+                runGetUpdatesForCurrentIndex();
+        } else {
+            Log.e("GoRead", getClass().getSimpleName() +
+                    " Couldn't find any subscribed Periodicals");
+        }
+        
+        return super.onStartCommand(intent, flags, startId);
 
 	}
 
-	public class ServiceBinder extends Binder implements
-			IPeriodicalDownloadAPI, PeriodicalEditionListener,
-			PeriodicalMetadataListener {
-		AutomaticDownloadType downType;
+	public boolean downloadPeriodical(Bookshare_Edition_Metadata_Bean bean) {
+        Log.i("GoRead", getClass().getSimpleName() +
+        						" About to start SubscriptionDownloadService for periodical: " + bean.getPeriodicalId() + " and edition: " + bean.getEdition());
+		metadata_bean = bean;
 
-		@Override
-		public boolean downloadPeriodical(Bookshare_Edition_Metadata_Bean bean) {
-            Log.i("GoRead", getClass().getSimpleName() +
-            						" About to start SubscriptionDownloadService for periodical: " + bean.getPeriodicalId() + " and edition: " + bean.getEdition());
-			metadata_bean = bean;
+		Intent downloadService = new Intent(
+				Bookshare_Subscription_Download_Service.this,
+				SubscriptionDownloadService.class);
+		downloadService.putExtra(usernameKey, username);
+		downloadService.putExtra(passwordKey, password);
+		downloadService.putExtra("metadata_bean", metadata_bean);
+		startService(downloadService);
+		
+		currIdsIndex++;		
+		runGetUpdatesForCurrentIndex();
+		return false;
+	}
 
-			Intent downloadService = new Intent(
-					Bookshare_Subscription_Download_Service.this,
-					SubscriptionDownloadService.class);
-			downloadService.putExtra(usernameKey, username);
-			downloadService.putExtra(passwordKey, password);
-			downloadService.putExtra("metadata_bean", metadata_bean);
-			startService(downloadService);
-			return false;
+	//run get updates method for the item currently pointed in ids arraylist
+	private void runGetUpdatesForCurrentIndex(){
+		if(currIdsIndex<ids.size()){
+			getUpdates(downType, ids.get(currIdsIndex));
 		}
+		/*else{
+			stopSelf();
+		}*/
+	}
+	
+	public void getUpdates(AutomaticDownloadType downType, String id) {
 
-		@Override
-		public void getUpdates(AutomaticDownloadType downType, String id) {
+		this.downType = downType;
+		String serviceURI = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
+				+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
+				+ "/periodical/id/"
+				+ id
+				+ "/for/"
+				+ username
+				+ "?api_key="
+				+ developerKey;
+		Log.i("GoRead", getClass().getSimpleName() +
+				" Fetching Periodical List for periodical with id: " + id
+						+ " for: " + username);
 
-			this.downType = downType;
-			String serviceURI = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-					+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
-					+ "/periodical/id/"
-					+ id
-					+ "/for/"
-					+ username
-					+ "?api_key="
-					+ developerKey;
+		editionFetcher = new PeriodicalEditionListFetcher();
+		editionFetcher.getListing(serviceURI, password, this);
+
+	}
+
+	public void onPeriodicalEditionListResponse(
+			Vector<Bookshare_Periodical_Edition_Bean> results) {
+		if (results == null) {
+			Log.e("GoRead", getClass().getSimpleName() +
+					" Couldn't fetch any periodical Editions");
+		} else {
 			Log.i("GoRead", getClass().getSimpleName() +
-					" Fetching Periodical List for periodical with id: " + id
-							+ " for: " + username);
-
-			editionFetcher = new PeriodicalEditionListFetcher();
-			editionFetcher.getListing(serviceURI, password, this);
-
-		}
-
-		@Override
-		public void onPeriodicalEditionListResponse(
-				Vector<Bookshare_Periodical_Edition_Bean> results) {
-			if (results == null) {
-				Log.e("GoRead", getClass().getSimpleName() +
-						" Couldn't fetch any periodical Editions");
-			} else {
+					" Found and Fetched " + results.size() + " periodicals");
+			ArrayList<AllDbPeriodicalEntity> entities = new ArrayList<AllDbPeriodicalEntity>();
+			for (Bookshare_Periodical_Edition_Bean bean : results) {
 				Log.i("GoRead", getClass().getSimpleName() +
-						" Found and Fetched " + results.size() + " periodicals");
-				ArrayList<AllDbPeriodicalEntity> entities = new ArrayList<AllDbPeriodicalEntity>();
-				for (Bookshare_Periodical_Edition_Bean bean : results) {
-					Log.i("GoRead", getClass().getSimpleName() +
-							" Found and fetched periodical: Title "
-									+ bean.getTitle() + " Edition: "
-									+ bean.getEdition());
-					if (bean.getId() != null && bean.getEdition() != null
-							&& TextUtils.isDigitsOnly(bean.getRevision())) {
-						entities.add(new AllDbPeriodicalEntity(bean.getId(),
-								bean.getTitle(), bean.getEdition(), Integer
-										.parseInt(bean.getRevision()), null,
-								null));
-					}
+						" Found and fetched periodical: Title "
+								+ bean.getTitle() + " Edition: "
+								+ bean.getEdition());
+				if (bean.getId() != null && bean.getEdition() != null
+						&& TextUtils.isDigitsOnly(bean.getRevision())) {
+					entities.add(new AllDbPeriodicalEntity(bean.getId(),
+							bean.getTitle(), bean.getEdition(), Integer
+									.parseInt(bean.getRevision()), null,
+							null));
 				}
+			}
 
-				// URL to request metadata of particular edition of a periodical
-				String serviceURI;
-				// if user has set settings to download only the most recent
-				//if (downType == AutomaticDownloadType.downloadMostRecent) {
-					AllDbPeriodicalEntity maxEntity = PeriodicalDBUtils
-							.getMostRecentEdition(entities);
+			// URL to request metadata of particular edition of a periodical
+			String serviceURI;
+			// if user has set settings to download only the most recent
+			//if (downType == AutomaticDownloadType.downloadMostRecent) {
+				AllDbPeriodicalEntity maxEntity = PeriodicalDBUtils
+						.getMostRecentEdition(entities);
 
-					// download the periodical only if it's not been downloaded
-					// before
+				// download the periodical only if it's not been downloaded
+				// before
+				if (!dataSource.doesExist(periodicalDb,
+						PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS,
+						maxEntity)) {
+					serviceURI = getEditionRequestURL(maxEntity);
+
+					metadataFetcher = new PeriodicalEditionMetadataFetcher(
+							maxEntity.getId(), maxEntity.getTitle());
+					metadataFetcher.getListing(serviceURI, password, this);
+				}
+				//if the periodical already exists in the db, 
+				//the we need to go to the next periodical to be downloaded
+				//else clause does just that
+				else{
+					currIdsIndex++;
+					runGetUpdatesForCurrentIndex();
+				}
+			//}
+			// If user has set settings to download all periodicals
+/*				else if (downType == AutomaticDownloadType.downloadAll) {
+				for (AllDbPeriodicalEntity entity : entities) {
+					// download the periodical only if it's not been
+					// downloaded before
+					// TODO: Download periodicals which is higer than the
+					// highest in alldbperiodicals
 					if (!dataSource.doesExist(periodicalDb,
 							PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS,
-							maxEntity)) {
-						serviceURI = getEditionRequestURL(maxEntity);
+							entity)) {
+						serviceURI = getEditionRequestURL(entity);
 
 						metadataFetcher = new PeriodicalEditionMetadataFetcher(
-								maxEntity.getId(), maxEntity.getTitle());
-						metadataFetcher.getListing(serviceURI, password, this);
-					}
-				//}
-				// If user has set settings to download all periodicals
-/*				else if (downType == AutomaticDownloadType.downloadAll) {
-					for (AllDbPeriodicalEntity entity : entities) {
-						// download the periodical only if it's not been
-						// downloaded before
-						// TODO: Download periodicals which is higer than the
-						// highest in alldbperiodicals
-						if (!dataSource.doesExist(periodicalDb,
-								PeriodicalsSQLiteHelper.TABLE_ALL_PERIODICALS,
-								entity)) {
-							serviceURI = getEditionRequestURL(entity);
+								entity.getId(), entity.getTitle());
+						metadataFetcher.getListing(serviceURI, password,
+								this);
 
-							metadataFetcher = new PeriodicalEditionMetadataFetcher(
-									entity.getId(), entity.getTitle());
-							metadataFetcher.getListing(serviceURI, password,
-									this);
-
-							// This is to reduce number of queries per second
-							try {
-								Thread.sleep(1000);
-							} catch (InterruptedException ex) {
-								Log.e("GoRead", getClass().getSimpleName(),ex);
-							}
+						// This is to reduce number of queries per second
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException ex) {
+							Log.e("GoRead", getClass().getSimpleName(),ex);
 						}
 					}
-				}*/
-			}
-
-		}
-
-		private String getEditionRequestURL(AllDbPeriodicalEntity entity) {
-			String serviceURI = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
-					+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
-					+ "/periodical/id/"
-					+ entity.getId()
-					+ "/edition/"
-					+ entity.getEdition()
-					+ "/revision/"
-					+ entity.getRevision()
-					+ "/for/" + username + "?api_key=" + developerKey;
-            Log.i("GoRead", getClass().getSimpleName() +
-            						" request url is " + serviceURI);
-			return serviceURI;
-		}
-
-		@Override
-		public Bookshare_Edition_Metadata_Bean getDetails(
-				Bookshare_Periodical_Edition_Bean bean) {
-			if (bean == null) {
-				Log.e("GoRead", getClass().getSimpleName() +  " Couldn't obtain edition details");
-			} else {
-				Log.i("GoRead", getClass().getSimpleName() +
-						" Fetched Periodical: " + bean.getId() + " "
-								+ bean.getTitle() + " " + bean.getEdition());
-			}
-			return null;
-		}
-
-		@Override
-		public void onPeriodicalMetadataResponse(
-				Bookshare_Edition_Metadata_Bean result) {
-			if (result == null) {
-				Log.e("GoRead", getClass().getSimpleName() + " Couldn't obtain edition details");
-			} else {
-				downloadPeriodical(result);
-				Log.i("GoRead", getClass().getSimpleName() +
-						" Fetched Periodical: " + result.getPeriodicalId() + " "
-								+ result.getTitle() + " " + result.getEdition());
-			}
-
+				}
+			}*/
 		}
 
 	}
+
+	private String getEditionRequestURL(AllDbPeriodicalEntity entity) {
+		String serviceURI = Bookshare_Webservice_Login.BOOKSHARE_API_PROTOCOL
+				+ Bookshare_Webservice_Login.BOOKSHARE_API_HOST
+				+ "/periodical/id/"
+				+ entity.getId()
+				+ "/edition/"
+				+ entity.getEdition()
+				+ "/revision/"
+				+ entity.getRevision()
+				+ "/for/" + username + "?api_key=" + developerKey;
+        Log.i("GoRead", getClass().getSimpleName() +
+        						" request url is " + serviceURI);
+		return serviceURI;
+	}
+
+	public Bookshare_Edition_Metadata_Bean getDetails(
+			Bookshare_Periodical_Edition_Bean bean) {
+		if (bean == null) {
+			Log.e("GoRead", getClass().getSimpleName() +  " Couldn't obtain edition details");
+		} else {
+			Log.i("GoRead", getClass().getSimpleName() +
+					" Fetched Periodical: " + bean.getId() + " "
+							+ bean.getTitle() + " " + bean.getEdition());
+		}
+		return null;
+	}
+
+	@Override
+	public void onPeriodicalMetadataResponse(
+			Bookshare_Edition_Metadata_Bean result) {
+		if (result == null) {
+			Log.e("GoRead", getClass().getSimpleName() + " Couldn't obtain edition details");
+		} else {
+			downloadPeriodical(result);
+			Log.i("GoRead", getClass().getSimpleName() +
+					" Fetched Periodical: " + result.getPeriodicalId() + " "
+							+ result.getTitle() + " " + result.getEdition());
+		}
+
+	}
+	
+
 
 
 }
