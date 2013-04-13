@@ -1,59 +1,26 @@
 
 package org.geometerplus.android.fbreader.network.bookshare.subscription;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.Vector;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import net.lingala.zip4j.core.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.model.FileHeader;
-
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.benetech.android.R;
-import org.bookshare.net.BookshareWebservice;
 import org.geometerplus.android.fbreader.FBReader;
-import org.geometerplus.android.fbreader.network.BookDownloaderService;
 import org.geometerplus.android.fbreader.network.bookshare.BookshareDeveloperKey;
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Edition_Metadata_Bean;
-import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Error_Bean;
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Periodical_Edition_Bean;
 import org.geometerplus.android.fbreader.network.bookshare.Bookshare_Webservice_Login;
-import org.geometerplus.fbreader.Paths;
 import org.geometerplus.fbreader.fbreader.FBReaderApp.AutomaticDownloadType;
-import org.geometerplus.zlibrary.core.filesystem.ZLFile;
-import org.geometerplus.zlibrary.core.resources.ZLResource;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Binder;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.RemoteViews;
 
 /**
  * Main automatic dowload service
@@ -114,6 +81,11 @@ PeriodicalEditionListener,PeriodicalMetadataListener{
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.i(FBReader.LOG_LABEL, getClass().getSimpleName() +
 				" **** Service Started by Alarm Manager ****");
+		
+		if(developerKey==null || developerKey.length()==0){
+			Log.e(FBReader.LOG_LABEL, "Bookshare Developer Key is not define. Terminating the service");
+			stopSelf();
+		}
 		
 		Log.i(FBReader.LOG_LABEL, "about to get username and password in onStart");
 		SharedPreferences logingPrefs = PreferenceManager
