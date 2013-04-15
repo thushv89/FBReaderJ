@@ -60,9 +60,7 @@ PeriodicalEditionListener,PeriodicalMetadataListener{
 
 	@Override
 	public boolean onUnbind(Intent intent) {
-		stopSelf();
-		periodicalDb.close();
-		return super.onUnbind(intent);
+		return null;
 	}
 
 	@Override
