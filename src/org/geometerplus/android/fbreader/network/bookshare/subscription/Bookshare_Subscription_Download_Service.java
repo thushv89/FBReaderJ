@@ -60,7 +60,7 @@ PeriodicalEditionListener,PeriodicalMetadataListener{
 
 	@Override
 	public boolean onUnbind(Intent intent) {
-		return null;
+		return false;
 	}
 
 	@Override
